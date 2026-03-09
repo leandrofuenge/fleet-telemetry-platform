@@ -10,10 +10,10 @@ services:
     container_name: telemetria-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: SUA_ROOT_PASSWORD_AQUI
       MYSQL_DATABASE: telemetria
-      MYSQL_USER: telemetria
-      MYSQL_PASSWORD: telemetria
+      MYSQL_USER: SEU_USUARIO_AQUI
+      MYSQL_PASSWORD: SUA_SENHA_AQUI
     ports:
       - "3306:3306"
     volumes:
@@ -41,7 +41,7 @@ services:
       PMA_HOST: mysql
       PMA_PORT: 3306
       PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_PASSWORD: SUA_ROOT_PASSWORD_AQUI
     networks:
       - telemetria-network
 
@@ -167,8 +167,8 @@ services:
     environment:
       EMQX_NAME: telemetria
       EMQX_HOST: 0.0.0.0
-      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
-      EMQX_DASHBOARD__DEFAULT_PASSWORD: admin123
+      EMQX_DASHBOARD__DEFAULT_USERNAME: SEU_USUARIO_AQUI
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: SUA_SENHA_AQUI
       EMQX_LISTENERS__TCP__DEFAULT__BIND: 0.0.0.0:1883
       EMQX_LISTENERS__WS__DEFAULT__BIND: 0.0.0.0:8083
       EMQX_BRIDGE__KAFKA__TELEMETRIA__ENABLE: true
@@ -209,8 +209,8 @@ services:
     environment:
       # Banco de Dados
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/telemetria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: telemetria
-      SPRING_DATASOURCE_PASSWORD: telemetria
+      SPRING_DATASOURCE_USERNAME: SEU_USUARIO_AQUI
+      SPRING_DATASOURCE_PASSWORD: SUA_SENHA_AQUI
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_FLYWAY_ENABLED: true
       
@@ -220,29 +220,29 @@ services:
       # Redis
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD:
+      SPRING_DATA_REDIS_PASSWORD: SUA_SENHA_REDIS_AQUI
       SPRING_DATA_REDIS_TIMEOUT: 2000
       SPRING_DATA_REDIS_LETTUCE_POOL_MAX_ACTIVE: 8
       SPRING_DATA_REDIS_LETTUCE_POOL_MAX_IDLE: 8
       SPRING_DATA_REDIS_LETTUCE_POOL_MIN_IDLE: 0
       
       # OpenWeather 
-      OPENWEATHER_API_KEY: 
+      OPENWEATHER_API_KEY: SUA_API_KEY_AQUI
       OPENWEATHER_API_URL: https://api.openweathermap.org/data/2.5/weather
       OPENWEATHER_API_UNITS: metric
       OPENWEATHER_API_LANG: pt_br
       
       # IPLocate
-      IPLOCATE_API_KEY: 
+      IPLOCATE_API_KEY: SUA_API_KEY_AQUI
       IPLOCATE_API_URL: https://iplocate.io/api/lookup
       
       # MQTT
       MQTT_BROKER_URL: tcp://emqx:1883
-      MQTT_USERNAME: admin
-      MQTT_PASSWORD: admin123
+      MQTT_USERNAME: SEU_USUARIO_AQUI
+      MQTT_PASSWORD: SUA_SENHA_AQUI
       
       # JWT
-      JWT_SECRET: MinhaChaveSuperSeguraMuitoForte1234
+      JWT_SECRET: SUA_CHAVE_SECRETA_AQUI
       JWT_EXPIRATION: 3600000
       JWT_REFRESH_EXPIRATION: 86400000
       

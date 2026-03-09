@@ -1,0 +1,641 @@
+{
+  "info": {
+    "_postman_id": "79e40adb-dacb-4f7f-8c25-2d7c6adeda25",
+    "name": "TELEMETRIA",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47942391",
+    "_collection_link": "https://go.postman.co/collection/47942391-79e40adb-dacb-4f7f-8c25-2d7c6adeda25?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "LOGIN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"login\": \"admin\",\n  \"senha\": \"123456\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "REFRESH",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTcyMDcxMSwiZXhwIjoxNzcxODA3MTExfQ.P1VDfQHRuZAjYpYtOejSBTORwXBXMxGr1_Mf_jKaELo\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/refresh",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CRIAR MOTORISTA",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxMTU5NywiZXhwIjoxNzcxMjk3OTk3fQ.jJeZ8PlshsDSzbm_6l08-MuL0yhQVtFIEzGjuxyCr3o",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"João123\",\n  \"cpf\": \"12345678560\",\n  \"cnh\": \"999999999599\",\n  \"categoriaCnh\": \"k\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/motoristas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "motoristas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR MOTORISTAS",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "BUSCA POR MOTORISTA ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxMzExNywiZXhwIjoxNzcxMjk5NTE3fQ.PWOkYcVUBq1tBdPBcDtQY9PpOjTnJE5aiVpedZsr9Sc",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxMzExNywiZXhwIjoxNzcxMjk5NTE3fQ.PWOkYcVUBq1tBdPBcDtQY9PpOjTnJE5aiVpedZsr9Sc",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/motoristas/6",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "motoristas",
+            "6"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ATUALIZAR MOTORISTA",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTA3NjA3MSwiZXhwIjoxNzcxMTYyNDcxfQ.wDSDPOZ8gGFW7QzMKkQ6pAVYWhXt6S-ztkQoflYGknw",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"João Atualizado\",\n  \"cpf\": \"12345678900\",\n  \"cnh\": \"11111111111\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/motoristas/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "motoristas",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DELETAR MOTORISTA",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer ",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/motoristas/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "motoristas",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CRIAR VEICULO",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxODYyMSwiZXhwIjoxNzcxMzA1MDIxfQ.hJAwGngtUa12IlWB2fLY0oQWMWvqwZUjj5uJy81hwD0",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"placa\": \"teste\",\n  \"modelo\": \"teste\",\n  \"marca\": \"teste\",\n  \"ano\": 2022,\n  \"capacidadeCarga\": 25000.0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/veiculos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "veiculos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR VEICULOS",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTA4NzY5OSwiZXhwIjoxNzcxMTc0MDk5fQ.uxaRxCTJZypiApnvITebWP1z94v8-z58yMUaIrDemv0",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/veiculos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "veiculos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ATUALIZAR VEICULO",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTA4NzY5OSwiZXhwIjoxNzcxMTc0MDk5fQ.uxaRxCTJZypiApnvITebWP1z94v8-z58yMUaIrDemv0",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"placa\": \"ABC1234\",\n  \"modelo\": \"Onix Turbo\",\n  \"marca\": \"Chevrolet\",\n  \"ano\": 2023\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/veiculos/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "veiculos",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DELETAR VEICULO",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTA5MTQ0NywiZXhwIjoxNzcxMTc3ODQ3fQ.p2YGlkQ_-sOu9BWUc8kwy3wYuDMjiG6RFALFbH7QX5k",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/veiculos/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "veiculos",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CRIAR UMA ROTA",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxODYyMSwiZXhwIjoxNzcxMzA1MDIxfQ.hJAwGngtUa12IlWB2fLY0oQWMWvqwZUjj5uJy81hwD0",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nome\": \"Rota São Paulo - Rio\",\n    \"origem\": \"São Paulo, SP\",\n    \"destino\": \"Rio de Janeiro, RJ\",\n    \"latitudeOrigem\": -23.5505,\n    \"longitudeOrigem\": -46.6333,\n    \"latitudeDestino\": -22.9068,\n    \"longitudeDestino\": -43.1729,\n    \"distanciaPrevista\": 430.5,\n    \"tempoPrevisto\": 360,\n    \"ativa\": true,\n    \"veiculoId\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/rotas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "rotas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR TODAS AS ROTAS",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/rotas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "rotas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "BUSCAR ROTA POR ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/rotas/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "rotas",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ATUALIZAR ROTA",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTIxODYyMSwiZXhwIjoxNzcxMzA1MDIxfQ.hJAwGngtUa12IlWB2fLY0oQWMWvqwZUjj5uJy81hwD0",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nome\": \"Rota São Paulo - Rio - Teste Desvio\",\n    \"origem\": \"São Paulo, SP\",\n    \"destino\": \"Rio de Janeiro, RJ\",\n    \"latitudeOrigem\": -23.5505,\n    \"longitudeOrigem\": -46.6333,\n    \"latitudeDestino\": -22.9068,\n    \"longitudeDestino\": -43.1729,\n    \"distanciaPrevista\": 430.5,\n    \"tempoPrevisto\": 360,\n    \"ativa\": true,\n    \"status\": \"EM_ANDAMENTO\",\n    \"dataInicio\": \"2026-02-16T22:00:00\",\n    \"veiculo\": {\n        \"id\": 1\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/rotas/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "rotas",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DELETAR ROTA",
+      "request": {
+        "method": "DELETE",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "ALERTA TELEMETRIA",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3MTU2MTU2MywiZXhwIjoxNzcxNjQ3OTYzfQ.Z1vAmSugI1Xsf__J_9hk3P1yYxUg6TYH_6EZCtcWYOI",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"veiculo\": {\"id\": 1},\n    \"latitude\": -23.5505,\n    \"longitude\": -46.6333,\n    \"velocidade\": 70.0,\n    \"nivelCombustivel\": 80.0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/telemetria",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "telemetria"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TESTE OPENWEATHER",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR TODOS OS ALERTAS PAGINADO",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR ALERTAS ATIVOS (Não resolvidos)",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR POR VEÍCULO",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR POR MOTORISTA",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR POR VIAGEM",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "DASHBOARD",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "MARCAR COMO LIDO",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "RESOLVER ALERTA",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR POR PERIODO",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "VERIFICAR STATUS DO BACKPRESSURE",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "CONFIGURE LIMIARES BAIXOS",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "ROUTING SERVICE",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
