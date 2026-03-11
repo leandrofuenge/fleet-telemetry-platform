@@ -11,33 +11,57 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
-    
-    // Buscar últimas telemetrias de um veículo
+
+    // =========================================
+    // Métodos por objeto Veiculo (já existentes)
+    // =========================================
+
     List<Telemetria> findByVeiculoOrderByDataHoraDesc(Veiculo veiculo);
-    
-    // =========================================
-    // Método para buscar a última telemetria
-    // =========================================
+
     @Query("SELECT t FROM Telemetria t WHERE t.veiculo = :veiculo ORDER BY t.dataHora DESC LIMIT 1")
     Optional<Telemetria> findUltimaTelemetriaByVeiculo(@Param("veiculo") Veiculo veiculo);
-    
-    // Buscar telemetrias em um período
+
     List<Telemetria> findByVeiculoAndDataHoraBetweenOrderByDataHoraAsc(
-        Veiculo veiculo, 
-        LocalDateTime inicio, 
-        LocalDateTime fim
-    );
-    
-    // Buscar telemetrias recentes (últimos 5 minutos)
+            Veiculo veiculo,
+            LocalDateTime inicio,
+            LocalDateTime fim);
+
     @Query("SELECT t FROM Telemetria t WHERE t.veiculo = :veiculo AND t.dataHora >= :data ORDER BY t.dataHora DESC")
     List<Telemetria> findRecentByVeiculo(
-        @Param("veiculo") Veiculo veiculo, 
-        @Param("data") LocalDateTime data
-    );
-    
-    // Método adicional útil: contar telemetrias de um veículo
+            @Param("veiculo") Veiculo veiculo,
+            @Param("data") LocalDateTime data);
+
     long countByVeiculo(Veiculo veiculo);
-    
-    // Método adicional útil: deletar telemetrias antigas
+
     void deleteByDataHoraBefore(LocalDateTime data);
+
+    // =========================================
+    // Métodos adicionais por ID do veículo
+    // =========================================
+
+    /**
+     * Busca a última telemetria de um veículo pelo seu ID.
+     * Útil para evitar carregar a entidade Veiculo quando só se tem o ID.
+     */
+    @Query("SELECT t FROM Telemetria t WHERE t.veiculo.id = :veiculoId ORDER BY t.dataHora DESC LIMIT 1")
+    Optional<Telemetria> findUltimaTelemetriaByVeiculoId(@Param("veiculoId") Long veiculoId);
+
+    /**
+     * Lista telemetrias de um veículo ordenadas pela data/hora descendente.
+     */
+    List<Telemetria> findByVeiculoIdOrderByDataHoraDesc(Long veiculoId);
+
+    /**
+     * Busca telemetrias de um veículo em um período, usando o ID do veículo.
+     */
+    @Query("SELECT t FROM Telemetria t WHERE t.veiculo.id = :veiculoId AND t.dataHora BETWEEN :inicio AND :fim ORDER BY t.dataHora ASC")
+    List<Telemetria> findByVeiculoIdAndDataHoraBetween(
+            @Param("veiculoId") Long veiculoId,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
+
+    /**
+     * Conta quantas telemetrias um veículo possui.
+     */
+    long countByVeiculoId(Long veiculoId);
 }

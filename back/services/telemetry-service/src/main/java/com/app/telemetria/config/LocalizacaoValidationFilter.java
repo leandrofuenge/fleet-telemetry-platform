@@ -6,8 +6,9 @@ import com.app.telemetria.repository.UsuarioRepository;
 import com.app.telemetria.repository.MotoristaRepository;
 import com.app.telemetria.repository.ViagemRepository;
 import com.app.telemetria.entity.Usuario;
+import com.app.telemetria.enums.Perfil;
 import com.app.telemetria.entity.Motorista;
-import com.app.telemetria.entity.Perfil;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;

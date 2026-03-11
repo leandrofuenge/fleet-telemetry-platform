@@ -1,12 +1,7 @@
 package com.app.telemetria.controller;
 
 import com.app.telemetria.entity.Alerta;
-import com.app.telemetria.entity.Veiculo;
-import com.app.telemetria.repository.AlertaRepository;
 import com.app.telemetria.service.AlertaService;
-import com.app.telemetria.service.VeiculoService;
-import com.app.telemetria.exception.ErrorCode;
-import com.app.telemetria.exception.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -67,11 +62,9 @@ public class AlertaController {
 
     @GetMapping("/periodo")
     public List<Alerta> listarPorPeriodo(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
 
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime fim) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
 
         return alertaService.listarPorPeriodo(inicio, fim);
     }

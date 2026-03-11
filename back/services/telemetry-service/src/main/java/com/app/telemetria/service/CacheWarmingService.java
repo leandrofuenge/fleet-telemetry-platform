@@ -10,7 +10,6 @@ import com.app.telemetria.repository.VeiculoRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -66,7 +65,7 @@ public class CacheWarmingService {
         String cacheName = CacheConfig.CACHE_VEICULOS;
         Cache caffeineCache = caffeineCacheManager.getCache(cacheName);
         Cache redisCache = redisCacheManager.getCache(cacheName);
-        
+
         if (caffeineCache == null || redisCache == null) {
             System.err.println("❌ Cache " + cacheName + " não encontrado");
             return;
@@ -80,7 +79,7 @@ public class CacheWarmingService {
             caffeineCache.put(veiculo.getId(), veiculo);
             // Cache no Redis (distribuído)
             redisCache.put(veiculo.getId(), veiculo);
-            
+
             if (contador.incrementAndGet() % 10 == 0) {
                 System.out.println("🔄 " + contador.get() + "/" + veiculos.size() + " veículos carregados");
             }
@@ -139,13 +138,12 @@ public class CacheWarmingService {
     private void logCacheStats() {
         System.out.println("\n📊 ESTATÍSTICAS DE CACHE");
         System.out.println("========================");
-        
+
         try {
             // Caffeine stats
-            com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = 
-                (com.github.benmanes.caffeine.cache.Cache<Object, Object>) 
-                caffeineCacheManager.getCache(CacheConfig.CACHE_VEICULOS).getNativeCache();
-            
+            com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>) caffeineCacheManager
+                    .getCache(CacheConfig.CACHE_VEICULOS).getNativeCache();
+
             var stats = nativeCache.stats();
             System.out.println("Caffeine Stats:");
             System.out.println("  - Hit rate: " + String.format("%.2f", stats.hitRate() * 100) + "%");

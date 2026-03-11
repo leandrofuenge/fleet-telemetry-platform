@@ -1,44 +1,81 @@
 package com.app.telemetria.entity;
 
+import com.app.telemetria.enums.Perfil;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", indexes = {
+        @Index(name = "idx_usr_login", columnList = "login"),
+        @Index(name = "idx_usr_cpf", columnList = "cpf"),
+        @Index(name = "idx_usr_email", columnList = "email")
+})
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @NotBlank(message = "Login é obrigatório")
+    @Column(nullable = false, unique = true, length = 100)
     private String login;
 
+    @NotBlank(message = "Senha é obrigatória")
     @Column(nullable = false)
     private String senha;
 
+    @NotBlank(message = "Nome é obrigatório")
     @Column(nullable = false)
     private String nome;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 200)
     private String email;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 14)
     private String cpf;
 
+    @Column(nullable = false)
     private Boolean ativo;
 
     @Enumerated(EnumType.STRING)
-    private Perfil perfil; // Ex: ADMIN, GESTOR, MOTORISTA
+    @Column(nullable = false, length = 20)
+    private Perfil perfil;
 
+    @Column(name = "ultimo_acesso")
     private LocalDateTime ultimoAcesso;
 
-    // Construtor Padrão
+    // ── Relacionamento com Motorista (opcional) ────────────────
+
+    /**
+     * Se o usuário for um motorista, este campo vincula
+     * o login ao cadastro de motorista.
+     * 1:1 opcional — um Usuario pode ter no máximo um Motorista.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "motorista_id", unique = true)
+    private Motorista motorista;
+
+    // ── Auditoria ──────────────────────────────────────────────
+
+    @CreationTimestamp
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private LocalDateTime criadoEm;
+
+    @UpdateTimestamp
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
+
+    // ── Construtores ───────────────────────────────────────────
+
     public Usuario() {
         this.ativo = true;
     }
 
-    // Getters e Setters
+    // ── Getters e Setters ──────────────────────────────────────
 
     public Long getId() {
         return id;
@@ -110,5 +147,21 @@ public class Usuario {
 
     public void setUltimoAcesso(LocalDateTime ultimoAcesso) {
         this.ultimoAcesso = ultimoAcesso;
+    }
+
+    public Motorista getMotorista() {
+        return motorista;
+    }
+
+    public void setMotorista(Motorista motorista) {
+        this.motorista = motorista;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public LocalDateTime getAtualizadoEm() {
+        return atualizadoEm;
     }
 }

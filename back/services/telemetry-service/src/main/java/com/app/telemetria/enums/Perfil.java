@@ -1,4 +1,4 @@
-package com.app.telemetria.entity;
+package com.app.telemetria.enums;
 
 public enum Perfil {
     ADMIN,

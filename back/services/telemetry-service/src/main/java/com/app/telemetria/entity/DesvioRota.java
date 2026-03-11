@@ -1,102 +1,116 @@
 package com.app.telemetria.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "desvios_rota")
+@Table(name = "desvios_rota", indexes = {
+        @Index(name = "idx_desvio_rota", columnList = "rota_id"),
+        @Index(name = "idx_desvio_veiculo", columnList = "veiculo_id"),
+        @Index(name = "idx_desvio_viagem", columnList = "viagem_id"),
+        @Index(name = "idx_desvio_data", columnList = "data_hora_desvio"),
+        @Index(name = "idx_desvio_resolvido", columnList = "resolvido")
+})
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class DesvioRota {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @ManyToOne
-    @JoinColumn(name = "rota_id", nullable = false)
-    private Rota rota;
-    
-    @ManyToOne
-    @JoinColumn(name = "veiculo_id", nullable = false)
-    private Veiculo veiculo;
-    
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+
+    @Column(name = "rota_id", nullable = false)
+    private Long rotaId;
+
+    @Column(name = "veiculo_id", nullable = false)
+    private Long veiculoId;
+
+    @Column(name = "veiculo_uuid", nullable = false, length = 36)
+    private String veiculoUuid;
+
+    @Column(name = "viagem_id")
+    private Long viagemId;
+
+    @Column(name = "latitude_desvio", nullable = false)
     private Double latitudeDesvio;
+
+    @Column(name = "longitude_desvio", nullable = false)
     private Double longitudeDesvio;
-    private Double distanciaDesvio; // Em metros
+
+    @Column(name = "velocidade_kmh")
+    private Double velocidadeKmh;
+
+    @Column(name = "distancia_metros", nullable = false)
+    private Double distanciaMetros;
+
+    @Column(name = "lat_ponto_mais_proximo")
+    private Double latPontoMaisProximo;
+
+    @Column(name = "lng_ponto_mais_proximo")
+    private Double lngPontoMaisProximo;
+
+    @Column(name = "nome_via_desvio")
+    private String nomeViaDesvio;
+
+    @Column(name = "data_hora_desvio", nullable = false)
     private LocalDateTime dataHoraDesvio;
-    private Boolean resolvido;
+
+    @Column(name = "data_hora_retorno")
     private LocalDateTime dataHoraRetorno;
 
-    // Getters e Setters
-    
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "duracao_min")
+    private Integer duracaoMin;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "km_extras", nullable = false)
+    @Builder.Default
+    private Double kmExtras = 0.0;
 
-    public Rota getRota() {
-        return rota;
-    }
+    @Column(name = "alerta_enviado", nullable = false)
+    @Builder.Default
+    private Boolean alertaEnviado = false;
 
-    public void setRota(Rota rota) {
-        this.rota = rota;
-    }
+    @Column(name = "resolvido", nullable = false)
+    @Builder.Default
+    private Boolean resolvido = false;
 
-    public Veiculo getVeiculo() {
-        return veiculo;
-    }
+    @Column(name = "motivo", length = 255)
+    private String motivo;
 
-    public void setVeiculo(Veiculo veiculo) {
-        this.veiculo = veiculo;
-    }
+    @CreationTimestamp
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private LocalDateTime criadoEm;
 
-    public Double getLatitudeDesvio() {
-        return latitudeDesvio;
-    }
+    // ── Relacionamentos JPA (objetos completos) ────────────────
 
-    public void setLatitudeDesvio(Double latitudeDesvio) {
-        this.latitudeDesvio = latitudeDesvio;
-    }
+    /**
+     * Veículo que realizou o desvio.
+     * FK: veiculo_id → veiculos.id
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veiculo_id", insertable = false, updatable = false)
+    private Veiculo veiculo;
 
-    public Double getLongitudeDesvio() {
-        return longitudeDesvio;
-    }
+    /**
+     * Rota da qual ocorreu o desvio.
+     * FK: rota_id → rotas.id
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rota_id", insertable = false, updatable = false)
+    private Rota rota;
 
-    public void setLongitudeDesvio(Double longitudeDesvio) {
-        this.longitudeDesvio = longitudeDesvio;
-    }
-
-    public Double getDistanciaDesvio() {
-        return distanciaDesvio;
-    }
-
-    public void setDistanciaDesvio(Double distanciaDesvio) {
-        this.distanciaDesvio = distanciaDesvio;
-    }
-
-    public LocalDateTime getDataHoraDesvio() {
-        return dataHoraDesvio;
-    }
-
-    public void setDataHoraDesvio(LocalDateTime dataHoraDesvio) {
-        this.dataHoraDesvio = dataHoraDesvio;
-    }
-
-    public Boolean getResolvido() {
-        return resolvido;
-    }
-
-    public void setResolvido(Boolean resolvido) {
-        this.resolvido = resolvido;
-    }
-
-    public LocalDateTime getDataHoraRetorno() {
-        return dataHoraRetorno;
-    }
-
-    public void setDataHoraRetorno(LocalDateTime dataHoraRetorno) {
-        this.dataHoraRetorno = dataHoraRetorno;
-    }
+    /**
+     * Viagem em execução no momento do desvio.
+     * FK: viagem_id → viagens.id
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "viagem_id", insertable = false, updatable = false)
+    private Viagem viagem;
 }
