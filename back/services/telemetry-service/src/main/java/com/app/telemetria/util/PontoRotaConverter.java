@@ -1,11 +1,13 @@
 package com.app.telemetria.util;
 
-import com.app.telemetria.entity.PontoRota;
+import java.util.List;
+
+import com.app.telemetria.domain.entity.PontoRota;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import java.util.List;
 
 @Converter
 public class PontoRotaConverter implements AttributeConverter<List<PontoRota>, String> {

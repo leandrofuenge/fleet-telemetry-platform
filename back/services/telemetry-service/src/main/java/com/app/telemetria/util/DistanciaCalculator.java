@@ -2,6 +2,7 @@ package com.app.telemetria.util;
 
 import org.springframework.stereotype.Component;
 
+
 @Component
 public class DistanciaCalculator {
     

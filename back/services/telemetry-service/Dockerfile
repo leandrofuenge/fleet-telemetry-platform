@@ -16,14 +16,14 @@ COPY src src
 RUN mvn clean package -DskipTests
 
 # ========================================================
-# Estágio 2: Imagem final com JRE
-FROM eclipse-temurin:17-jre-alpine
+# Estágio 2: Imagem final com JRE - USAR VERSÃO SEM ALPINE
+FROM eclipse-temurin:17-jre-jammy  
 
 WORKDIR /app
 
 RUN mkdir -p /app/logs && \
     chmod 755 /app/logs && \
-    addgroup -S spring && adduser -S spring -G spring && \
+    groupadd -r spring && useradd -r -g spring spring && \
     chown -R spring:spring /app/logs
 
 USER spring:spring

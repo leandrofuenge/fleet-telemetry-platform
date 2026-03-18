@@ -1,16 +1,18 @@
 package com.app.telemetria.interceptor;
 
+import java.time.Duration;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
 import com.app.telemetria.config.RateLimitingConfig;
-import com.app.telemetria.exception.BusinessException;
-import com.app.telemetria.exception.ErrorCode;
+import com.app.telemetria.domain.exception.BusinessException;
+import com.app.telemetria.domain.exception.ErrorCode;
+
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.time.Duration;
 
 @Component
 public class RateLimitingInterceptor implements HandlerInterceptor {
