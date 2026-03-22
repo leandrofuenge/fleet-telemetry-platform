@@ -47,7 +47,49 @@ public enum TipoAlerta {
 
     // Clima
     CLIMA("Clima / Condições meteorológicas"),
+    
+    // NOVOS ALERTAS PARA RN-VEI-002 (Tacógrafo)
+    TACOGRAFO_VENCIMENTO("Tacógrafo próximo do vencimento"),
+    TACOGRAFO_VENCIDO("Tacógrafo vencido"),
+    
+    // NOVOS ALERTAS PARA RN-VEI-003 (Documentos)
+    CRLV_VENCIMENTO("CRLV próximo do vencimento"),
+    CRLV_VENCIDO("CRLV vencido"),
+    SEGURO_VENCIMENTO("Seguro próximo do vencimento"),
+    SEGURO_VENCIDO("Seguro vencido"),
+    DPVAT_VENCIMENTO("DPVAT próximo do vencimento"),
+    DPVAT_VENCIDO("DPVAT vencido"),
+    RCF_VENCIMENTO("RCF próximo do vencimento"),
+    RCF_VENCIDO("RCF vencido"),
+    VISTORIA_VENCIMENTO("Vistoria próxima do vencimento"),
+    VISTORIA_VENCIDO("Vistoria vencida"),
+    RNTRC_VENCIMENTO("RNTRC próximo do vencimento"),
+    RNTRC_VENCIDO("RNTRC vencido"),
+    
+    // Alertas genéricos para documentos (fallback)
+    DOCUMENTO_VENCIMENTO("Documento próximo do vencimento"),
+    DOCUMENTO_VENCIDO("Documento vencido"),
+    
+    // NOVO ALERTA PARA RN-VEI-006 (Inconsistência de odômetro)
+    ODOMETRO_INCONSISTENCIA("Inconsistência de odômetro detectada"),
+    
+ // Adicione no enum TipoAlerta, após os outros tipos
 
+ // NOVOS ALERTAS PARA RN-MOT-002 (CNH)
+ CNH_VENCIMENTO("CNH próxima do vencimento"),
+ CNH_VENCIDA("CNH vencida"),
+ 
+
+ // NOVOS ALERTAS PARA RN-MOT-003 (ASO e MOPP)
+ ASO_VENCIMENTO("ASO próximo do vencimento"),
+ ASO_VENCIDO("ASO vencido"),
+ MOPP_INVALIDO("MOPP inválido para carga perigosa"),
+ 
+ // NOVOS ALERTAS PARA RN-MOT-004 (Score)
+ SCORE_BAIXO("Score de comportamento baixo"),
+ SCORE_CRITICO("Score de comportamento crítico"),
+ 
+ 
     // Outros
     OUTRO("Tipo de alerta não especificado");
 

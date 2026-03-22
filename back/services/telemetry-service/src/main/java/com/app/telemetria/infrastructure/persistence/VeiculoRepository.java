@@ -1,5 +1,6 @@
 package com.app.telemetria.infrastructure.persistence;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,4 +55,45 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
     @Query(value = "SELECT * FROM veiculos WHERE capacidade_carga > :capacidade",
            nativeQuery = true)
     List<Veiculo> findByCapacidadeCargaGreaterThan(@Param("capacidade") Double capacidade);
+
+
+    // ===== NOVOS MÉTODOS PARA RN-VEI-001 (Unicidade por Tenant) =====
+    
+    /**
+     * Busca veículo por placa e tenant_id
+     * RN-VEI-001: Unicidade de placa por tenant
+     */
+    @Query("SELECT v FROM Veiculo v WHERE v.placa = :placa AND v.tenantId = :tenantId")
+    Optional<Veiculo> findByPlacaAndTenantId(@Param("placa") String placa, 
+                                              @Param("tenantId") Long tenantId);
+    
+    /**
+     * Verifica se já existe veículo com a mesma placa no mesmo tenant
+     * RN-VEI-001: Unicidade de placa por tenant
+     */
+    boolean existsByPlacaAndTenantId(String placa, Long tenantId);
+    
+    /**
+     * Lista veículos de um tenant específico
+     */
+    List<Veiculo> findByTenantId(Long tenantId);
+    
+    /**
+     * Lista veículos de um tenant com documentos vencidos
+     * RN-VEI-003: Monitoramento de documentos
+     */
+    @Query("SELECT v FROM Veiculo v WHERE v.tenantId = :tenantId AND " +
+           "(v.dataVencimentoCrlv < CURRENT_DATE OR " +
+           " v.dataVencimentoSeguro < CURRENT_DATE OR " +
+           " v.dataVencimentoTacografo < CURRENT_DATE)")
+    List<Veiculo> findWithDocumentosVencidos(@Param("tenantId") Long tenantId);
+    
+    /**
+     * Lista veículos com tacógrafo vencendo em X dias
+     * RN-VEI-002: Alertas 30d e 7d antes do vencimento
+     */
+    @Query("SELECT v FROM Veiculo v WHERE v.tacografoObrigatorio = true AND " +
+           "v.dataVencimentoTacografo BETWEEN CURRENT_DATE AND :diasAteVencimento")
+    List<Veiculo> findTacografoVencendoEmDias(@Param("diasAteVencimento") LocalDate diasAteVencimento);
 }
+

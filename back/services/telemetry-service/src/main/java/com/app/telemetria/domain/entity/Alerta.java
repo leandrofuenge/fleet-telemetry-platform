@@ -132,21 +132,20 @@ public class Alerta {
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
-    // Mude de LAZY para EAGER
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "veiculo_id", insertable = false, updatable = false)
     private Veiculo veiculo;
 
-    // Mude de LAZY para EAGER
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "motorista_id", insertable = false, updatable = false)
     private Motorista motorista;
 
-    // Mude de LAZY para EAGER
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "viagem_id", insertable = false, updatable = false)
     private Viagem viagem;
 
+    // ===== CONSTRUTORES =====
+    
     public Alerta() {
         this.uuid = UUID.randomUUID().toString();
         this.lido = false;
@@ -154,7 +153,223 @@ public class Alerta {
         this.notificacaoEnviada = false;
     }
 
-    // Getters e Setters
+    /**
+     * Construtor com Builder
+     */
+    private Alerta(Builder builder) {
+        this.uuid = builder.uuid != null ? builder.uuid : UUID.randomUUID().toString();
+        this.tenantId = builder.tenantId;
+        this.veiculoId = builder.veiculoId;
+        this.veiculoUuid = builder.veiculoUuid;
+        this.motoristaId = builder.motoristaId;
+        this.viagemId = builder.viagemId;
+        this.telemetriaId = builder.telemetriaId;
+        this.regraId = builder.regraId;
+        this.tipo = builder.tipo;
+        this.severidade = builder.severidade;
+        this.categoria = builder.categoria;
+        this.mensagem = builder.mensagem;
+        this.latitude = builder.latitude;
+        this.longitude = builder.longitude;
+        this.velocidadeKmh = builder.velocidadeKmh;
+        this.odometroKm = builder.odometroKm;
+        this.nomeLocal = builder.nomeLocal;
+        this.dadosContexto = builder.dadosContexto;
+        this.dataHora = builder.dataHora;
+        this.lido = builder.lido != null ? builder.lido : false;
+        this.lidoPor = builder.lidoPor;
+        this.dataHoraLeitura = builder.dataHoraLeitura;
+        this.resolvido = builder.resolvido != null ? builder.resolvido : false;
+        this.resolvidoPor = builder.resolvidoPor;
+        this.dataHoraResolucao = builder.dataHoraResolucao;
+        this.observacaoResolucao = builder.observacaoResolucao;
+        this.notificacaoEnviada = builder.notificacaoEnviada != null ? builder.notificacaoEnviada : false;
+        this.canaisNotificados = builder.canaisNotificados;
+    }
+
+    // ===== BUILDER =====
+    
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String uuid;
+        private Long tenantId;
+        private Long veiculoId;
+        private String veiculoUuid;
+        private Long motoristaId;
+        private Long viagemId;
+        private Long telemetriaId;
+        private Long regraId;
+        private TipoAlerta tipo;
+        private SeveridadeAlerta severidade;
+        private String categoria;
+        private String mensagem;
+        private Double latitude;
+        private Double longitude;
+        private Double velocidadeKmh;
+        private Double odometroKm;
+        private String nomeLocal;
+        private Map<String, Object> dadosContexto;
+        private LocalDateTime dataHora;
+        private Boolean lido;
+        private String lidoPor;
+        private LocalDateTime dataHoraLeitura;
+        private Boolean resolvido;
+        private String resolvidoPor;
+        private LocalDateTime dataHoraResolucao;
+        private String observacaoResolucao;
+        private Boolean notificacaoEnviada;
+        private Object canaisNotificados;
+
+        public Builder uuid(String uuid) {
+            this.uuid = uuid;
+            return this;
+        }
+
+        public Builder tenantId(Long tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+
+        public Builder veiculoId(Long veiculoId) {
+            this.veiculoId = veiculoId;
+            return this;
+        }
+
+        public Builder veiculoUuid(String veiculoUuid) {
+            this.veiculoUuid = veiculoUuid;
+            return this;
+        }
+
+        public Builder motoristaId(Long motoristaId) {
+            this.motoristaId = motoristaId;
+            return this;
+        }
+
+        public Builder viagemId(Long viagemId) {
+            this.viagemId = viagemId;
+            return this;
+        }
+
+        public Builder telemetriaId(Long telemetriaId) {
+            this.telemetriaId = telemetriaId;
+            return this;
+        }
+
+        public Builder regraId(Long regraId) {
+            this.regraId = regraId;
+            return this;
+        }
+
+        public Builder tipo(TipoAlerta tipo) {
+            this.tipo = tipo;
+            return this;
+        }
+
+        public Builder severidade(SeveridadeAlerta severidade) {
+            this.severidade = severidade;
+            return this;
+        }
+
+        public Builder categoria(String categoria) {
+            this.categoria = categoria;
+            return this;
+        }
+
+        public Builder mensagem(String mensagem) {
+            this.mensagem = mensagem;
+            return this;
+        }
+
+        public Builder latitude(Double latitude) {
+            this.latitude = latitude;
+            return this;
+        }
+
+        public Builder longitude(Double longitude) {
+            this.longitude = longitude;
+            return this;
+        }
+
+        public Builder velocidadeKmh(Double velocidadeKmh) {
+            this.velocidadeKmh = velocidadeKmh;
+            return this;
+        }
+
+        public Builder odometroKm(Double odometroKm) {
+            this.odometroKm = odometroKm;
+            return this;
+        }
+
+        public Builder nomeLocal(String nomeLocal) {
+            this.nomeLocal = nomeLocal;
+            return this;
+        }
+
+        public Builder dadosContexto(Map<String, Object> dadosContexto) {
+            this.dadosContexto = dadosContexto;
+            return this;
+        }
+
+        public Builder dataHora(LocalDateTime dataHora) {
+            this.dataHora = dataHora;
+            return this;
+        }
+
+        public Builder lido(Boolean lido) {
+            this.lido = lido;
+            return this;
+        }
+
+        public Builder lidoPor(String lidoPor) {
+            this.lidoPor = lidoPor;
+            return this;
+        }
+
+        public Builder dataHoraLeitura(LocalDateTime dataHoraLeitura) {
+            this.dataHoraLeitura = dataHoraLeitura;
+            return this;
+        }
+
+        public Builder resolvido(Boolean resolvido) {
+            this.resolvido = resolvido;
+            return this;
+        }
+
+        public Builder resolvidoPor(String resolvidoPor) {
+            this.resolvidoPor = resolvidoPor;
+            return this;
+        }
+
+        public Builder dataHoraResolucao(LocalDateTime dataHoraResolucao) {
+            this.dataHoraResolucao = dataHoraResolucao;
+            return this;
+        }
+
+        public Builder observacaoResolucao(String observacaoResolucao) {
+            this.observacaoResolucao = observacaoResolucao;
+            return this;
+        }
+
+        public Builder notificacaoEnviada(Boolean notificacaoEnviada) {
+            this.notificacaoEnviada = notificacaoEnviada;
+            return this;
+        }
+
+        public Builder canaisNotificados(Object canaisNotificados) {
+            this.canaisNotificados = canaisNotificados;
+            return this;
+        }
+
+        public Alerta build() {
+            return new Alerta(this);
+        }
+    }
+
+    // ===== GETTERS E SETTERS =====
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     

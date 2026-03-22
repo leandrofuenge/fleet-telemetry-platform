@@ -1,6 +1,7 @@
 package com.app.telemetria.domain.service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,16 +22,35 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.telemetria.api.dto.response.RouteResponse;
 import com.app.telemetria.domain.entity.Alerta;
+import com.app.telemetria.domain.entity.DispositivoIot;
+import com.app.telemetria.domain.entity.HistoricoOdometro;
+import com.app.telemetria.domain.entity.HistoricoScoreMotorista;
+//Adicione estas importações no topo do AlertaService
+import com.app.telemetria.domain.entity.Motorista;
 import com.app.telemetria.domain.entity.Rota;
 import com.app.telemetria.domain.entity.Telemetria;
+import com.app.telemetria.domain.entity.Veiculo;
 import com.app.telemetria.domain.entity.Viagem;
 import com.app.telemetria.domain.enums.SeveridadeAlerta;
+import com.app.telemetria.domain.enums.StatusDispositivo;
 import com.app.telemetria.domain.enums.TipoAlerta;
+import com.app.telemetria.domain.enums.TipoDispositivo;
+import com.app.telemetria.domain.exception.BusinessException;
+import com.app.telemetria.domain.exception.ErrorCode;
+import com.app.telemetria.domain.exception.VeiculoNotFoundException;
 import com.app.telemetria.infrastructure.integration.geocoding.LocationClassifierService;
 import com.app.telemetria.infrastructure.integration.routing.RoutingClient;
 import com.app.telemetria.infrastructure.persistence.AlertaRepository;
+import com.app.telemetria.infrastructure.persistence.DispositivoIotRepository;
+import com.app.telemetria.infrastructure.persistence.HistoricoOdometroRepository;
+import com.app.telemetria.infrastructure.persistence.HistoricoScoreMotoristaRepository;
+import com.app.telemetria.infrastructure.persistence.MotoristaRepository;
 import com.app.telemetria.infrastructure.persistence.TelemetriaRepository;
+import com.app.telemetria.infrastructure.persistence.VeiculoRepository;
 import com.app.telemetria.infrastructure.persistence.ViagemRepository;
+
+
+
 
 @Service
 public class AlertaService {
@@ -42,7 +63,24 @@ public class AlertaService {
     private final LocationClassifierService locationClassifierService;
     private final SimpMessagingTemplate messagingTemplate;
     private final RoutingClient routingClient;
+    
+    @Autowired
+    private DispositivoIotRepository dispositivoRepository;
+    
+    @Autowired
+    private VeiculoRepository veiculoRepository;
+    
+    @Autowired
+    private HistoricoOdometroRepository historicoOdometroRepository;
 
+    @Autowired
+    private MotoristaRepository motoristaRepository;
+    
+    
+    @Autowired
+    private HistoricoScoreMotoristaRepository historicoScoreRepository;
+    
+    
     private static final double VELOCIDADE_MAXIMA = 110.0;
     private static final double VELOCIDADE_MINIMA = 10.0;
     private static final int TEMPO_PARADA_MAXIMO = 30;
@@ -164,7 +202,6 @@ public class AlertaService {
             }
             dashboard.put("alertasPorTipo", alertasPorTipo);
             
-            // CORREÇÃO: Converter para DTOs em vez de entidades
             List<Map<String, Object>> ultimosAlertasSimplificado = alertasAtivos.stream()
                     .limit(10)
                     .map(alerta -> {
@@ -178,7 +215,6 @@ public class AlertaService {
                         alertaMap.put("resolvido", alerta.getResolvido());
                         alertaMap.put("veiculoId", alerta.getVeiculoId());
                         
-                        // Tenta carregar dados adicionais de forma segura
                         try {
                             if (alerta.getVeiculo() != null) {
                                 alertaMap.put("veiculoPlaca", alerta.getVeiculo().getPlaca());
@@ -206,7 +242,6 @@ public class AlertaService {
         } catch (Exception e) {
             log.error("❌ Erro ao gerar dashboard: {}", e.getMessage(), e);
             
-            // Retorna um dashboard vazio em caso de erro
             dashboard.put("totalAtivos", 0);
             dashboard.put("altaGravidade", 0L);
             dashboard.put("mediaGravidade", 0L);
@@ -654,7 +689,6 @@ public class AlertaService {
                      telemetria.getLongitude(),
                      telemetria.getNivelCombustivel());
 
-            // Busca viagem ativa do veículo (status "EM_ANDAMENTO")
             Viagem viagemAtiva = viagemRepository.findByVeiculoIdAndStatus(
                     telemetria.getVeiculoId(), "EM_ANDAMENTO").orElse(null);
 
@@ -667,7 +701,6 @@ public class AlertaService {
             verificarExcessoVelocidade(telemetria);
             verificarVelocidadeBaixa(telemetria, viagemAtiva);
             verificarNivelCombustivel(telemetria, viagemAtiva);
-
             verificarGpsSemSinal(telemetria.getVeiculoId(), telemetria);
 
             if (viagemAtiva != null) {
@@ -746,7 +779,6 @@ public class AlertaService {
         String threadName = Thread.currentThread().getName();
         log.info("🚨 [Thread: {}] ALERTA GERADO - {}: {}", threadName, tipo, mensagem);
         
-        // Enviar via WebSocket
         enviarAlertaWebSocket(alerta);
     }
 
@@ -769,7 +801,6 @@ public class AlertaService {
                     
                     log.debug("✅ Alerta {} resolvido", alerta.getId());
                     
-                    // Notificar via WebSocket que o alerta foi resolvido
                     messagingTemplate.convertAndSend("/topic/alertas/resolvidos", alerta);
                 }
             }
@@ -819,6 +850,519 @@ public class AlertaService {
             log.debug("✅ Alerta {} enviado via WebSocket", alerta.getId());
         } catch (Exception e) {
             log.error("❌ Erro ao enviar alerta via WebSocket: {}", e.getMessage());
+        }
+    }
+    
+    // ================ RN-VEI-002 e RN-VEI-003 ================
+    
+    /**
+     * RN-VEI-002: Cria alerta de vencimento de tacógrafo (30d ou 7d)
+     */
+    public void criarAlertaVencimentoTacografo(Veiculo veiculo, long diasAteVencimento) {
+        log.info("📢 Criando alerta de vencimento de tacógrafo - Veículo: {}, Dias: {}", 
+                veiculo.getPlaca(), diasAteVencimento);
+        
+        SeveridadeAlerta severidade = diasAteVencimento == 7 ? SeveridadeAlerta.CRITICO : SeveridadeAlerta.ALTO;
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(veiculo.getTenantId())
+                .veiculoId(veiculo.getId())
+                .veiculoUuid(null)
+                .tipo(TipoAlerta.TACOGRAFO_VENCIMENTO)
+                .severidade(severidade)
+                .mensagem(String.format(
+                    "Tacógrafo do veículo %s (%s) vence em %d dias",
+                    veiculo.getPlaca(), veiculo.getModelo(), diasAteVencimento))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de tacógrafo salvo com ID: {}", alerta.getId());
+    }
+
+    /**
+     * RN-VEI-002: Cria alerta de tacógrafo já vencido
+     */
+    public void criarAlertaTacografoVencido(Veiculo veiculo) {
+        log.warn("📢 Criando alerta de tacógrafo vencido - Veículo: {}", veiculo.getPlaca());
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(veiculo.getTenantId())
+                .veiculoId(veiculo.getId())
+                .veiculoUuid(null)
+                .tipo(TipoAlerta.TACOGRAFO_VENCIDO)
+                .severidade(SeveridadeAlerta.CRITICO)
+                .mensagem(String.format(
+                    "Tacógrafo do veículo %s (%s) está vencido desde %s. " +
+                    "Veículo não pode iniciar novas viagens.",
+                    veiculo.getPlaca(), veiculo.getModelo(), veiculo.getDataVencimentoTacografo()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de tacógrafo vencido salvo com ID: {}", alerta.getId());
+    }
+
+    /**
+     * RN-VEI-003: Cria alerta de vencimento de documento (30d ou 7d)
+     */
+    public void criarAlertaVencimentoDocumento(Veiculo veiculo, String documento, long diasAteVencimento) {
+        log.info("📢 Criando alerta de vencimento de {} - Veículo: {}, Dias: {}", 
+                documento, veiculo.getPlaca(), diasAteVencimento);
+        
+        SeveridadeAlerta severidade = diasAteVencimento == 7 ? SeveridadeAlerta.ALTO : SeveridadeAlerta.MEDIO;
+        TipoAlerta tipo = converterDocumentoParaTipoAlerta(documento, false);
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(veiculo.getTenantId())
+                .veiculoId(veiculo.getId())
+                .veiculoUuid(null)
+                .tipo(tipo)
+                .severidade(severidade)
+                .mensagem(String.format(
+                    "%s do veículo %s (%s) vence em %d dias",
+                    documento, veiculo.getPlaca(), veiculo.getModelo(), diasAteVencimento))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de {} salvo com ID: {}", documento, alerta.getId());
+    }
+
+    /**
+     * RN-VEI-003: Cria alerta de documento já vencido
+     */
+    public void criarAlertaDocumentoVencido(Veiculo veiculo, String documento) {
+        log.warn("📢 Criando alerta de {} vencido - Veículo: {}", documento, veiculo.getPlaca());
+        
+        TipoAlerta tipo = converterDocumentoParaTipoAlerta(documento, true);
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(veiculo.getTenantId())
+                .veiculoId(veiculo.getId())
+                .veiculoUuid(null)
+                .tipo(tipo)
+                .severidade(SeveridadeAlerta.ALTO)
+                .mensagem(String.format(
+                    "%s do veículo %s (%s) está vencido. " +
+                    "Veículo não pode iniciar novas viagens.",
+                    documento, veiculo.getPlaca(), veiculo.getModelo()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de {} vencido salvo com ID: {}", documento, alerta.getId());
+    }
+
+    /**
+     * Converte o nome do documento para o enum TipoAlerta correspondente
+     */
+    private TipoAlerta converterDocumentoParaTipoAlerta(String documento, boolean isVencido) {
+        switch (documento.toUpperCase()) {
+            case "CRLV":
+                return isVencido ? TipoAlerta.CRLV_VENCIDO : TipoAlerta.CRLV_VENCIMENTO;
+            case "SEGURO":
+                return isVencido ? TipoAlerta.SEGURO_VENCIDO : TipoAlerta.SEGURO_VENCIMENTO;
+            case "DPVAT":
+                return isVencido ? TipoAlerta.DPVAT_VENCIDO : TipoAlerta.DPVAT_VENCIMENTO;
+            case "RCF":
+                return isVencido ? TipoAlerta.RCF_VENCIDO : TipoAlerta.RCF_VENCIMENTO;
+            case "VISTORIA":
+                return isVencido ? TipoAlerta.VISTORIA_VENCIDO : TipoAlerta.VISTORIA_VENCIMENTO;
+            case "RNTRC":
+                return isVencido ? TipoAlerta.RNTRC_VENCIDO : TipoAlerta.RNTRC_VENCIMENTO;
+            default:
+                return isVencido ? TipoAlerta.DOCUMENTO_VENCIDO : TipoAlerta.DOCUMENTO_VENCIMENTO;
+        }
+    }
+    
+    // ================ RN-VEI-004, 005, 006 ================
+    
+    /**
+     * RN-VEI-004: Vincular dispositivo ao veículo
+     */
+    @Transactional
+    public void vincularDispositivo(Long veiculoId, String deviceId) {
+        Veiculo veiculo = veiculoRepository.findById(veiculoId)
+            .orElseThrow(() -> new VeiculoNotFoundException("Veículo não encontrado com ID: " + veiculoId));
+        
+        Optional<DispositivoIot> dispositivoExistente = dispositivoRepository.findByDeviceId(deviceId);
+        
+        if (dispositivoExistente.isPresent()) {
+            DispositivoIot disp = dispositivoExistente.get();
+            if (disp.getVeiculoId() != null && !disp.getVeiculoId().equals(veiculoId)) {
+                throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                    String.format("Dispositivo %s já está vinculado ao veículo ID: %d. " +
+                                  "Desvincule explicitamente antes de transferir.", 
+                                  deviceId, disp.getVeiculoId()));
+            }
+        }
+        
+        DispositivoIot dispositivo = dispositivoExistente.orElse(new DispositivoIot());
+        dispositivo.setDeviceId(deviceId);
+        dispositivo.setVeiculoId(veiculoId);
+        dispositivo.setTenantId(veiculo.getTenantId());
+        dispositivo.setStatus(StatusDispositivo.ATIVO);
+        
+        if (dispositivo.getTipo() == null) {
+            dispositivo.setTipo(TipoDispositivo.PRINCIPAL);
+        }
+        
+        dispositivoRepository.save(dispositivo);
+        log.info("✅ Dispositivo {} vinculado ao veículo {}", deviceId, veiculoId);
+    }
+
+    /**
+     * RN-VEI-005: Adicionar dispositivo backup
+     */
+    @Transactional
+    public void adicionarDispositivoBackup(Long veiculoId, String deviceIdBackup) {
+        Veiculo veiculo = veiculoRepository.findById(veiculoId)
+            .orElseThrow(() -> new VeiculoNotFoundException("Veículo não encontrado com ID: " + veiculoId));
+        
+        long countDispositivos = dispositivoRepository.countByVeiculoId(veiculoId);
+        
+        if (countDispositivos >= 2) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                "Veículo já possui 2 dispositivos (máximo permitido)");
+        }
+        
+        Optional<DispositivoIot> principal = dispositivoRepository
+            .findByVeiculoIdAndTipo(veiculoId, TipoDispositivo.PRINCIPAL);
+        
+        if (principal.isEmpty() && countDispositivos == 0) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                "Adicione um dispositivo principal antes de adicionar backup");
+        }
+        
+        DispositivoIot backup = new DispositivoIot();
+        backup.setDeviceId(deviceIdBackup);
+        backup.setVeiculoId(veiculoId);
+        backup.setTenantId(veiculo.getTenantId());
+        backup.setTipo(TipoDispositivo.BACKUP);
+        backup.setStatus(StatusDispositivo.ATIVO);
+        
+        dispositivoRepository.save(backup);
+        
+        if (principal.isPresent()) {
+            DispositivoIot dispPrincipal = principal.get();
+            dispPrincipal.setSateliteAtivo(true);
+            dispositivoRepository.save(dispPrincipal);
+            log.info("📡 Satélite ativado no dispositivo principal do veículo {}", veiculoId);
+        }
+        
+        log.info("✅ Dispositivo backup {} adicionado ao veículo {}", deviceIdBackup, veiculoId);
+    }
+
+    /**
+     * RN-VEI-006: Trocar dispositivo com calibração de odômetro
+     */
+    @Transactional
+    public void trocarDispositivo(Long veiculoId, String novoDeviceId, Double odometroAtualKm, Long usuarioId) {
+        Veiculo veiculo = veiculoRepository.findById(veiculoId)
+            .orElseThrow(() -> new VeiculoNotFoundException("Veículo não encontrado com ID: " + veiculoId));
+        
+        if (odometroAtualKm == null || odometroAtualKm < 0) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                "Odômetro atual é obrigatório ao trocar dispositivo");
+        }
+        
+        Optional<DispositivoIot> dispositivoAntigo = dispositivoRepository
+            .findByVeiculoIdAndTipo(veiculoId, TipoDispositivo.PRINCIPAL);
+        
+        Double ultimoOdometro = null;
+        Long dispositivoOrigemId = null;
+        
+        if (dispositivoAntigo.isPresent()) {
+            DispositivoIot antigo = dispositivoAntigo.get();
+            ultimoOdometro = obterUltimoOdometroDoDispositivo(veiculoId, antigo.getDeviceId());
+            dispositivoOrigemId = antigo.getId();
+            
+            antigo.setVeiculoId(null);
+            antigo.setStatus(StatusDispositivo.INATIVO);
+            dispositivoRepository.save(antigo);
+        }
+        
+        Optional<DispositivoIot> dispositivoExistente = dispositivoRepository.findByDeviceId(novoDeviceId);
+        DispositivoIot novoDispositivo;
+        
+        if (dispositivoExistente.isPresent()) {
+            novoDispositivo = dispositivoExistente.get();
+            novoDispositivo.setVeiculoId(veiculoId);
+            novoDispositivo.setTipo(TipoDispositivo.PRINCIPAL);
+            novoDispositivo.setStatus(StatusDispositivo.ATIVO);
+        } else {
+            novoDispositivo = new DispositivoIot();
+            novoDispositivo.setDeviceId(novoDeviceId);
+            novoDispositivo.setVeiculoId(veiculoId);
+            novoDispositivo.setTenantId(veiculo.getTenantId());
+            novoDispositivo.setTipo(TipoDispositivo.PRINCIPAL);
+            novoDispositivo.setStatus(StatusDispositivo.ATIVO);
+        }
+        
+        DispositivoIot salvo = dispositivoRepository.save(novoDispositivo);
+        
+        double delta = 0;
+        if (ultimoOdometro != null) {
+            delta = odometroAtualKm - ultimoOdometro;
+            
+            HistoricoOdometro historico = HistoricoOdometro.builder()
+                .veiculoId(veiculoId)
+                .dispositivoOrigemId(dispositivoOrigemId)
+                .dispositivoDestinoId(salvo.getId())
+                .odometroAnteriorKm(ultimoOdometro)
+                .odometroNovoKm(odometroAtualKm)
+                .deltaKm(delta)
+                .dataTroca(LocalDateTime.now())
+                .usuarioId(usuarioId)
+                .alertaInconsistencia(Math.abs(delta) > 500)
+                .build();
+            
+            historicoOdometroRepository.save(historico);
+            
+            if (Math.abs(delta) > 500) {
+                criarAlertaInconsistenciaOdometro(veiculo, delta, odometroAtualKm);
+                log.warn("⚠️ Inconsistência de odômetro: veículo {}, delta: {} km", veiculoId, delta);
+            }
+        }
+        
+        log.info("✅ Dispositivo do veículo {} trocado. Delta odômetro: {} km", veiculoId, delta);
+    }
+
+    private Double obterUltimoOdometroDoDispositivo(Long veiculoId, String deviceId) {
+        return telemetriaRepository.findTopByVeiculoIdAndDeviceIdOrderByDataHoraDesc(veiculoId, deviceId)
+            .map(Telemetria::getOdometro)
+            .orElse(null);
+    }
+    
+    /**
+     * RN-VEI-006: Cria alerta de inconsistência de odômetro (delta > 500 km)
+     */
+    public void criarAlertaInconsistenciaOdometro(Veiculo veiculo, double delta, Double odometroAtualKm) {
+        log.warn("📢 Criando alerta de inconsistência de odômetro - Veículo: {}, Delta: {} km", 
+                veiculo.getPlaca(), delta);
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(veiculo.getTenantId())
+                .veiculoId(veiculo.getId())
+                .veiculoUuid(null)
+                .tipo(TipoAlerta.ODOMETRO_INCONSISTENCIA)
+                .severidade(SeveridadeAlerta.ALTO)
+                .mensagem(String.format(
+                    "Inconsistência de odômetro detectada no veículo %s (%s). " +
+                    "Delta de %.0f km entre último registro e valor informado (%.0f km). " +
+                    "Verificar possível adulteração ou erro de calibração.",
+                    veiculo.getPlaca(), veiculo.getModelo(), delta, odometroAtualKm))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de inconsistência de odômetro salvo com ID: {}", alerta.getId());
+    }
+
+    
+ // ================ RN-MOT-002: Alertas de CNH ================
+
+    /**
+     * RN-MOT-002: Cria alerta de vencimento de CNH (60d, 30d ou 7d)
+     */
+    public void criarAlertaVencimentoCnh(Motorista motorista, long diasAteVencimento) {
+        log.info("📢 Criando alerta de vencimento de CNH - Motorista: {}, Dias: {}", 
+                motorista.getNome(), diasAteVencimento);
+        
+        SeveridadeAlerta severidade;
+        if (diasAteVencimento <= 7) {
+            severidade = SeveridadeAlerta.CRITICO;
+        } else if (diasAteVencimento <= 30) {
+            severidade = SeveridadeAlerta.ALTO;
+        } else {
+            severidade = SeveridadeAlerta.MEDIO;
+        }
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(motorista.getTenantId())
+                .motoristaId(motorista.getId())
+                .tipo(TipoAlerta.CNH_VENCIMENTO)
+                .severidade(severidade)
+                .mensagem(String.format(
+                    "CNH do motorista %s (CPF: %s) vence em %d dias. " +
+                    "Categoria: %s. Providencie a renovação para não interromper as operações.",
+                    motorista.getNome(), motorista.getCpf(), diasAteVencimento, motorista.getCategoriaCnh()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de vencimento de CNH salvo com ID: {}", alerta.getId());
+    }
+
+    /**
+     * RN-MOT-002: Cria alerta de CNH já vencida
+     */
+    public void criarAlertaCnhVencida(Motorista motorista) {
+        log.warn("📢 Criando alerta de CNH vencida - Motorista: {}", motorista.getNome());
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(motorista.getTenantId())
+                .motoristaId(motorista.getId())
+                .tipo(TipoAlerta.CNH_VENCIDA)
+                .severidade(SeveridadeAlerta.CRITICO)
+                .mensagem(String.format(
+                    "CNH do motorista %s (CPF: %s) está vencida desde %s. " +
+                    "Categoria: %s. Motorista bloqueado para novas viagens.",
+                    motorista.getNome(), motorista.getCpf(), 
+                    motorista.getDataVencimentoCnh(), motorista.getCategoriaCnh()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de CNH vencida salvo com ID: {}", alerta.getId());
+    }
+    
+    
+    
+    /**
+     * RN-MOT-004: Cria alerta de score baixo (< 600)
+     */
+    public void criarAlertaScoreBaixo(Motorista motorista) {
+        log.warn("📢 Criando alerta de score baixo - Motorista: {}, Score: {}", 
+                motorista.getNome(), motorista.getScore());
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(motorista.getTenantId())
+                .motoristaId(motorista.getId())
+                .tipo(TipoAlerta.SCORE_BAIXO)
+                .severidade(SeveridadeAlerta.ALTO)
+                .mensagem(String.format(
+                    "Motorista %s (CPF: %s) está com score de comportamento baixo: %d. " +
+                    "Score mínimo recomendado é 600. Monitorar comportamento do motorista.",
+                    motorista.getNome(), motorista.getCpf(), motorista.getScore()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de score baixo salvo com ID: {}", alerta.getId());
+    }
+
+    /**
+     * RN-MOT-004: Cria alerta de score crítico (< 400)
+     */
+    public void criarAlertaScoreCritico(Motorista motorista) {
+        log.error("📢 Criando alerta de score crítico - Motorista: {}, Score: {}", 
+                motorista.getNome(), motorista.getScore());
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(motorista.getTenantId())
+                .motoristaId(motorista.getId())
+                .tipo(TipoAlerta.SCORE_CRITICO)
+                .severidade(SeveridadeAlerta.CRITICO)
+                .mensagem(String.format(
+                    "Motorista %s (CPF: %s) está com score de comportamento CRÍTICO: %d. " +
+                    "Motorista bloqueado para novas viagens. Necessária intervenção imediata.",
+                    motorista.getNome(), motorista.getCpf(), motorista.getScore()))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de score crítico salvo com ID: {}", alerta.getId());
+    }
+  
+    /**
+     * RN-MOT-004: Atualiza o score do motorista baseado em eventos
+     */
+    @Transactional
+    public void atualizarScoreMotorista(Long motoristaId, String eventoTipo, Long viagemId) {
+        Motorista motorista = motoristaRepository.findById(motoristaId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.MOTORISTA_NOT_FOUND, 
+                "Motorista não encontrado com ID: " + motoristaId));
+        
+        int scoreAnterior = motorista.getScore();
+        int novaPontuacao = scoreAnterior;
+        String motivo = "";
+        
+        switch (eventoTipo) {
+            case "FRENAGEM_BRUSCA":
+                novaPontuacao -= 2;
+                motivo = "Frenagem brusca";
+                break;
+            case "ACELERACAO_BRUSCA":
+                novaPontuacao -= 2;
+                motivo = "Aceleração brusca";
+                break;
+            case "EXCESSO_VELOCIDADE":
+                novaPontuacao -= 5;
+                motivo = "Excesso de velocidade";
+                break;
+            case "USO_CELULAR":
+                novaPontuacao -= 10;
+                motivo = "Uso de celular detectado";
+                break;
+            case "FADIGA":
+                novaPontuacao -= 15;
+                motivo = "Fadiga detectada";
+                break;
+            case "COLISAO":
+                novaPontuacao -= 50;
+                motivo = "Colisão detectada";
+                break;
+            case "VIAGEM_LIMPA":
+                novaPontuacao += 5;
+                motivo = "Viagem limpa (sem eventos negativos)";
+                break;
+            case "SETE_DIAS_SEM_ALERTA":
+                novaPontuacao += 10;
+                motivo = "7 dias sem alertas";
+                break;
+            default:
+                log.debug("Evento não impacta score: {}", eventoTipo);
+                return;
+        }
+        
+        // Garantir que o score fique entre 0 e 1000
+        novaPontuacao = Math.max(0, Math.min(1000, novaPontuacao));
+        
+        if (novaPontuacao != scoreAnterior) {
+            motorista.setScore(novaPontuacao);
+            motoristaRepository.save(motorista);
+            
+            // Registrar histórico
+            HistoricoScoreMotorista historico = new HistoricoScoreMotorista();
+            historico.setMotoristaId(motoristaId);
+            historico.setData(LocalDate.now());
+            historico.setScoreAnterior(scoreAnterior);
+            historico.setScoreNovo(novaPontuacao);
+            historico.setDiferenca(novaPontuacao - scoreAnterior);
+            historico.setMotivo(motivo);
+            historico.setViagemId(viagemId);
+            historico.setEventoTipo(eventoTipo);
+            historicoScoreRepository.save(historico);
+            
+            log.info("📊 Score do motorista {} atualizado: {} → {} ({})", 
+                     motorista.getNome(), scoreAnterior, novaPontuacao, motivo);
+            
+            // Criar alertas se necessário
+            if (novaPontuacao < 400) {
+                criarAlertaScoreCritico(motorista);
+            } else if (novaPontuacao < 600) {
+                criarAlertaScoreBaixo(motorista);
+            }
         }
     }
 }

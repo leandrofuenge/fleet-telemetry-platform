@@ -81,4 +81,9 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
     @Query(value = "SELECT COUNT(*) FROM telemetria WHERE veiculo_id = :veiculoId",
            nativeQuery = true)
     long countByVeiculoId(@Param("veiculoId") Long veiculoId);
+    
+    
+ // Adicione este método no TelemetriaRepository.java
+    Optional<Telemetria> findTopByVeiculoIdAndDeviceIdOrderByDataHoraDesc(Long veiculoId, String deviceId);
+    
 }

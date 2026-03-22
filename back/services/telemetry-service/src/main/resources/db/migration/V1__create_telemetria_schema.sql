@@ -102,7 +102,8 @@ CREATE TABLE IF NOT EXISTS motoristas (
 
 CREATE TABLE IF NOT EXISTS veiculos (
     id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    placa                   VARCHAR(10) NOT NULL UNIQUE,
+    tenant_id               BIGINT UNSIGNED NOT NULL COMMENT 'ID do cliente/tenant proprietário',
+    placa                   VARCHAR(10) NOT NULL COMMENT 'Placa no formato Mercosul (ABC1D23) ou antigo (ABC-1234)',
     modelo                  VARCHAR(255),
     marca                   VARCHAR(100),
     capacidade_carga        DOUBLE,
@@ -110,11 +111,29 @@ CREATE TABLE IF NOT EXISTS veiculos (
     ativo                   BOOLEAN NOT NULL DEFAULT TRUE,
     cliente_id              BIGINT UNSIGNED,
     motorista_atual_id      BIGINT UNSIGNED,
+    -- RN-VEI-002: Tacógrafo
+    pbt_kg                  DOUBLE COMMENT 'Peso Bruto Total em kg - regra tacógrafo >4536kg',
+    tacografo_obrigatorio   BOOLEAN DEFAULT FALSE COMMENT 'TRUE se PBT > 4.536kg',
+    data_venc_tacografo     DATE COMMENT 'Data de vencimento do tacógrafo',
+    -- RN-VEI-003: Documentos com Vencimento
+    data_venc_crlv          DATE COMMENT 'Vencimento do CRLV',
+    data_venc_seguro        DATE COMMENT 'Vencimento do Seguro',
+    data_venc_dpvat         DATE COMMENT 'Vencimento do DPVAT',
+    data_venc_rcf           DATE COMMENT 'Vencimento do RCF (Responsabilidade Civil Facultativa)',
+    data_venc_vistoria      DATE COMMENT 'Vencimento da Vistoria',
+    data_venc_rntrc         DATE COMMENT 'Vencimento do RNTRC',
     criado_em               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- Constraints
+    UNIQUE KEY uk_veiculo_placa_tenant (placa, tenant_id) COMMENT 'Unicidade de placa por tenant (RN-VEI-001)',
     INDEX idx_vei_placa     (placa),
-    INDEX idx_vei_ativo     (ativo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_vei_tenant    (tenant_id),
+    INDEX idx_vei_ativo     (ativo),
+    INDEX idx_vei_tacografo_venc (data_venc_tacografo),
+    INDEX idx_vei_crlv_venc (data_venc_crlv),
+    INDEX idx_vei_seguro_venc (data_venc_seguro)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Veículos com todas as regras do RF02: unicidade por tenant, tacógrafo, documentos';
 
 -- =============================================================================
 -- SEÇÃO 6 — ROTAS
@@ -569,6 +588,7 @@ CREATE TABLE IF NOT EXISTS dispositivos_iot (
     iccid               VARCHAR(25),
     tenant_id           BIGINT UNSIGNED,
     veiculo_id          BIGINT UNSIGNED,
+    tipo                ENUM('PRINCIPAL','BACKUP') DEFAULT 'PRINCIPAL' COMMENT 'RN-VEI-005: Principal (GSM) ou Backup (Satelital)',
     fabricante          VARCHAR(100),
     modelo_hw           VARCHAR(100),
     versao_firmware     VARCHAR(30),
@@ -596,7 +616,8 @@ CREATE TABLE IF NOT EXISTS dispositivos_iot (
     INDEX idx_disp_veiculo (veiculo_id),
     INDEX idx_disp_status  (status),
     INDEX idx_disp_imei    (imei)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Dispositivos IoT com suporte a principal/backup (RN-VEI-004, RN-VEI-005)';
 
 CREATE TABLE IF NOT EXISTS heartbeat_log (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -614,7 +635,33 @@ CREATE TABLE IF NOT EXISTS heartbeat_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
--- SEÇÃO 13 — JORNADA (Lei 12.619/2012)
+-- SEÇÃO 13 — HISTÓRICO DE ODÔMETRO (RN-VEI-006)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS historico_odometro (
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    veiculo_id              BIGINT UNSIGNED NOT NULL COMMENT 'Veículo que sofreu a troca',
+    dispositivo_origem_id   BIGINT UNSIGNED COMMENT 'Dispositivo antigo desvinculado',
+    dispositivo_destino_id  BIGINT UNSIGNED COMMENT 'Novo dispositivo vinculado',
+    odometro_anterior_km    DOUBLE NOT NULL COMMENT 'Último odômetro registrado pelo dispositivo antigo',
+    odometro_novo_km        DOUBLE NOT NULL COMMENT 'Odômetro informado no momento da troca',
+    delta_km                DOUBLE NOT NULL COMMENT 'Diferença entre odometro_novo e odometro_anterior',
+    data_troca              DATETIME NOT NULL COMMENT 'Data e hora da troca',
+    usuario_id              BIGINT UNSIGNED COMMENT 'Usuário que realizou a troca',
+    observacao              TEXT COMMENT 'Observação sobre a troca',
+    alerta_inconsistencia   BOOLEAN DEFAULT FALSE COMMENT 'TRUE se delta > 500 km (RN-VEI-006)',
+    criado_em               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ho_veiculo    (veiculo_id),
+    INDEX idx_ho_data       (data_troca),
+    INDEX idx_ho_delta      (delta_km),
+    FOREIGN KEY (veiculo_id) REFERENCES veiculos(id) ON DELETE CASCADE,
+    FOREIGN KEY (dispositivo_origem_id) REFERENCES dispositivos_iot(id) ON DELETE SET NULL,
+    FOREIGN KEY (dispositivo_destino_id) REFERENCES dispositivos_iot(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Histórico de trocas de dispositivo com calibração de odômetro (RN-VEI-006)';
+
+-- =============================================================================
+-- SEÇÃO 14 — JORNADA (Lei 12.619/2012)
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS jornadas (
@@ -743,4 +790,83 @@ ORDER BY
         WHEN 'MEDIO'   THEN 3
         WHEN 'BAIXO'   THEN 4
     END,
-    a.data_hora DESC; 
+    a.data_hora DESC;
+
+-- =============================================================================
+-- VIEW DE VEÍCULOS COM DOCUMENTOS VENCIDOS (RN-VEI-003)
+-- =============================================================================
+
+CREATE OR REPLACE VIEW vw_veiculos_documentos_vencidos AS
+SELECT
+    v.id,
+    v.tenant_id,
+    v.placa,
+    v.modelo,
+    v.marca,
+    v.pbt_kg,
+    v.tacografo_obrigatorio,
+    v.data_venc_tacografo,
+    v.data_venc_crlv,
+    v.data_venc_seguro,
+    v.data_venc_dpvat,
+    v.data_venc_rcf,
+    v.data_venc_vistoria,
+    v.data_venc_rntrc,
+    c.nome_razao_social AS tenant_nome,
+    CASE 
+        WHEN v.data_venc_crlv < CURDATE() THEN 'CRLV'
+        WHEN v.data_venc_seguro < CURDATE() THEN 'Seguro'
+        WHEN v.data_venc_dpvat < CURDATE() THEN 'DPVAT'
+        WHEN v.data_venc_rcf < CURDATE() THEN 'RCF'
+        WHEN v.data_venc_vistoria < CURDATE() THEN 'Vistoria'
+        WHEN v.data_venc_rntrc < CURDATE() THEN 'RNTRC'
+        WHEN v.tacografo_obrigatorio = TRUE AND v.data_venc_tacografo < CURDATE() THEN 'Tacógrafo'
+        ELSE NULL
+    END AS documento_vencido,
+    LEAST(
+        COALESCE(v.data_venc_crlv, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_seguro, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_dpvat, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_rcf, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_vistoria, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_rntrc, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(v.data_venc_tacografo, DATE_ADD(CURDATE(), INTERVAL 999 DAY))
+    ) AS proximo_vencimento
+FROM veiculos v
+INNER JOIN clientes c ON v.tenant_id = c.id
+WHERE v.ativo = TRUE
+  AND (
+      v.data_venc_crlv < CURDATE() OR
+      v.data_venc_seguro < CURDATE() OR
+      v.data_venc_dpvat < CURDATE() OR
+      v.data_venc_rcf < CURDATE() OR
+      v.data_venc_vistoria < CURDATE() OR
+      v.data_venc_rntrc < CURDATE() OR
+      (v.tacografo_obrigatorio = TRUE AND v.data_venc_tacografo < CURDATE())
+  );
+
+-- =============================================================================
+-- VIEW DE VEÍCULOS COM TACÓGRAFO VENCENDO EM 30/7 DIAS (RN-VEI-002)
+-- =============================================================================
+
+CREATE OR REPLACE VIEW vw_tacografo_proximo_vencimento AS
+SELECT
+    v.id,
+    v.tenant_id,
+    v.placa,
+    v.modelo,
+    v.pbt_kg,
+    v.data_venc_tacografo,
+    DATEDIFF(v.data_venc_tacografo, CURDATE()) AS dias_para_vencimento,
+    c.nome_razao_social AS tenant_nome,
+    CASE
+        WHEN DATEDIFF(v.data_venc_tacografo, CURDATE()) <= 7 THEN 'CRITICO_7_DIAS'
+        WHEN DATEDIFF(v.data_venc_tacografo, CURDATE()) <= 30 THEN 'ALERTA_30_DIAS'
+        ELSE 'OK'
+    END AS status_alerta
+FROM veiculos v
+INNER JOIN clientes c ON v.tenant_id = c.id
+WHERE v.tacografo_obrigatorio = TRUE
+  AND v.data_venc_tacografo IS NOT NULL
+  AND v.data_venc_tacografo > CURDATE()
+  AND DATEDIFF(v.data_venc_tacografo, CURDATE()) <= 30;
