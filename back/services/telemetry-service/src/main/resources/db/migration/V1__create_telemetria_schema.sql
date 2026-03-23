@@ -1,6 +1,8 @@
 -- =============================================================================
+-- V1__create_telemetria_schema.sql
 -- TELEMETRY SERVICE — telemetry_db
 -- Script completo para MySQL Workbench
+-- Versão: 1.0
 -- =============================================================================
 
 -- Cria o banco de dados se não existir
@@ -86,19 +88,32 @@ CREATE TABLE IF NOT EXISTS cargas (
 
 CREATE TABLE IF NOT EXISTS motoristas (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT UNSIGNED NOT NULL COMMENT 'ID do tenant/proprietário',
     nome                VARCHAR(255) NOT NULL,
-    cpf                 VARCHAR(14) NOT NULL UNIQUE,
-    cnh                 VARCHAR(20) NOT NULL UNIQUE,
+    cpf                 VARCHAR(14) NOT NULL,
+    cnh                 VARCHAR(20) NOT NULL,
     categoria_cnh       VARCHAR(5) NOT NULL,
+    data_venc_cnh       DATE COMMENT 'Data de vencimento da CNH',
+    data_venc_aso       DATE COMMENT 'Data de vencimento do ASO',
+    mopp_valido         BOOLEAN DEFAULT FALSE COMMENT 'MOPP válido para carga perigosa',
+    score               INT NOT NULL DEFAULT 1000 COMMENT 'Score de comportamento (0-1000)',
     email               VARCHAR(200) UNIQUE,
     telefone            VARCHAR(20),
     ativo               BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- Constraints
+    UNIQUE KEY uk_motorista_cpf_tenant (cpf, tenant_id) COMMENT 'Unicidade de CPF por tenant (RN-MOT-001)',
+    UNIQUE KEY uk_motorista_cnh (cnh) COMMENT 'CNH única global',
     INDEX idx_mot_cpf   (cpf),
     INDEX idx_mot_cnh   (cnh),
-    INDEX idx_mot_ativo (ativo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_mot_tenant (tenant_id),
+    INDEX idx_mot_ativo  (ativo),
+    INDEX idx_mot_score  (score),
+    INDEX idx_mot_venc_cnh (data_venc_cnh),
+    INDEX idx_mot_venc_aso (data_venc_aso)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Motoristas com todas as regras do RF03: unicidade CPF por tenant, CNH, ASO, MOPP, score';
 
 CREATE TABLE IF NOT EXISTS veiculos (
     id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -489,25 +504,93 @@ CREATE TABLE IF NOT EXISTS manutencoes (
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS usuarios (
-    id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    login               VARCHAR(100) NOT NULL UNIQUE,
-    senha               VARCHAR(255) NOT NULL,
-    nome                VARCHAR(255) NOT NULL,
-    email               VARCHAR(200) UNIQUE,
-    cpf                 VARCHAR(14) NOT NULL UNIQUE,
-    ativo               BOOLEAN NOT NULL DEFAULT TRUE,
-    perfil              VARCHAR(20) NOT NULL,
-    ultimo_acesso       DATETIME,
-    motorista_id        BIGINT UNSIGNED UNIQUE,
-    criado_em           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_usr_login (login),
-    INDEX idx_usr_cpf   (cpf),
-    INDEX idx_usr_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    login                   VARCHAR(100) NOT NULL UNIQUE,
+    senha                   VARCHAR(255) NOT NULL,
+    nome                    VARCHAR(255) NOT NULL,
+    email                   VARCHAR(200) UNIQUE,
+    cpf                     VARCHAR(14) NOT NULL UNIQUE,
+    ativo                   BOOLEAN NOT NULL DEFAULT TRUE,
+    perfil                  VARCHAR(20) NOT NULL,
+    ultimo_acesso           DATETIME,
+    motorista_id            BIGINT UNSIGNED UNIQUE,
+    -- RN-USR-001: Política de Senha
+    data_expiracao_senha    DATE COMMENT 'Data de expiração da senha (90 dias)',
+    tentativas_falha        INT DEFAULT 0 COMMENT 'Número de tentativas de login falhas',
+    ultima_tentativa_falha  DATETIME COMMENT 'Data da última tentativa de login falha',
+    bloqueado_ate           DATETIME COMMENT 'Data até quando a conta está bloqueada',
+    -- RN-USR-002: MFA
+    mfa_secret              VARCHAR(32) COMMENT 'Secret do MFA (TOTP RFC 6238)',
+    mfa_ativado             BOOLEAN DEFAULT FALSE COMMENT 'Indica se o MFA está ativado',
+    criado_em               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_usr_login     (login),
+    INDEX idx_usr_cpf       (cpf),
+    INDEX idx_usr_email     (email),
+    INDEX idx_usr_bloqueado_ate (bloqueado_ate),
+    INDEX idx_usr_data_expiracao_senha (data_expiracao_senha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Usuários com política de senha e MFA (RF04)';
 
 -- =============================================================================
--- SEÇÃO 11 — AGREGAÇÕES E POSIÇÃO ATUAL
+-- SEÇÃO 11 — HISTÓRICO DE SENHAS
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS historico_senhas (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id  BIGINT UNSIGNED NOT NULL COMMENT 'ID do usuário',
+    senha_hash  VARCHAR(255) NOT NULL COMMENT 'Hash da senha',
+    criado_em   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação',
+    INDEX idx_hs_usuario (usuario_id),
+    INDEX idx_hs_criado_em (criado_em),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Histórico de senhas para controle de repetição (últimas 5 senhas)';
+
+-- =============================================================================
+-- SEÇÃO 12 — SESSÕES ATIVAS
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS sessoes_ativas (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id      BIGINT UNSIGNED NOT NULL COMMENT 'ID do usuário',
+    token_jwt       VARCHAR(500) NOT NULL COMMENT 'Token JWT da sessão',
+    ip              VARCHAR(45) COMMENT 'Endereço IP do cliente',
+    user_agent      TEXT COMMENT 'User-Agent do cliente',
+    data_criacao    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação da sessão',
+    ultimo_acesso   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Último acesso',
+    data_expiracao  TIMESTAMP NOT NULL COMMENT 'Data de expiração do token',
+    INDEX idx_sa_usuario (usuario_id),
+    INDEX idx_sa_token (token_jwt(255)),
+    INDEX idx_sa_data_expiracao (data_expiracao),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Sessões ativas para controle de limite de sessões simultâneas (máx 3)';
+
+-- =============================================================================
+-- SEÇÃO 13 — HISTÓRICO DE SCORE DO MOTORISTA
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS historico_score_motorista (
+    id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    motorista_id        BIGINT UNSIGNED NOT NULL COMMENT 'ID do motorista',
+    data                DATE NOT NULL COMMENT 'Data do registro',
+    score_anterior      INT NOT NULL COMMENT 'Score anterior',
+    score_novo          INT NOT NULL COMMENT 'Score após alteração',
+    diferenca           INT NOT NULL COMMENT 'Diferença (score_novo - score_anterior)',
+    motivo              VARCHAR(100) COMMENT 'Motivo da alteração',
+    viagem_id           BIGINT UNSIGNED COMMENT 'ID da viagem relacionada',
+    evento_tipo         VARCHAR(50) COMMENT 'Tipo de evento que causou a alteração',
+    criado_em           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação',
+    INDEX idx_hsm_motorista (motorista_id),
+    INDEX idx_hsm_data (data),
+    INDEX idx_hsm_viagem (viagem_id),
+    FOREIGN KEY (motorista_id) REFERENCES motoristas(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Histórico de alterações de score do motorista';
+
+-- =============================================================================
+-- SEÇÃO 14 — AGREGAÇÕES E POSIÇÃO ATUAL
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS resumo_diario_veiculo (
@@ -578,7 +661,7 @@ CREATE TABLE IF NOT EXISTS historico_posicao (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
--- SEÇÃO 12 — DISPOSITIVOS IoT
+-- SEÇÃO 15 — DISPOSITIVOS IoT
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS dispositivos_iot (
@@ -635,7 +718,7 @@ CREATE TABLE IF NOT EXISTS heartbeat_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
--- SEÇÃO 13 — HISTÓRICO DE ODÔMETRO (RN-VEI-006)
+-- SEÇÃO 16 — HISTÓRICO DE ODÔMETRO (RN-VEI-006)
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS historico_odometro (
@@ -661,7 +744,7 @@ CREATE TABLE IF NOT EXISTS historico_odometro (
 COMMENT='Histórico de trocas de dispositivo com calibração de odômetro (RN-VEI-006)';
 
 -- =============================================================================
--- SEÇÃO 14 — JORNADA (Lei 12.619/2012)
+-- SEÇÃO 17 — JORNADA (Lei 12.619/2012)
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS jornadas (
@@ -870,3 +953,39 @@ WHERE v.tacografo_obrigatorio = TRUE
   AND v.data_venc_tacografo IS NOT NULL
   AND v.data_venc_tacografo > CURDATE()
   AND DATEDIFF(v.data_venc_tacografo, CURDATE()) <= 30;
+
+-- =============================================================================
+-- VIEW DE MOTORISTAS COM DOCUMENTOS VENCIDOS (RN-MOT-002 e RN-MOT-003)
+-- =============================================================================
+
+CREATE OR REPLACE VIEW vw_motoristas_documentos_vencidos AS
+SELECT
+    m.id,
+    m.tenant_id,
+    m.nome,
+    m.cpf,
+    m.cnh,
+    m.categoria_cnh,
+    m.data_venc_cnh,
+    m.data_venc_aso,
+    m.mopp_valido,
+    m.score,
+    c.nome_razao_social AS tenant_nome,
+    CASE 
+        WHEN m.data_venc_cnh < CURDATE() THEN 'CNH'
+        WHEN m.data_venc_aso < CURDATE() THEN 'ASO'
+        WHEN m.mopp_valido = FALSE THEN 'MOPP'
+        ELSE NULL
+    END AS documento_vencido,
+    LEAST(
+        COALESCE(m.data_venc_cnh, DATE_ADD(CURDATE(), INTERVAL 999 DAY)),
+        COALESCE(m.data_venc_aso, DATE_ADD(CURDATE(), INTERVAL 999 DAY))
+    ) AS proximo_vencimento
+FROM motoristas m
+INNER JOIN clientes c ON m.tenant_id = c.id
+WHERE m.ativo = TRUE
+  AND (
+      m.data_venc_cnh < CURDATE() OR
+      m.data_venc_aso < CURDATE() OR
+      m.mopp_valido = FALSE
+  );

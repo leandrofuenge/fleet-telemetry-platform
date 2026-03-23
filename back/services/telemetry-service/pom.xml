@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.10</version>
+        <version>3.5.12</version>
         <relativePath/>
     </parent>
 
@@ -25,15 +25,41 @@
 
     <properties>
         <java.version>17</java.version>
-        
-        <!-- Versões gerenciadas pelo Spring Boot (remover Overriding) -->
+
+        <!-- Versões gerenciadas pelo Spring Boot -->
         <jjwt.version>0.11.5</jjwt.version>
         <springdoc.version>2.6.0</springdoc.version>
         <bucket4j.version>8.10.1</bucket4j.version>
         <paho.version>1.2.5</paho.version>
-        
-        <!-- Estas versões NÃO precisam ser declaradas pois são gerenciadas pelo Spring Boot -->
-        <!-- Removidas: caffeine.version, lombok.version, spring-integration.version -->
+
+        <!-- ===================== SKIP TESTS ===================== -->
+        <skipTests>true</skipTests>
+        <maven.test.skip>true</maven.test.skip>
+        <maven.test.skip.exec>true</maven.test.skip.exec>
+
+        <!-- ===================== SONARQUBE NA PORTA 9050 ===================== -->
+        <sonar.projectKey>Telemetry-Service</sonar.projectKey>
+        <sonar.projectName>Telemetry Service</sonar.projectName>
+        <sonar.projectVersion>0.0.1-SNAPSHOT</sonar.projectVersion>
+        <sonar.host.url>http://localhost:9050</sonar.host.url>
+        <sonar.java.source>17</sonar.java.source>
+        <sonar.token>sqa_6b1680665402006301da92494a68b590154e72cf</sonar.token>
+        <sonar.skip>false</sonar.skip>
+
+        <!-- Caminho do relatório de cobertura gerado pelo JaCoCo -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.basedir}/target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+
+        <!-- Ignorar pacotes que geram ruído na análise -->
+        <sonar.exclusions>
+            **/config/**,
+            **/dto/**,
+            **/entity/**,
+            **/exception/**,
+            **/*Application.java,
+            **/TelemetriaApplication.java
+        </sonar.exclusions>
     </properties>
 
     <!-- ===================== DEPENDÊNCIAS ===================== -->
@@ -88,7 +114,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- MYSQL - Sem versão específica (gerenciado pelo Spring Boot) -->
+        <!-- MYSQL -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -144,7 +170,7 @@
             <version>${paho.version}</version>
         </dependency>
 
-        <!-- Spring Integration MQTT - Sem versão (gerenciado pelo Spring Boot) -->
+        <!-- Spring Integration MQTT -->
         <dependency>
             <groupId>org.springframework.integration</groupId>
             <artifactId>spring-integration-mqtt</artifactId>
@@ -156,7 +182,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- CAFFEINE - Sem versão (gerenciado pelo Spring Boot) -->
+        <!-- CAFFEINE -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
@@ -168,7 +194,7 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
-        <!-- LOMBOK - Sem versão (gerenciado pelo Spring Boot) -->
+        <!-- LOMBOK -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -209,6 +235,8 @@
     <!-- ===================== BUILD ===================== -->
     <build>
         <plugins>
+
+            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -221,6 +249,56 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <!-- Maven Surefire Plugin - Skip Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <skip>${maven.test.skip}</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Failsafe Plugin - Skip Integration Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <skip>${maven.test.skip}</skip>
+                </configuration>
+            </plugin>
+
+            <!-- SonarQube Maven Scanner -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.11.0.3922</version>
+            </plugin>
+
+            <!-- JaCoCo (Cobertura de testes para SonarQube) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

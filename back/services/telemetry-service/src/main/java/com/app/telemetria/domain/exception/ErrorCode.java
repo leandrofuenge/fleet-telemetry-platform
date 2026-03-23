@@ -21,11 +21,13 @@ public enum ErrorCode {
     UNAUTHORIZED("401-001", "Não autenticado. Faça login para continuar", HttpStatus.UNAUTHORIZED),
     INVALID_CREDENTIALS("401-002", "Login ou senha inválidos", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED("401-003", "Token expirado. Faça login novamente", HttpStatus.UNAUTHORIZED),
+    TOKEN_INVALID("401-004", "Token inválido ou corrompido", HttpStatus.UNAUTHORIZED),
+    TOKEN_MISSING("401-005", "Token não fornecido", HttpStatus.UNAUTHORIZED),
     
     FORBIDDEN("403-001", "Acesso negado. Você não tem permissão", HttpStatus.FORBIDDEN),
-    TOKEN_INVALID("403-002", "Token inválido ou corrompido", HttpStatus.FORBIDDEN),
-    ACCOUNT_DISABLED("403-003", "Conta desabilitada. Contate o administrador", HttpStatus.FORBIDDEN),
-    ACCOUNT_LOCKED("403-004", "Conta bloqueada por tentativas excessivas", HttpStatus.FORBIDDEN),
+    ACCOUNT_DISABLED("403-002", "Conta desabilitada. Contate o administrador", HttpStatus.FORBIDDEN),
+    ACCOUNT_LOCKED("403-003", "Conta bloqueada por tentativas excessivas", HttpStatus.FORBIDDEN),
+    PASSWORD_EXPIRED("403-004", "Senha expirada. Realize a troca de senha", HttpStatus.FORBIDDEN),
 
     // ================= RECURSOS NÃO ENCONTRADOS (404) =================
     RESOURCE_NOT_FOUND("404-000", "Recurso não encontrado", HttpStatus.NOT_FOUND),
@@ -75,6 +77,9 @@ public enum ErrorCode {
     VIAGEM_INVALID("422-002", "Viagem não pode ser iniciada/finalizada", HttpStatus.UNPROCESSABLE_ENTITY),
     VEICULO_INDISPONIVEL("422-003", "Veículo indisponível para esta operação", HttpStatus.UNPROCESSABLE_ENTITY),
     MOTORISTA_INDISPONIVEL("422-004", "Motorista indisponível para esta operação", HttpStatus.UNPROCESSABLE_ENTITY),
+    ROTA_VALIDATION_ERROR("422-005", "Erro de validação de rota", HttpStatus.UNPROCESSABLE_ENTITY),
+    VIAGEM_INICIADA("422-006", "Viagem já iniciada", HttpStatus.UNPROCESSABLE_ENTITY),
+    VIAGEM_FINALIZADA("422-007", "Viagem já finalizada", HttpStatus.UNPROCESSABLE_ENTITY),
 
     // ================= INTEGRAÇÃO EXTERNA (424-429) =================
     DEPENDENCY_FAILED("424-001", "Falha em serviço externo", HttpStatus.FAILED_DEPENDENCY),
@@ -111,7 +116,15 @@ public enum ErrorCode {
         this.httpStatus = httpStatus;
     }
 
-    public String getCode() { return code; }
-    public String getMessage() { return message; }
-    public HttpStatus getHttpStatus() { return httpStatus; }
+    public String getCode() { 
+        return code; 
+    }
+    
+    public String getMessage() { 
+        return message; 
+    }
+    
+    public HttpStatus getHttpStatus() { 
+        return httpStatus; 
+    }
 }

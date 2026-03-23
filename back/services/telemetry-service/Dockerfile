@@ -16,7 +16,7 @@ COPY src src
 RUN mvn clean package -DskipTests
 
 # ========================================================
-# Estágio 2: Imagem final com JRE - USAR VERSÃO SEM ALPINE
+# Estágio 2: Imagem final com JRE
 FROM eclipse-temurin:17-jre-jammy  
 
 WORKDIR /app

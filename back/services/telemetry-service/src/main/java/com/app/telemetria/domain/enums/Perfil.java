@@ -1,8 +1,9 @@
 package com.app.telemetria.domain.enums;
 
 public enum Perfil {
-    ADMIN,
-    GESTOR,
+    MOTORISTA,
     OPERADOR,
-    MOTORISTA
+    GESTOR,
+    ADMIN,
+    SUPER_ADMIN
 }
