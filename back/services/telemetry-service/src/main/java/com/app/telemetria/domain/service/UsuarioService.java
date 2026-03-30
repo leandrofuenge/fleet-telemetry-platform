@@ -300,7 +300,3 @@ public class UsuarioService {
 		return usuario.getMfaAtivado() != null && usuario.getMfaAtivado();
 	}
 }
-
-
-
-

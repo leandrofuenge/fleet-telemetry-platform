@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -50,8 +49,6 @@ import com.app.telemetria.infrastructure.persistence.VeiculoRepository;
 import com.app.telemetria.infrastructure.persistence.ViagemRepository;
 
 
-
-
 @Service
 public class AlertaService {
 
@@ -63,23 +60,11 @@ public class AlertaService {
     private final LocationClassifierService locationClassifierService;
     private final SimpMessagingTemplate messagingTemplate;
     private final RoutingClient routingClient;
-    
-    @Autowired
-    private DispositivoIotRepository dispositivoRepository;
-    
-    @Autowired
-    private VeiculoRepository veiculoRepository;
-    
-    @Autowired
-    private HistoricoOdometroRepository historicoOdometroRepository;
-
-    @Autowired
-    private MotoristaRepository motoristaRepository;
-    
-    
-    @Autowired
-    private HistoricoScoreMotoristaRepository historicoScoreRepository;
-    
+    private final DispositivoIotRepository dispositivoRepository;
+    private final VeiculoRepository veiculoRepository;
+    private final HistoricoOdometroRepository historicoOdometroRepository;
+    private final MotoristaRepository motoristaRepository;
+    private final HistoricoScoreMotoristaRepository historicoScoreRepository;
     
     private static final double VELOCIDADE_MAXIMA = 110.0;
     private static final double VELOCIDADE_MINIMA = 10.0;
@@ -93,13 +78,23 @@ public class AlertaService {
             TelemetriaRepository telemetriaRepository,
             LocationClassifierService locationClassifierService,
             SimpMessagingTemplate messagingTemplate,
-            RoutingClient routingClient) {
+            RoutingClient routingClient,
+            DispositivoIotRepository dispositivoRepository,
+            VeiculoRepository veiculoRepository,
+            HistoricoOdometroRepository historicoOdometroRepository,
+            MotoristaRepository motoristaRepository,
+            HistoricoScoreMotoristaRepository historicoScoreRepository) {
         this.alertaRepository = alertaRepository;
         this.viagemRepository = viagemRepository;
         this.telemetriaRepository = telemetriaRepository;
         this.locationClassifierService = locationClassifierService;
         this.messagingTemplate = messagingTemplate;
         this.routingClient = routingClient;
+        this.dispositivoRepository = dispositivoRepository;
+        this.veiculoRepository = veiculoRepository;
+        this.historicoOdometroRepository = historicoOdometroRepository;
+        this.motoristaRepository = motoristaRepository;
+        this.historicoScoreRepository = historicoScoreRepository;
         
         log.info("✅ AlertaService inicializado");
         log.debug("📊 Configurações - VelMax: {} km/h, VelMin: {} km/h, TempoParada: {} min, CombMin: {}%, TempoDireção: {} min",
@@ -346,8 +341,8 @@ public class AlertaService {
 
     @Transactional
     public void verificarVelocidadeBaixa(Telemetria telemetria, Viagem viagem) {
-        if (telemetria.getVelocidade() == null || viagem == null) {
-            log.debug("⏭️ Velocidade nula ou viagem nula, ignorando verificação");
+        if (telemetria == null || viagem == null || telemetria.getVelocidade() == null) {
+            log.debug("⏭️ Telemetria nula, viagem nula ou velocidade nula, ignorando verificação");
             return;
         }
 
@@ -845,7 +840,6 @@ public class AlertaService {
     
     private void enviarAlertaWebSocket(Alerta alerta) {
         try {
-            messagingTemplate.convertAndSend("/topic/alertas", alerta);
             messagingTemplate.convertAndSend("/topic/alertas/" + alerta.getTipo(), alerta);
             log.debug("✅ Alerta {} enviado via WebSocket", alerta.getId());
         } catch (Exception e) {

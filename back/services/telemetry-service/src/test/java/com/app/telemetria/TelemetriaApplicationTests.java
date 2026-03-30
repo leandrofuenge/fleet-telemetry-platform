@@ -1,13 +1,15 @@
 package com.app.telemetria;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-@SpringBootTest
+import org.junit.jupiter.api.Test;
+
 class TelemetriaApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+        assertDoesNotThrow(() -> {
+            Class.forName("com.app.telemetria.TelemetriaApplication");
+        });
+    }
 }

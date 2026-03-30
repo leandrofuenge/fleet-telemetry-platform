@@ -32,10 +32,16 @@
         <bucket4j.version>8.10.1</bucket4j.version>
         <paho.version>1.2.5</paho.version>
 
-        <!-- ===================== SKIP TESTS ===================== -->
-        <skipTests>true</skipTests>
-        <maven.test.skip>true</maven.test.skip>
-        <maven.test.skip.exec>true</maven.test.skip.exec>
+        <!-- ===================== VERSÕES DE TESTE ===================== -->
+        <junit-jupiter.version>5.11.4</junit-jupiter.version>
+        <mockito.version>5.14.2</mockito.version>
+        <assertj.version>3.27.3</assertj.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
+
+        <!-- ===================== SKIP TESTS (DEFINIR COMO FALSE PARA EXECUTAR) ===================== -->
+        <skipTests>false</skipTests>
+        <maven.test.skip>false</maven.test.skip>
+        <maven.test.skip.exec>false</maven.test.skip.exec>
 
         <!-- ===================== SONARQUBE NA PORTA 9050 ===================== -->
         <sonar.projectKey>Telemetry-Service</sonar.projectKey>
@@ -213,20 +219,81 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
-        <!-- TEST -->
+        <!-- TEST - JUnit 5, Mockito, AssertJ (via Spring Boot Starter) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <!-- Excluir JUnit 4 (Vintage Engine) para usar apenas JUnit 5 -->
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+        <!-- TEST - JUnit 5 (versão explícita) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TEST - Mockito (versão explícita) -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TEST - AssertJ (versão explícita) -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TEST - Spring Security Test -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- TEST - Spring Kafka Test -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TEST - Testcontainers (para testes de integração com banco de dados) -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -250,24 +317,46 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Surefire Plugin - Skip Tests -->
+            <!-- Maven Surefire Plugin - Executar Testes Unitários -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <skipTests>${skipTests}</skipTests>
-                    <skip>${maven.test.skip}</skip>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <!-- Excluir testes de integração do surefire -->
+                        <exclude>**/*IT.java</exclude>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-XX:+IgnoreUnrecognizedVMOptions</argLine>
                 </configuration>
             </plugin>
 
-            <!-- Maven Failsafe Plugin - Skip Integration Tests -->
+            <!-- Maven Failsafe Plugin - Executar Testes de Integração -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <skipTests>${skipTests}</skipTests>
-                    <skip>${maven.test.skip}</skip>
+                    <includes>
+                        <include>**/*IT.java</include>
+                        <include>**/*IntegrationTest.java</include>
+                    </includes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- SonarQube Maven Scanner -->
