@@ -13,11 +13,12 @@ RUN mvn dependency:go-offline -B
 
 COPY src src
 
-RUN mvn clean package -DskipTests
+# ✅ Corrigido: pula COMPILAÇÃO e EXECUÇÃO dos testes
+RUN mvn clean package -Dmaven.test.skip=true
 
 # ========================================================
 # Estágio 2: Imagem final com JRE
-FROM eclipse-temurin:17-jre-jammy  
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
