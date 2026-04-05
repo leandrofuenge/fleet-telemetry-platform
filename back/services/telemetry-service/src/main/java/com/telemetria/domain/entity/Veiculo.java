@@ -43,7 +43,11 @@ public class Veiculo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ===== NOVO: Tenant ID =====
+    // ===== NOVO: UUID (identificador único universal) =====
+    @Column(name = "uuid", nullable = false, unique = true, length = 36)
+    private String uuid = java.util.UUID.randomUUID().toString();
+
+    // ===== Tenant ID =====
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
 
@@ -151,6 +155,7 @@ public class Veiculo {
         this.modelo = modelo;
         this.capacidadeCarga = capacidadeCarga;
         this.ativo = true;
+        this.uuid = java.util.UUID.randomUUID().toString();
     }
 
     // ===== Método utilitário para tacógrafo =====
@@ -160,9 +165,12 @@ public class Veiculo {
         }
     }
 
-    // ===== Getters e Setters =====
+    // ===== Getters e Setters (incluindo uuid) =====
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getUuid() { return uuid; }
+    public void setUuid(String uuid) { this.uuid = uuid; }
 
     public Long getTenantId() { return tenantId; }
     public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
@@ -240,7 +248,7 @@ public class Veiculo {
         this.cliente = cliente;
         this.clienteId = cliente != null ? cliente.getId() : null;
         if (cliente != null) {
-            this.tenantId = cliente.getId(); // tenantId = cliente.id
+            this.tenantId = cliente.getId();
         }
     }
 
@@ -271,11 +279,9 @@ public class Veiculo {
 
     @Override
     public String toString() {
-        return "Veiculo{id=" + id + ", placa='" + placa + "', modelo='" + modelo + "'}";
+        return "Veiculo{id=" + id + ", uuid='" + uuid + "', placa='" + placa + "', modelo='" + modelo + "'}";
     }
     
     public String getPlano() { return plano; }
     public void setPlano(String plano) { this.plano = plano; }
-    
-    
 }

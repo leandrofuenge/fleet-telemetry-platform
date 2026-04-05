@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telemetria.domain.entity.GeocodingCache;
 import com.telemetria.infrastructure.persistence.GeocodingCacheRepository;
 
+import jakarta.annotation.PostConstruct;
+
 @Service
 public class HybridGeocodingService {
 
@@ -73,7 +75,27 @@ public class HybridGeocodingService {
         this.objectMapper = new ObjectMapper();
         this.areasUrbanasPreProcessadas = carregarAreasUrbanasPreProcessadas();
 
-        inicializarGeoCache();
+        // Inicialização segura (não lança exceção se Redis falhar)
+        try {
+            inicializarGeoCache();
+        } catch (Exception e) {
+            System.err.println("⚠️ Redis indisponível durante inicialização do HybridGeocodingService: " + e.getMessage());
+            System.err.println("O serviço continuará funcionando com fallbacks (memória, banco, Nominatim).");
+        }
+    }
+
+    @PostConstruct
+    public void init() {
+        // Garante que a inicialização seja tentada novamente após a construção do bean
+        try {
+            if (redisTemplate.getConnectionFactory() != null) {
+                redisTemplate.getConnectionFactory().getConnection().ping();
+                System.out.println("✅ Redis conectado com sucesso.");
+                inicializarGeoCache();
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Redis ainda indisponível: " + e.getMessage());
+        }
     }
 
     private void inicializarGeoCache() {
@@ -134,8 +156,13 @@ public class HybridGeocodingService {
         if (cacheDB.isPresent()) {
             boolean resultado = cacheDB.get().getIsUrbano() != null && cacheDB.get().getIsUrbano();
             memoriaCache.put(chaveFormatada, resultado);
-            redisCache.set(chaveRedis, String.valueOf(resultado), redisTtl, TimeUnit.SECONDS);
-            adicionarLocalGeo("cache:" + cacheDB.get().getId(), latitude, longitude);
+            try {
+                redisCache.set(chaveRedis, String.valueOf(resultado), redisTtl, TimeUnit.SECONDS);
+                adicionarLocalGeo("cache:" + cacheDB.get().getId(), latitude, longitude);
+            } catch (Exception e) {
+                // Redis offline, apenas log
+                System.err.println("Não foi possível salvar no Redis: " + e.getMessage());
+            }
             return resultado;
         }
 
@@ -169,13 +196,21 @@ public class HybridGeocodingService {
 
     private void salvarEmTodosCaches(String chaveLocal, String chaveRedis, Boolean valor) {
         memoriaCache.put(chaveLocal, valor);
-        redisCache.set(chaveRedis, String.valueOf(valor), redisTtl, TimeUnit.SECONDS);
+        try {
+            redisCache.set(chaveRedis, String.valueOf(valor), redisTtl, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            // Redis offline, não faz nada
+        }
     }
 
     public void adicionarLocalGeo(String localId, double latitude, double longitude) {
-        Point point = new Point(longitude, latitude);
-        redisTemplate.opsForGeo().add(GEO_KEY, point, localId);
-        redisTemplate.expire(GEO_KEY, 30, TimeUnit.DAYS);
+        try {
+            Point point = new Point(longitude, latitude);
+            redisTemplate.opsForGeo().add(GEO_KEY, point, localId);
+            redisTemplate.expire(GEO_KEY, 30, TimeUnit.DAYS);
+        } catch (Exception e) {
+            System.err.println("Erro ao adicionar local ao Redis GEO: " + e.getMessage());
+        }
     }
 
     public boolean isProximoUrbano(double latitude, double longitude, double raioKm) {
@@ -183,8 +218,7 @@ public class HybridGeocodingService {
             Point pontoCentral = new Point(longitude, latitude);
             Distance distance = new Distance(raioKm, Metrics.KILOMETERS);
             Circle circle = new Circle(pontoCentral, distance);
-            GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(GEO_KEY,
-                    circle);
+            GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(GEO_KEY, circle);
             return results != null && !results.getContent().isEmpty();
         } catch (Exception e) {
             System.err.println("Erro na busca GEO: " + e.getMessage());
@@ -204,8 +238,7 @@ public class HybridGeocodingService {
                     .includeDistance()
                     .sortAscending();
 
-            GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(GEO_KEY, circle,
-                    args);
+            GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(GEO_KEY, circle, args);
 
             if (results != null) {
                 for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results) {
@@ -237,21 +270,10 @@ public class HybridGeocodingService {
             this.longitude = longitude;
         }
 
-        public String getId() {
-            return id;
-        }
-
-        public double getDistanciaKm() {
-            return distanciaKm;
-        }
-
-        public double getLatitude() {
-            return latitude;
-        }
-
-        public double getLongitude() {
-            return longitude;
-        }
+        public String getId() { return id; }
+        public double getDistanciaKm() { return distanciaKm; }
+        public double getLatitude() { return latitude; }
+        public double getLongitude() { return longitude; }
     }
 
     // ========== MÉTODOS AUXILIARES (inalterados) ==========
@@ -358,7 +380,7 @@ public class HybridGeocodingService {
         int populacao;
 
         BoundingBox(double minLat, double minLon, double maxLat, double maxLon,
-                String tipo, int populacao) {
+                    String tipo, int populacao) {
             this.minLat = minLat;
             this.minLon = minLon;
             this.maxLat = maxLat;

@@ -1479,4 +1479,28 @@ public class AlertaService {
                  telemetria.getVeiculoId(), telemetria.getSatelites());
         enviarAlertaWebSocket(alerta);
     }
+    
+    /**
+     * RN-POS-001: Cria alerta de veículo sem sinal (30 min sem telemetria e ignição TRUE)
+     */
+    public void criarAlertaVeiculoSemSinal(Long veiculoId, Long tenantId, String veiculoUuid, String placa) {
+        log.warn("📢 Criando alerta de veículo sem sinal - Veículo ID: {}, Placa: {}", veiculoId, placa);
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(tenantId)
+                .veiculoId(veiculoId)
+                .veiculoUuid(veiculoUuid)
+                .tipo(TipoAlerta.VEICULO_SEM_SINAL)
+                .severidade(SeveridadeAlerta.ALTO)
+                .mensagem(String.format("Veículo %s (ID: %d) está sem sinal por mais de 30 minutos e com ignição ligada.", placa, veiculoId))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de veículo sem sinal salvo com ID: {}", alerta.getId());
+        enviarAlertaWebSocket(alerta);
+    }
+
 }

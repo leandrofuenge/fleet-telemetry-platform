@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +17,26 @@ import com.telemetria.domain.entity.Telemetria;
 
 @Repository
 public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
+
+    Logger log = LoggerFactory.getLogger(TelemetriaRepository.class);
+
+    // =========================================
+    // SAVE com LOG - Método customizado
+    // =========================================
+    default Telemetria saveWithLog(Telemetria telemetria) {
+        log.info("💾 [REPOSITORY] Salvando telemetria no banco...");
+        log.debug("[REPOSITORY] Dados - ID: {}, VeiculoID: {}, DataHora: {}, Lat: {}, Lng: {}",
+                telemetria.getId(),
+                telemetria.getVeiculoId(),
+                telemetria.getDataHora(),
+                telemetria.getLatitude(),
+                telemetria.getLongitude());
+        
+        Telemetria saved = save(telemetria);
+        
+        log.info("✅ [REPOSITORY] Telemetria salva! ID gerado: {}", saved.getId());
+        return saved;
+    }
 
     // =========================================
     // Métodos por ID do veículo
@@ -126,5 +148,49 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
  int deleteByVeiculoIdAndDataHoraBeforeAndPreservarDadosFalse(
      @Param("veiculoId") Long veiculoId, 
      @Param("dataLimite") LocalDateTime dataLimite);
+ 
+ 
+ @Modifying
+ @Query(value = """
+     UPDATE posicao_atual 
+     SET status_veiculo = 'DESCONHECIDO' 
+     WHERE TIMESTAMPDIFF(MINUTE, ultima_telemetria, NOW()) > :minutos
+     """, nativeQuery = true)
+ int atualizarStatusDesconhecido(@Param("minutos") int minutos);
 
+ 
+//========== RN-POS-002: Retenção de Dados ==========
+
+/**
+* Deleta telemetrias normais (não jornada, não preservadas) com data anterior ao limite.
+*/
+@Modifying
+@Transactional
+@Query(value = """
+  DELETE FROM telemetria 
+  WHERE veiculo_id = :veiculoId 
+    AND data_hora < :dataLimite 
+    AND (preservar_dados IS NULL OR preservar_dados = FALSE)
+    AND (tipo IS NULL OR tipo NOT IN ('JORNADA_LEI_12619'))
+  """, nativeQuery = true)
+int deleteDadosNormaisAntigos(@Param("veiculoId") Long veiculoId, 
+                             @Param("dataLimite") LocalDateTime dataLimite);
+
+/**
+* Deleta dados de jornada (Lei 12.619) com data anterior ao limite (2 anos),
+* desde que não estejam marcados como preservar_dados.
+*/
+@Modifying
+@Transactional
+@Query(value = """
+  DELETE FROM telemetria 
+  WHERE veiculo_id = :veiculoId 
+    AND data_hora < :dataLimite 
+    AND (preservar_dados IS NULL OR preservar_dados = FALSE)
+    AND tipo = 'JORNADA_LEI_12619'
+  """, nativeQuery = true)
+int deleteJornadaAntiga(@Param("veiculoId") Long veiculoId, 
+                      @Param("dataLimite") LocalDateTime dataLimite);
+ 
 }
+

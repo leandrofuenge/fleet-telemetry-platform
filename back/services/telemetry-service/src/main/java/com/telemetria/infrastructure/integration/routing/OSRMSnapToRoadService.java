@@ -49,7 +49,7 @@ public class OSRMSnapToRoadService {
         // 1. Arredondar coordenadas para criar chave de cache
         double roundedLat = Math.round(lat * roundingFactor) / roundingFactor;
         double roundedLng = Math.round(lon * roundingFactor) / roundingFactor;
-        String cacheKey = String.format("snap:%.*f:%.*f", roundingDigits, roundedLat, roundingDigits, roundedLng);
+        String cacheKey = String.format("snap:%." + roundingDigits + "f:%." + roundingDigits + "f", roundedLat, roundedLng);
 
         // 2. Tentar obter do Redis
         SnapResult cached = (SnapResult) redisTemplate.opsForValue().get(cacheKey);

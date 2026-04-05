@@ -57,20 +57,30 @@ public class TelemetriaController {
 
     @PostMapping
     public ResponseEntity<String> criar(@RequestBody TelemetriaRequest request) {
-        log.info("📡 Requisição de telemetria recebida");
+        log.info("📡 [CONTROLLER] Requisição de telemetria recebida");
+        log.debug("[CONTROLLER] Dados recebidos - Veículo ID: {}, Lat: {}, Lng: {}, Vel: {}, DataHora: {}",
+                request.getVeiculo() != null ? request.getVeiculo().getId() : null,
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getVelocidade(),
+                request.getDataHora());
 
         if (request.getVeiculo() == null || request.getVeiculo().getId() == null) {
-            log.error("❌ ID do veículo não informado");
+            log.error("❌ [CONTROLLER] ID do veículo não informado");
             throw new BusinessException(ErrorCode.VALIDATION_ERROR, "ID do veículo é obrigatório");
         }
 
-        Veiculo veiculo = veiculoRepository.findById(request.getVeiculo().getId())
+        Long veiculoId = request.getVeiculo().getId();
+        log.debug("[CONTROLLER] Buscando veículo ID: {}", veiculoId);
+        
+        Veiculo veiculo = veiculoRepository.findById(veiculoId)
                 .orElseThrow(() -> {
-                    log.error("❌ Veículo não encontrado com ID: {}", request.getVeiculo().getId());
+                    log.error("❌ [CONTROLLER] Veículo não encontrado com ID: {}", veiculoId);
                     return new BusinessException(
                             ErrorCode.VEICULO_NOT_FOUND,
-                            request.getVeiculo().getId().toString());
+                            veiculoId.toString());
                 });
+        log.info("✅ [CONTROLLER] Veículo encontrado: {} (ID: {})", veiculo.getPlaca(), veiculo.getId());
 
         if (request.getLatitude() == null || request.getLongitude() == null) {
             throw new BusinessException(ErrorCode.VALIDATION_ERROR,

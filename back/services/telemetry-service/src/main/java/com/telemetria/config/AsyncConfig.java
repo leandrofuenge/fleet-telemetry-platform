@@ -16,9 +16,9 @@ public class AsyncConfig {
     @Bean(name = "criticalTaskExecutor")
     public Executor criticalTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(1000);
+        executor.setCorePoolSize(8);      // antes 2
+        executor.setMaxPoolSize(16);      // antes 4
+        executor.setQueueCapacity(5000);  // antes 1000
         executor.setThreadNamePrefix("Critical-");
         executor.initialize();
         return executor;
@@ -27,9 +27,9 @@ public class AsyncConfig {
     @Bean(name = "highTaskExecutor")
     public Executor highTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(200);
+        executor.setCorePoolSize(16);     // antes 4
+        executor.setMaxPoolSize(32);      // antes 8
+        executor.setQueueCapacity(2000);  // antes 200
         executor.setThreadNamePrefix("High-");
         executor.initialize();
         return executor;
@@ -38,9 +38,9 @@ public class AsyncConfig {
     @Bean(name = "normalTaskExecutor")
     public Executor normalTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(200);
+        executor.setCorePoolSize(16);     // antes 4
+        executor.setMaxPoolSize(32);      // antes 8
+        executor.setQueueCapacity(2000);  // antes 200
         executor.setThreadNamePrefix("Normal-");
         executor.initialize();
         return executor;

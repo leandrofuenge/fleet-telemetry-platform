@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,22 +26,28 @@ import com.telemetria.application.service.BackpressureMonitorService;
 import com.telemetria.application.service.CriticalAreaService;
 import com.telemetria.application.service.PriorityEventRouter;
 import com.telemetria.domain.entity.Telemetria;
-import com.telemetria.domain.entity.Veiculo;
+import com.telemetria.domain.entity.VeiculoCache;
 import com.telemetria.domain.service.AlertaService;
+import com.telemetria.domain.service.GeofenceService;
 import com.telemetria.domain.service.GpsValidationService;
 import com.telemetria.domain.service.GsmCompressionService;
 import com.telemetria.domain.service.TelemetriaService;
 import com.telemetria.infrastructure.integration.routing.OSRMSnapToRoadService;
 import com.telemetria.infrastructure.integration.weather.WeatherAlertService;
+import com.telemetria.infrastructure.metrics.TelemetriaMetrics;
 import com.telemetria.infrastructure.persistence.TelemetriaRepository;
-import com.telemetria.infrastructure.persistence.VeiculoRepository;
+import com.telemetria.infrastructure.persistence.VeiculoCacheRepository;
 import com.telemetria.infrastructure.persistence.ViagemRepository;
+
+import io.micrometer.core.instrument.Timer;
 
 @Service
 public class TelemetriaKafkaConsumer {
 
+    private static final Logger log = LoggerFactory.getLogger(TelemetriaKafkaConsumer.class);
+
     private final TelemetriaRepository telemetriaRepository;
-    private final VeiculoRepository veiculoRepository;
+    private final VeiculoCacheRepository veiculoCacheRepository;
     private final ViagemRepository viagemRepository;
     private final AlertaService alertaService;
     private final WeatherAlertService weatherAlertService;
@@ -50,11 +58,13 @@ public class TelemetriaKafkaConsumer {
     private final GsmCompressionService gsmService;
     private final TelemetriaService telemetriaService;
     private final PriorityEventRouter priorityEventRouter;
+    private final GeofenceService geofenceService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final TelemetriaMetrics metrics;
 
     private final Random random = new Random();
-    private final Semaphore semaphore = new Semaphore(10);
+    private final Semaphore semaphore = new Semaphore(100); // AUMENTADO de 10 para 100
     private final AtomicInteger totalProcessados = new AtomicInteger(0);
     private final AtomicInteger totalDescartados = new AtomicInteger(0);
 
@@ -63,7 +73,7 @@ public class TelemetriaKafkaConsumer {
 
     public TelemetriaKafkaConsumer(
             TelemetriaRepository telemetriaRepository,
-            VeiculoRepository veiculoRepository,
+            VeiculoCacheRepository veiculoCacheRepository,
             ViagemRepository viagemRepository,
             AlertaService alertaService,
             WeatherAlertService weatherAlertService,
@@ -74,9 +84,11 @@ public class TelemetriaKafkaConsumer {
             GsmCompressionService gsmService,
             TelemetriaService telemetriaService,
             PriorityEventRouter priorityEventRouter,
-            KafkaTemplate<String, String> kafkaTemplate) {
+            GeofenceService geofenceService,
+            KafkaTemplate<String, String> kafkaTemplate,
+            TelemetriaMetrics metrics) {
         this.telemetriaRepository = telemetriaRepository;
-        this.veiculoRepository = veiculoRepository;
+        this.veiculoCacheRepository = veiculoCacheRepository;
         this.viagemRepository = viagemRepository;
         this.alertaService = alertaService;
         this.weatherAlertService = weatherAlertService;
@@ -87,85 +99,90 @@ public class TelemetriaKafkaConsumer {
         this.gsmService = gsmService;
         this.telemetriaService = telemetriaService;
         this.priorityEventRouter = priorityEventRouter;
+        this.geofenceService = geofenceService;
         this.kafkaTemplate = kafkaTemplate;
+        this.metrics = metrics;
     }
 
-    @KafkaListener(topics = "telemetria-raw", groupId = "telemetria-group", concurrency = "3")
+    @KafkaListener(topics = "telemetria-raw", groupId = "telemetria-group", concurrency = "8")
     public void processarTelemetria(String mensagem, Acknowledgment ack) {
+        Timer.Sample sample = metrics.iniciarTimer();
         long inicio = System.currentTimeMillis();
         int tamanhoOriginal = mensagem.getBytes().length;
 
-        backpressureMonitor.registrarRecebimento("NORMAL");
+        // ✅ CORRIGIDO: Registrar recebimento APENAS UMA VEZ
+        backpressureMonitor.registrarRecebimento();
+
+        // Verificar se deve descartar por backpressure
         if (backpressureMonitor.deveDescartar("NORMAL")) {
-            System.out.println("⏭️ Mensagem NORMAL descartada (backpressure CRÍTICO)");
+            log.debug("⏭️ Mensagem NORMAL descartada (backpressure CRÍTICO)");
             totalDescartados.incrementAndGet();
+            metrics.incrementarDescartadas();
             ack.acknowledge();
+            metrics.pararTimer(sample);
             return;
         }
 
-        backpressureMonitor.registrarRecebimento();
+        // ✅ REMOVIDO: backpressureMonitor.registrarRecebimento() duplicado
 
-        System.out.println("📥 [INÍCIO] Processando mensagem do Kafka...");
-        System.out.println("📊 Tamanho original: " + tamanhoOriginal + " bytes");
-        System.out.println("📊 Lag atual: " + backpressureMonitor.calcularLag() + " mensagens");
+        log.debug("📥 Processando mensagem. Tamanho: {}, Lag: {}", 
+            tamanhoOriginal, backpressureMonitor.calcularLag());
 
         try {
             backpressureMonitor.aplicarBackpressure();
 
             if (!semaphore.tryAcquire()) {
-                System.out.println("⏳ Semáforo ocupado (" + semaphore.getQueueLength() + " threads aguardando)");
+                log.debug("⏳ Semáforo ocupado ({} threads aguardando)", semaphore.getQueueLength());
                 semaphore.acquire();
             }
 
             try {
-                System.out.println("🔄 Convertendo JSON para objeto...");
+                log.trace("🔄 Convertendo JSON para objeto");
                 JsonNode json = objectMapper.readTree(mensagem);
 
-                Long veiculoId = json.get("vehicle_id").asLong();
+                Long veiculoId = json.get("veiculo_id").asLong();
                 double latitude = json.get("latitude").asDouble();
                 double longitude = json.get("longitude").asDouble();
 
-                System.out.println("🔍 ID do veículo extraído: " + veiculoId);
-                System.out.println("📍 Coordenadas: " + latitude + ", " + longitude);
+                log.trace("🔍 Veículo: {}, Coords: {}, {}", veiculoId, latitude, longitude);
 
                 double fatorReducao = criticalAreaService.getFatorReducao(latitude, longitude);
 
                 if (fatorReducao < 1.0) {
-                    System.out.println("⚠️ Área crítica detectada! Fator de redução: " + fatorReducao);
+                    log.debug("⚠️ Área crítica detectada. Fator: {}", fatorReducao);
 
                     if (random.nextDouble() > fatorReducao) {
-                        System.out.println("⏭️ Mensagem descartada (redução de frequência em área crítica)");
+                        log.debug("⏭️ Mensagem descartada (redução em área crítica)");
                         criticalAreaService.registrarProcessamento(veiculoId, false);
                         totalDescartados.incrementAndGet();
+                        metrics.incrementarDescartadas();
                         ack.acknowledge();
-                        System.out.println("✅ Offset confirmado (mensagem descartada)");
-
-                        if (totalDescartados.get() % 10 == 0) {
-                            criticalAreaService.imprimirEstatisticas();
-                            imprimirEstatisticasBackpressure();
-                        }
+                        metrics.pararTimer(sample);
                         return;
                     } else {
-                        System.out.println("✅ Mensagem selecionada para processamento (aproveitada)");
+                        log.trace("✅ Mensagem aproveitada");
                     }
                 }
 
-                System.out.println("🔎 Buscando veículo no banco de dados...");
-                Veiculo veiculo = veiculoRepository.findById(veiculoId)
-                        .orElseThrow(() -> new RuntimeException("Veículo não encontrado: " + veiculoId));
-                System.out.println("✅ Veículo encontrado: " + veiculo.getPlaca());
+                log.trace("🔎 Buscando veículo no banco");
+                VeiculoCache veiculo = veiculoCacheRepository.findById(veiculoId)
+                        .orElseThrow(() -> new RuntimeException("Veículo não encontrado no cache: " + veiculoId));
+                log.trace("✅ Veículo encontrado: {}", veiculo.getPlaca());
 
-                System.out.println("📊 Criando entidade de telemetria...");
+                log.trace("📊 Criando entidade de telemetria");
                 Telemetria telemetria = new Telemetria();
-                telemetria.setVeiculo(veiculo);
+                // Não definimos setVeiculo() pois a FK aponta para veiculos_cache
+                telemetria.setVeiculoId(veiculo.getId());
+                telemetria.setVeiculoUuid(veiculo.getUuid());
+                telemetria.setTenantId(veiculo.getTenantId());
                 telemetria.setLatitude(json.get("latitude").asDouble());
                 telemetria.setLongitude(json.get("longitude").asDouble());
                 telemetria.setVelocidade(json.get("velocidade").asDouble());
 
-                if (json.has("nivelCombustivel")) {
-                    double nivel = json.get("nivelCombustivel").asDouble();
+                if (json.has("nivel_combustivel")) {
+                    double nivel = json.get("nivel_combustivel").asDouble();
                     telemetria.setNivelCombustivel(nivel);
-                    System.out.println("⛽ Nível de combustível: " + nivel + "%");
+                    log.trace("⛽ Combustível: {}%", nivel);
                 }
 
                 if (json.has("hdop")) {
@@ -174,88 +191,86 @@ public class TelemetriaKafkaConsumer {
                 if (json.has("satelites")) {
                     telemetria.setSatelites(json.get("satelites").asInt());
                 }
-                if (json.has("sinalGsm")) {
-                    telemetria.setSinalGsm(json.get("sinalGsm").asDouble());
+                if (json.has("sinal_gsm")) {
+                    telemetria.setSinalGsm(json.get("sinal_gsm").asDouble());
                 }
 
                 if (json.has("timestamp")) {
                     long ts = json.get("timestamp").asLong();
                     telemetria.setDataHora(LocalDateTime.ofInstant(
-                            Instant.ofEpochSecond(ts), ZoneId.systemDefault()));
-                    System.out.println("⏰ Timestamp do veículo: " + ts);
+                            Instant.ofEpochMilli(ts), ZoneId.systemDefault()));
                 } else {
                     telemetria.setDataHora(LocalDateTime.now());
-                    System.out.println("⏰ Timestamp atual: " + LocalDateTime.now());
                 }
 
-                // ✅ RF05 RN-TEL-002: VALIDAÇÃO GPS (antes de qualquer decisão de buffer)
-                System.out.println("🛰️ Validando GPS (RN-TEL-002)...");
+                // RF05 RN-TEL-002: VALIDAÇÃO GPS
                 Optional<Telemetria> anterior = gpsValidationService.buscarAnterior(
                         veiculoId, telemetria.getDataHora());
                 gpsValidationService.validarGps(telemetria, anterior);
 
-                // ✅ RF05 RN-TEL-004: COMPRESSÃO GSM (ANTES DE SALVAR)
-                System.out.println("📶 Aplicando política GSM (RN-TEL-004)...");
+                // RF05 RN-TEL-004: COMPRESSÃO GSM
+                log.trace("📶 Aplicando política GSM");
                 boolean processarAgora = gsmService.aplicarPoliticaGsm(telemetria);
 
                 if (!processarAgora) {
-                    System.out.println("⏸️ Mensagem armazenada em buffer (sinal fraco). Não será persistida agora.");
+                    log.debug("⏸️ Mensagem em buffer (sinal fraco)");
+                    metrics.incrementarDescartadas();
                     ack.acknowledge();
+                    metrics.pararTimer(sample);
                     return;
                 }
 
-                // Sinal OK → persistir e continuar
-                System.out.println("💾 Salvando telemetria no banco...");
+                log.trace("💾 Salvando telemetria");
                 Telemetria saved = telemetriaRepository.save(telemetria);
-                System.out.println("✅ Telemetria salva com ID: " + saved.getId());
+                log.trace("✅ Telemetria salva: {}", saved.getId());
 
                 // ✅ RF05 RN-TEL-003: SNAP-TO-ROAD OSRM
-                System.out.println("🛣️ Aplicando snap-to-road OSRM (RN-TEL-003)...");
+                log.trace("🛣️ Snap-to-road");
                 snapService.snapToRoad(saved.getLatitude(), saved.getLongitude())
                         .ifPresent(snap -> {
                             saved.setLatSnap(snap.latSnap());
                             saved.setLngSnap(snap.lngSnap());
                             saved.setNomeVia(snap.nomeVia());
-                            System.out.println("✅ Snap-to-road: " + snap.nomeVia());
+                            log.trace("✅ Snap: {}", snap.nomeVia());
                         });
+
+                // ===== GEOFENCE (RF07) =====
+                geofenceService.verificarGeofences(saved);
 
                 // ===== ROTEAMENTO POR PRIORIDADE =====
                 priorityEventRouter.route(saved, json);
 
-                // 2. Buscar viagem ativa
-                System.out.println("🔎 Buscando viagem ativa...");
-                var viagemAtiva = viagemRepository.findByVeiculoAndStatus(veiculo, "EM_ANDAMENTO")
+                // Buscar viagem ativa
+                log.trace(" Buscando viagem ativa");
+                var viagemAtiva = viagemRepository.findByVeiculoIdAndStatus(veiculo.getId(), "EM_ANDAMENTO")
                         .orElse(null);
 
                 if (viagemAtiva != null) {
-                    System.out.println("✅ Viagem ativa encontrada: " + viagemAtiva.getId());
-                } else {
-                    System.out.println("ℹ️ Nenhuma viagem ativa no momento");
+                    log.trace(" Viagem ativa: {}", viagemAtiva.getId());
                 }
 
                 // ===== CONSULTA CLIMÁTICA ADAPTATIVA =====
                 if (saved.getLatitude() != null && saved.getLongitude() != null) {
                     if (fatorReducao < 1.0 && random.nextDouble() > 0.2) {
-                        System.out.println("🌤️ Pulando consulta climática em área crítica (economia de API)");
+                        log.trace("🌤️ Pulando consulta climática (área crítica)");
                     } else {
-                        System.out.println("🌦️ Verificando condições climáticas...");
+                        log.trace("🌦️ Verificando clima");
                         weatherAlertService.verificarClimaParaVeiculo(
                                 veiculo.getId(),
                                 saved.getLatitude(),
                                 saved.getLongitude(),
                                 viagemAtiva);
-                        System.out.println("✅ Verificação climática concluída");
                     }
                 }
 
                 // ✅ RF06 RN-POS-001: UPSERT POSIÇÃO ATUAL
-                System.out.println("📍 [RF06] Atualizando posição atual do veículo...");
+                log.trace("📍 Atualizando posição atual");
                 Boolean ignicao = json.has("ignicao") ? json.get("ignicao").asBoolean() : false;
                 
                 telemetriaService.atualizarPosicaoAtual(
-                    saved.getVeiculo().getId(),
-                    saved.getVeiculo().getTenantId(),
-                    saved.getVeiculo().getPlaca().replaceAll("-", "").replaceAll("[^A-Z0-9]", ""),
+                    veiculo.getId(),
+                    veiculo.getTenantId(),
+                    veiculo.getPlaca().replaceAll("-", "").replaceAll("[^A-Z0-9]", ""),
                     saved.getLatitude(),
                     saved.getLongitude(),
                     saved.getVelocidade(),
@@ -263,57 +278,57 @@ public class TelemetriaKafkaConsumer {
                     ignicao,
                     saved.getDataHora()
                 );
-                System.out.println("✅ [RF06] Posição atual atualizada: Veículo " + veiculoId);
 
                 // Registrar processamento bem-sucedido
                 criticalAreaService.registrarProcessamento(veiculoId, true);
                 totalProcessados.incrementAndGet();
+                metrics.incrementarProcessadas();
 
                 ack.acknowledge();
 
                 long fim = System.currentTimeMillis();
-                System.out.println("✅ Offset confirmado (commit) no Kafka");
-                System.out.println("✅✅✅ Telemetria processada com SUCESSO: Veículo " + veiculoId +
-                        " - ID: " + saved.getId() + " - Tempo: " + (fim - inicio) + "ms");
+                long tempoProcessamento = fim - inicio;
+                
+                // ✅ Log consolidado
+                log.debug("✅ Telemetria processada: Veículo={}, ID={}, Tempo={}ms", 
+                    veiculoId, saved.getId(), tempoProcessamento);
 
-                backpressureMonitor.registrarProcessamento(fim - inicio);
+                backpressureMonitor.registrarProcessamento(tempoProcessamento);
 
             } finally {
                 semaphore.release();
             }
 
         } catch (Exception e) {
-            System.err.println("❌❌❌ ERRO CRÍTICO: " + e.getMessage());
-            e.printStackTrace();
-
+            log.error("❌ ERRO no processamento: {}", e.getMessage(), e);
+            metrics.incrementarDescartadas();
             try {
-                System.out.println("📤 Enviando mensagem para DLQ...");
+                log.debug("📤 Enviando para DLQ");
                 kafkaTemplate.send(dlqTopic, mensagem).whenComplete((result, ex) -> {
                     if (ex != null) {
-                        System.err.println("❌ Erro ao enviar para DLQ: " + ex.getMessage());
+                        log.error("❌ Erro ao enviar para DLQ: {}", ex.getMessage());
                     } else {
-                        System.out.println("✅ Mensagem enviada para DLQ com sucesso. Partition: " +
-                                result.getRecordMetadata().partition() + ", Offset: " +
+                        log.debug("✅ DLQ enviado. Partition: {}, Offset: {}",
+                                result.getRecordMetadata().partition(),
                                 result.getRecordMetadata().offset());
                     }
                 });
 
                 ack.acknowledge();
-                System.out.println("✅ Offset confirmado mesmo com erro (DLQ)");
 
             } catch (Exception dlqEx) {
-                System.err.println("❌❌❌ Erro crítico: falha ao enviar para DLQ: " + dlqEx.getMessage());
-                dlqEx.printStackTrace();
-                System.err.println("⏳ Mensagem NÃO terá commit - será reprocessada");
+                log.error("❌ Falha crítica ao enviar para DLQ: {}", dlqEx.getMessage(), dlqEx);
             }
+        } finally {
+            metrics.pararTimer(sample);
         }
 
+        // Imprimir estatísticas a cada 100 mensagens
         if (totalProcessados.get() % 100 == 0) {
             imprimirEstatisticasBackpressure();
         }
 
-        System.out.println("🏁 [FIM] Processamento concluído");
-        System.out.println("========================================");
+        log.trace("🏁 Processamento concluído");
     }
 
     private void imprimirEstatisticasBackpressure() {
@@ -322,23 +337,21 @@ public class TelemetriaKafkaConsumer {
         double cpu = backpressureMonitor.getCpuUsage();
         double memory = backpressureMonitor.getMemoryUsage();
 
-        System.out.println("\n📊 ESTATÍSTICAS DE BACKPRESSURE");
-        System.out.println("================================");
-        System.out.println("📥 Total recebido: " + backpressureMonitor.getMensagensRecebidas());
-        System.out.println("✅ Total processado: " + totalProcessados.get());
-        System.out.println("⏭️ Total descartado: " + totalDescartados.get());
-        System.out.println("⏳ Lag atual: " + lag + " mensagens");
-        System.out.println("⚡ Taxa processamento: " + String.format("%.2f", taxa) + " msg/s");
-        System.out.println("💻 CPU: " + String.format("%.1f", cpu) + "%");
-        System.out.println("🧠 Memória: " + String.format("%.1f", memory) + "%");
-        System.out.println("🚦 Backpressure ativo: " + (backpressureMonitor.isBackpressureAtivo() ? "SIM" : "NÃO"));
-        System.out.println("🔄 Threads aguardando semáforo: " + semaphore.getQueueLength());
+        log.info("📊 ESTATÍSTICAS - Recebido: {}, Processado: {}, Descartado: {}, Lag: {}, Taxa: {:.2f} msg/s, CPU: {:.1f}%, Memória: {:.1f}%, Backpressure: {}, Semáforo: {}",
+                backpressureMonitor.getMensagensRecebidas(),
+                totalProcessados.get(),
+                totalDescartados.get(),
+                lag,
+                taxa,
+                cpu,
+                memory,
+                backpressureMonitor.isBackpressureAtivo() ? "SIM" : "NÃO",
+                semaphore.getQueueLength());
 
         if (lag > 0 && taxa > 0) {
             long tempoEstimado = (long) (lag / taxa * 1000);
-            System.out.println("⏱️ Tempo estimado para recuperação: " + tempoEstimado + "ms");
+            log.info("⏱️ Tempo estimado para recuperação: {}ms", tempoEstimado);
         }
-        System.out.println("================================");
     }
 
     public static byte[] comprimirGzip(String dados) {

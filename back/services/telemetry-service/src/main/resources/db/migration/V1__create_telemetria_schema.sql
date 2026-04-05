@@ -275,6 +275,8 @@ CREATE TABLE IF NOT EXISTS telemetria (
     porta_aberta                BOOLEAN NOT NULL DEFAULT FALSE,
     botao_panico                BOOLEAN NOT NULL DEFAULT FALSE,
     adulteracao_gps             BOOLEAN NOT NULL DEFAULT FALSE,
+    impreciso                   BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Indica se os dados de GPS são imprecisos (HDOP alto)',
+    preservar_dados             BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Indica se os dados devem ser preservados no buffer',
 
     -- CARGA
     temperatura_carga           DOUBLE,
@@ -623,6 +625,10 @@ CREATE TABLE IF NOT EXISTS resumo_diario_veiculo (
     INDEX idx_rdv_data    (data)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+
+
+
 CREATE TABLE IF NOT EXISTS posicao_atual (
     veiculo_id          BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     tenant_id           BIGINT UNSIGNED NOT NULL,
@@ -659,6 +665,12 @@ CREATE TABLE IF NOT EXISTS historico_posicao (
     INDEX idx_hp_tenant    (tenant_id),
     INDEX idx_hp_data_hora (data_hora)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
+
+
 
 -- =============================================================================
 -- SEÇÃO 15 — DISPOSITIVOS IoT
@@ -989,3 +1001,6 @@ WHERE m.ativo = TRUE
       m.data_venc_aso < CURDATE() OR
       m.mopp_valido = FALSE
   );
+
+
+  

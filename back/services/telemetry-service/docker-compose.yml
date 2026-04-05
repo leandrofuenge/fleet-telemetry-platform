@@ -103,9 +103,6 @@ services:
     networks:
       - telemetry-local-network
 
-  # ========================================================
-  # SONARQUBE - Versão mais recente (Community Edition)
-  # ========================================================
   sonarqube:
     image: sonarqube:latest
     container_name: telemetry-sonarqube-local
@@ -182,6 +179,45 @@ services:
         condition: service_healthy
       mosquitto:
         condition: service_healthy
+    cpus: 8
+    mem_limit: 8g
+    mem_reservation: 4g
+    networks:
+      - telemetry-local-network
+
+  # ========================================================
+  # PROMETHEUS - Coleta métricas da aplicação
+  # ========================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: telemetry-prometheus-local
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - telemetry-local-network
+
+  # ========================================================
+  # GRAFANA - Visualização das métricas
+  # ========================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: telemetry-grafana-local
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
     networks:
       - telemetry-local-network
 
@@ -195,6 +231,8 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   sonarqube_db_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   telemetry-local-network:

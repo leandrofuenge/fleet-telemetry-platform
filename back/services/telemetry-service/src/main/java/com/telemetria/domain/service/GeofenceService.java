@@ -1,10 +1,8 @@
 package com.telemetria.domain.service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
+import com.telemetria.domain.entity.Geofence;
+import com.telemetria.domain.entity.Telemetria;
+import com.telemetria.infrastructure.persistence.GeofenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +11,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.telemetria.domain.entity.Geofence;
-import com.telemetria.domain.entity.Telemetria;
-import com.telemetria.infrastructure.persistence.GeofenceRepository;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GeofenceService {
@@ -41,6 +41,9 @@ public class GeofenceService {
         this.redisTemplate = redisTemplate;
     }
 
+    /**
+     * Verifica todas as geofences ativas para o veículo e gera alertas de entrada/saída com cooldown.
+     */
     @Transactional
     public void verificarGeofences(Telemetria telemetria) {
         if (telemetria == null || telemetria.getVeiculo() == null) {
@@ -48,13 +51,14 @@ public class GeofenceService {
         }
 
         Long tenantId = telemetria.getTenantId();
-        String veiculoUuid = telemetria.getVeiculo().getPlaca(); // ou outro identificador único
+        String veiculoUuid = telemetria.getVeiculo().getUuid(); // precisa ter getUuid() em Veiculo
 
         List<Geofence> geofences = geofenceRepository.findAtivasPorVeiculo(tenantId, veiculoUuid);
         if (geofences.isEmpty()) {
             return;
         }
 
+        // Busca a telemetria anterior para saber se o veículo já estava dentro ou fora
         Optional<Telemetria> ultimaAnterior = telemetriaService.buscarUltimaPorVeiculo(telemetria.getVeiculoId());
         Telemetria anterior = ultimaAnterior.orElse(null);
 
@@ -104,6 +108,8 @@ public class GeofenceService {
         }
     }
 
+    // ========== Lógica de ponto dentro de círculo/polígono ==========
+
     private boolean pontoEstaDentroGeofence(double lat, double lng, Geofence geofence) {
         if (geofence.getTipo() == Geofence.TipoGeofence.CIRCULO) {
             return pontoEstaDentroCirculo(lat, lng,
@@ -115,18 +121,18 @@ public class GeofenceService {
         return false;
     }
 
-    private boolean pontoEstaDentroCirculo(double lat, double lng, double centroLat, double centroLng, double raio) {
+    private boolean pontoEstaDentroCirculo(double lat, double lng, double centroLat, double centroLng, double raioKm) {
         double distancia = haversine(lat, lng, centroLat, centroLng);
-        return distancia <= raio;
+        return distancia <= raioKm;
     }
 
     private double haversine(double lat1, double lng1, double lat2, double lng2) {
-        final int R = 6371; // Raio da Terra em km
+        final int R = 6371; // km
         double dLat = Math.toRadians(lat2 - lat1);
         double dLng = Math.toRadians(lng2 - lng1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                   Math.sin(dLng / 2) * Math.sin(dLng / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
@@ -144,7 +150,7 @@ public class GeofenceService {
             double yj = vertices.get(j).getLng();
 
             boolean intersect = ((yi > lng) != (yj > lng)) &&
-                    (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+                    (lat < (xj - xi) * (lng - yi) / ((yj - yi) != 0 ? (yj - yi) : 1e-9) + xi);
             if (intersect) {
                 dentro = !dentro;
             }

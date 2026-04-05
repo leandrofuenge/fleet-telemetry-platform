@@ -85,6 +85,8 @@ public enum TipoAlerta {
  ASO_VENCIDO("ASO vencido"),
  MOPP_INVALIDO("MOPP inválido para carga perigosa"),
  
+ VEICULO_SEM_SINAL("Veículo sem sinal por mais de 30 minutos"),
+ 
  // NOVOS ALERTAS PARA RN-MOT-004 (Score)
  SCORE_BAIXO("Score de comportamento baixo"),
  SCORE_CRITICO("Score de comportamento crítico"),

@@ -40,6 +40,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/motoristas").permitAll()
                 .requestMatchers("/api/v1/motoristas/buscar/**").permitAll()
                 
+                // ===== PROMETHEUS (métricas) =====
+                .requestMatchers("/actuator/prometheus").permitAll()   // <-- ADICIONAR ESTA LINHA
+                
                 // ===== MATRIZ DE VISIBILIDADE =====
                 // Veículos (RN: MOTORISTA: próprio, OPERADOR/GESTOR/ADMIN: todos)
                 .requestMatchers("/api/v1/veiculos/meus").hasRole("MOTORISTA")
@@ -98,7 +101,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // RN-USR-001: BCrypt rounds = 12
         return new BCryptPasswordEncoder(12);
     }
 }
