@@ -5,8 +5,6 @@ import math
 import sys
 import threading
 from kafka import KafkaProducer
-import requests
-from datetime import datetime
 
 # =========================
 # CONFIGURAÇÕES
@@ -14,24 +12,18 @@ from datetime import datetime
 KAFKA_BROKER = "localhost:9092"
 TOPIC = "telemetria-raw"
 
-# HTTP API (telemetry-service)
-TELEMETRY_SERVICE_URL = "http://localhost:8080/api/v1/telemetria"
-
-# Modo de envio: "kafka", "http", "ambos"
-MODO_ENVIO = "kafka"
-
 # Parâmetros de carga extremamente baixa
-NUM_THREADS = 1                     # apenas um veículo
+NUM_THREADS = 1
 INTERVALO_BASE_MS = 2000            # 2 segundos entre mensagens
 ENVIAR_BATCH_INICIAL = False
 BATCH_SIZE = 0
 DURACAO_TESTE_SEGUNDOS = 0
-RAMP_UP_MS = 1000                   # 1 segundo entre iniciar threads (mas só uma)
+RAMP_UP_MS = 1000
 
 ATIVAR_BURST = False
 FLUSH_A_CADA = 0
 
-# Probabilidades zero para evitar eventos críticos/altos (apenas NORMAL)
+# Probabilidades zero para evitar eventos críticos/altos
 INJETAR_CRITICO_PROB = 0.0
 INJETAR_ALTO_PROB = 0.0
 PROB_VELOCIDADE_IMPOS = 0.0
@@ -39,7 +31,7 @@ PROB_SALTO_POSICAO = 0.0
 PROB_HDOP_ALTO = 0.0
 PROB_SATELITES_BAIXOS = 0.0
 
-# GSM – sinal normal sempre (para não ativar buffer)
+# GSM – sinal normal sempre
 PROB_RSSI_NORMAL = 1.0
 PROB_RSSI_REDUZIDO = 0.0
 PROB_RSSI_BAIXO = 0.0
@@ -47,45 +39,59 @@ RSSI_NORMAL_MIN = -85
 RSSI_NORMAL_MAX = -50
 TEMPO_MUDANCA_SINAL = 60
 
-# Preservação de dados (nenhum dado especial)
 PROB_PRESERVAR_DADOS = 0.0
 
-# Veículos existentes no banco (IDs, UUIDs, planos) - Atualizados conforme V2__insert_config.sql
+# Veículos existentes no banco (IDs, UUIDs, planos) – atualizados com os UUIDs reais dos dados
 VEICULOS = [
     {
         "id": 1,
-        "uuid": "550e8400-e29b-41d4-a716-446655440001",
+        "uuid": "e7469e2f-3096-11f1-993c-5e38365aa120",
         "plano": "STARTER",
         "device_id": "DEV-001",
-        "tenant_id": 1
+        "imei": "123456789012345",
+        "tenant_id": 1,
+        "motorista_id": None,
+        "viagem_id": None
     },
     {
         "id": 2,
-        "uuid": "550e8400-e29b-41d4-a716-446655440002",
+        "uuid": "e7489952-3096-11f1-993c-5e38365aa120",
         "plano": "PRO",
         "device_id": "DEV-002",
-        "tenant_id": 1
+        "imei": "234567890123456",
+        "tenant_id": 1,
+        "motorista_id": None,
+        "viagem_id": None
     },
     {
         "id": 3,
-        "uuid": "550e8400-e29b-41d4-a716-446655440003",
+        "uuid": "e74a6b07-3096-11f1-993c-5e38365aa120",
         "plano": "ENTERPRISE",
         "device_id": "DEV-003",
-        "tenant_id": 2
+        "imei": "345678901234567",
+        "tenant_id": 2,
+        "motorista_id": None,
+        "viagem_id": None
     },
     {
         "id": 4,
-        "uuid": "550e8400-e29b-41d4-a716-446655440004",
+        "uuid": "e74c512a-3096-11f1-993c-5e38365aa120",
         "plano": "STARTER",
         "device_id": "DEV-004",
-        "tenant_id": 1
+        "imei": "456789012345678",
+        "tenant_id": 1,
+        "motorista_id": None,
+        "viagem_id": None
     },
     {
         "id": 5,
-        "uuid": "550e8400-e29b-41d4-a716-446655440005",
+        "uuid": "e74e7f8d-3096-11f1-993c-5e38365aa120",
         "plano": "PRO",
         "device_id": "DEV-005",
-        "tenant_id": 2
+        "imei": "567890123456789",
+        "tenant_id": 2,
+        "motorista_id": None,
+        "viagem_id": None
     }
 ]
 
@@ -123,7 +129,6 @@ teste_inicio = time.time()
 # FUNÇÕES AUXILIARES
 # =========================
 def now_ms():
-    """Retorna timestamp atual em milissegundos desde epoch Unix."""
     return int(time.time() * 1000)
 
 def distancia_total_rota():
@@ -161,7 +166,8 @@ def gerar_rssi():
 
 def criar_producer():
     try:
-        return KafkaProducer(
+        print("[DEBUG] Criando producer Kafka...")
+        producer = KafkaProducer(
             bootstrap_servers=KAFKA_BROKER,
             value_serializer=lambda v: json.dumps(v).encode("utf-8"),
             acks=1,
@@ -174,49 +180,23 @@ def criar_producer():
             request_timeout_ms=10000,
             max_block_ms=20000
         )
+        print("[DEBUG] Producer Kafka criado com sucesso")
+        return producer
     except Exception as e:
-        print(f"Erro ao conectar ao Kafka: {e}")
-        return None
-
-def enviar_kafka(producer, msg):
-    """Envia mensagem para o Kafka."""
-    try:
-        future = producer.send(TOPIC, key=str(msg["veiculo_id"]).encode("utf-8"), value=msg)
-        future.add_callback(on_send_success)
-        future.add_errback(on_send_error)
-        return True
-    except Exception as e:
-        print(f"[ERRO KAFKA] {e}")
-        return False
-
-def enviar_http(msg):
-    """Envia mensagem para a API HTTP do telemetry-service."""
-    try:
-        payload = {
-            "veiculo": {
-                "id": msg["veiculo_id"]
-            },
-            "latitude": msg["latitude"],
-            "longitude": msg["longitude"],
-            "velocidade": msg["velocidade"],
-            "nivelCombustivel": msg["nivel_combustivel"],
-            "dataHora": datetime.fromtimestamp(msg["timestamp"] / 1000.0).isoformat()
-        }
-        response = requests.post(TELEMETRY_SERVICE_URL, json=payload, timeout=5)
-        return response.status_code == 202
-    except Exception as e:
-        print(f"[ERRO HTTP] {e}")
-        return False
+        print(f"[ERRO] Falha ao criar producer: {e}")
+        sys.exit(1)
 
 def on_send_success(record_metadata):
     global total_callbacks_ok
     with lock:
         total_callbacks_ok += 1
+    print(f"[DEBUG] Callback success: offset={record_metadata.offset}, partition={record_metadata.partition}")
 
-def on_send_error(exc):
+def on_send_error(excp):
     global total_callbacks_erro
     with lock:
         total_callbacks_erro += 1
+    print(f"[CALLBACK ERRO] {excp}")
 
 def gerar_pressao_pneus():
     return [
@@ -227,10 +207,19 @@ def gerar_pressao_pneus():
     ]
 
 def montar_mensagem(veiculo, lat, lon, velocidade, odometro, rssi_atual):
-    return {
-        "veiculo_id": veiculo["id"],
-        "device_id": veiculo["device_id"],
+    """Gera uma mensagem com TODOS os campos da tabela telemetria."""
+    print(f"\n[DEBUG] Montando mensagem para veiculo_id={veiculo['id']}")
+    print(f"[DEBUG] Dados do veiculo: id={veiculo['id']}, uuid={veiculo['uuid']}, plano={veiculo['plano']}, device_id={veiculo['device_id']}, imei={veiculo.get('imei')}, tenant_id={veiculo['tenant_id']}, motorista_id={veiculo.get('motorista_id')}, viagem_id={veiculo.get('viagem_id')}")
+    print(f"[DEBUG] Dados GPS: lat={lat}, lon={lon}, velocidade={velocidade}, odometro={odometro}, rssi={rssi_atual}")
+    msg = {
+        # Identificação
         "tenant_id": veiculo["tenant_id"],
+        "veiculo_id": veiculo["id"],
+        "veiculo_uuid": veiculo["uuid"],
+        "motorista_id": veiculo.get("motorista_id"),
+        "viagem_id": veiculo.get("viagem_id"),
+        "device_id": veiculo["device_id"],
+        "imei_dispositivo": veiculo.get("imei"),
         "impreciso": False,
         "preservar_dados": random.random() < PROB_PRESERVAR_DADOS,
 
@@ -243,7 +232,7 @@ def montar_mensagem(veiculo, lat, lon, velocidade, odometro, rssi_atual):
         "hdop": round(random.uniform(0.8, 2.5), 2),
         "satelites": random.randint(4, 12),
         "precisao_gps": round(random.uniform(3, 10), 1),
-        "lat_snap": round(lat, 6),          # snap será feito pelo backend
+        "lat_snap": round(lat, 6),
         "lng_snap": round(lon, 6),
         "nome_via": "Rodovia Simulada",
 
@@ -337,43 +326,37 @@ def montar_mensagem(veiculo, lat, lon, velocidade, odometro, rssi_atual):
         # Timestamp
         "timestamp": now_ms(),
 
-        # Prioridade (sempre NORMAL para evitar backpressure)
+        # Prioridade (sempre NORMAL)
         "priority": "NORMAL",
 
         # Plano (para RF06)
         "plano": veiculo["plano"]
     }
+    print(f"[DEBUG] Mensagem montada com {len(msg)} campos")
+    print(f"[DEBUG] Campos: {list(msg.keys())}")
+    return msg
 
 def enviar_msg(producer, msg):
-    """Envia mensagem para Kafka, MySQL ou ambos, conforme configuração."""
     global total_tentadas, total_sucesso, total_erros
-    
-    enviado_kafka = False
-    enviado_http = False
-    
-    # Modo Kafka
-    if MODO_ENVIO in ["kafka", "ambos"]:
-        try:
-            future = producer.send(TOPIC, key=str(msg["veiculo_id"]).encode("utf-8"), value=msg)
-            future.add_callback(on_send_success)
-            future.add_errback(on_send_error)
-            enviado_kafka = True
-        except Exception as e:
-            print(f"[ERRO KAFKA] {e}")
-    
-    # Modo DB
-    if MODO_ENVIO in ["http", "ambos"]:
-        if enviar_http(msg):
-            enviado_http = True
-        else:
-            print(f"[ERRO HTTP] Falha ao enviar via HTTP")
-    
-    with lock:
-        total_tentadas += 1
-        if enviado_kafka or enviado_http:
+    print(f"\n[DEBUG] enviar_msg() - Iniciando envio")
+    print(f"[DEBUG] veiculo_id={msg.get('veiculo_id')}, tenant_id={msg.get('tenant_id')}")
+    print(f"[DEBUG] Producer exists: {producer is not None}")
+    try:
+        future = producer.send(TOPIC, key=str(msg["veiculo_id"]).encode("utf-8"), value=msg)
+        print(f"[DEBUG] Mensagem enviada para o Kafka (future criado)")
+        future.add_callback(on_send_success)
+        future.add_errback(on_send_error)
+        with lock:
+            total_tentadas += 1
             total_sucesso += 1
-        else:
+        print(f"[DEBUG] Contador: tentadas={total_tentadas}, sucesso={total_sucesso}")
+    except Exception as e:
+        with lock:
+            total_tentadas += 1
             total_erros += 1
+        print(f"[ERRO ENVIO] {e}")
+        import traceback
+        traceback.print_exc()
 
 def monitorar_metricas():
     ultimo_total = 0
@@ -394,7 +377,6 @@ def monitorar_metricas():
               f"callback_ok={cb_ok} | callback_erro={cb_erro}")
 
 def simular_thread(veiculo, producer):
-    """Thread que simula um veículo específico."""
     veiculo_id = veiculo["id"]
     device_id = veiculo["device_id"]
     plano = veiculo["plano"]
@@ -405,12 +387,15 @@ def simular_thread(veiculo, producer):
     mensagens_thread = 0
 
     print(f"[Veículo {veiculo_id}] Iniciado | uuid={veiculo['uuid']} | plano={plano} | device={device_id}")
+    print(f"[DEBUG] Config veiculo {veiculo_id}: {json.dumps(veiculo, indent=2)}")
 
     while not encerrar:
         lat, lon = interpolar_posicao(progresso)
         velocidade = VELOCIDADE_BASE + random.uniform(-15, 15)
         delta_km = velocidade * (INTERVALO_BASE_MS / 1000.0) / 3600.0
         odometro += delta_km
+        
+        print(f"[DEBUG] Veiculo {veiculo_id} - Ciclo {mensagens_thread}: lat={lat:.6f}, lon={lon:.6f}, vel={velocidade:.1f}, odo={odometro:.3f}")
 
         msg = montar_mensagem(veiculo, lat, lon, velocidade, odometro, rssi_atual)
         enviar_msg(producer, msg)
@@ -423,28 +408,20 @@ def simular_thread(veiculo, producer):
 
         time.sleep(INTERVALO_BASE_MS / 1000.0)
 
-    if producer:
-        producer.flush()
+    producer.flush()
     print(f"[Veículo {veiculo_id}] Finalizado | mensagens enviadas={mensagens_thread}")
 
 def main():
     global encerrar, teste_inicio
 
-    print("=== SIMULADOR DE TELEMETRIA ===")
-    print(f"Modo de envio: {MODO_ENVIO.upper()}")
+    print("=== SIMULADOR DE TELEMETRIA (TODOS OS CAMPOS) ===")
     print(f"Kafka Broker: {KAFKA_BROKER}")
     print(f"Topic: {TOPIC}")
-    print(f"HTTP API: {TELEMETRY_SERVICE_URL}")
     print(f"Veículos: {[v['id'] for v in VEICULOS]}")
     print(f"Intervalo: {INTERVALO_BASE_MS}ms")
     print("Pressione Ctrl+C para encerrar.\n")
 
-    # Criar producer Kafka (se necessário)
-    producer = None
-    if MODO_ENVIO in ["kafka", "ambos"]:
-        producer = criar_producer()
-    
-    
+    producer = criar_producer()
     teste_inicio = time.time()
 
     monitor = threading.Thread(target=monitorar_metricas, daemon=True)
@@ -466,15 +443,13 @@ def main():
         encerrar = True
         for t in threads:
             t.join(timeout=5)
-        if producer:
-            producer.flush()
-            producer.close()
+        producer.flush()
+        producer.close()
 
     tempo_total = time.time() - teste_inicio
     media = total_tentadas / tempo_total if tempo_total > 0 else 0
 
     print("\n=== RELATÓRIO FINAL ===")
-    print(f"Modo de envio: {MODO_ENVIO}")
     print(f"Tempo total: {tempo_total:.2f}s")
     print(f"Mensagens enviadas: {total_tentadas}")
     print(f"Sucessos locais: {total_sucesso}")

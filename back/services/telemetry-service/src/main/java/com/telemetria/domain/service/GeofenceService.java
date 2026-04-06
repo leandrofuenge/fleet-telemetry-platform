@@ -1,8 +1,10 @@
 package com.telemetria.domain.service;
 
-import com.telemetria.domain.entity.Geofence;
-import com.telemetria.domain.entity.Telemetria;
-import com.telemetria.infrastructure.persistence.GeofenceRepository;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import com.telemetria.domain.entity.Geofence;
+import com.telemetria.domain.entity.Telemetria;
+import com.telemetria.infrastructure.persistence.GeofenceRepository;
 
 @Service
 public class GeofenceService {

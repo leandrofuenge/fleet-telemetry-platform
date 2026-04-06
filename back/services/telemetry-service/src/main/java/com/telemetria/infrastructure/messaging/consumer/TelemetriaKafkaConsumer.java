@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -20,6 +21,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telemetria.application.service.BackpressureMonitorService;
@@ -137,14 +139,31 @@ public class TelemetriaKafkaConsumer {
             }
 
             try {
+                log.info("[DEBUG] ==================== NOVA MENSAGEM KAFKA ====================");
+                log.info("[DEBUG] Mensagem raw recebida (primeiros 1000 chars): {}", mensagem.substring(0, Math.min(1000, mensagem.length())));
                 log.trace("🔄 Convertendo JSON para objeto");
                 JsonNode json = objectMapper.readTree(mensagem);
+                
+                // Log todos os campos recebidos
+                log.info("[DEBUG] Campos recebidos no JSON: {}", json.fieldNames().next());
+                java.util.List<String> camposRecebidos = new java.util.ArrayList<>();
+                json.fieldNames().forEachRemaining(camposRecebidos::add);
+                log.info("[DEBUG] Total de campos no JSON: {} - Campos: {}", camposRecebidos.size(), camposRecebidos);
 
-                Long veiculoId = json.get("veiculo_id").asLong();
-                double latitude = json.get("latitude").asDouble();
-                double longitude = json.get("longitude").asDouble();
-
-                log.trace("🔍 Veículo: {}, Coords: {}, {}", veiculoId, latitude, longitude);
+                Long veiculoId = json.has("veiculo_id") ? json.get("veiculo_id").asLong() : null;
+                Long tenantId = json.has("tenant_id") ? json.get("tenant_id").asLong() : null;
+                Long motoristaId = json.has("motorista_id") && !json.get("motorista_id").isNull() ? json.get("motorista_id").asLong() : null;
+                Long viagemId = json.has("viagem_id") && !json.get("viagem_id").isNull() ? json.get("viagem_id").asLong() : null;
+                String deviceId = json.has("device_id") ? json.get("device_id").asText() : null;
+                String imei = json.has("imei_dispositivo") && !json.get("imei_dispositivo").isNull() ? json.get("imei_dispositivo").asText() : null;
+                
+                double latitude = json.has("latitude") ? json.get("latitude").asDouble() : 0.0;
+                double longitude = json.has("longitude") ? json.get("longitude").asDouble() : 0.0;
+                double velocidade = json.has("velocidade") ? json.get("velocidade").asDouble() : 0.0;
+                
+                log.info("[DEBUG] Dados principais: veiculoId={}, tenantId={}, motoristaId={}, viagemId={}", veiculoId, tenantId, motoristaId, viagemId);
+                log.info("[DEBUG] Dados device: deviceId={}, imei={}", deviceId, imei);
+                log.info("[DEBUG] Dados GPS: lat={}, lon={}, velocidade={}", latitude, longitude, velocidade);
 
                 double fatorReducao = criticalAreaService.getFatorReducao(latitude, longitude);
 
@@ -169,31 +188,37 @@ public class TelemetriaKafkaConsumer {
                         .orElseThrow(() -> new RuntimeException("Veículo não encontrado no cache: " + veiculoId));
                 log.trace("✅ Veículo encontrado: {}", veiculo.getPlaca());
 
-                log.trace("📊 Criando entidade de telemetria");
+                log.info("[DEBUG] Criando entidade Telemetria com {} campos mapeados", camposRecebidos.size());
                 Telemetria telemetria = new Telemetria();
                 // Não definimos setVeiculo() pois a FK aponta para veiculos_cache
                 telemetria.setVeiculoId(veiculo.getId());
                 telemetria.setVeiculoUuid(veiculo.getUuid());
                 telemetria.setTenantId(veiculo.getTenantId());
-                telemetria.setLatitude(json.get("latitude").asDouble());
-                telemetria.setLongitude(json.get("longitude").asDouble());
-                telemetria.setVelocidade(json.get("velocidade").asDouble());
+                
+                // Mapear campos opcionais do JSON
+                if (motoristaId != null) {
+                    telemetria.setMotoristaId(motoristaId);
+                    log.info("[DEBUG] Set motoristaId={}", motoristaId);
+                }
+                if (viagemId != null) {
+                    telemetria.setViagemId(viagemId);
+                    log.info("[DEBUG] Set viagemId={}", viagemId);
+                }
+                if (deviceId != null) {
+                    telemetria.setDeviceId(deviceId);
+                    log.info("[DEBUG] Set deviceId={}", deviceId);
+                }
+                if (imei != null) {
+                    telemetria.setImeiDispositivo(imei);
+                    log.info("[DEBUG] Set imeiDispositivo={}", imei);
+                }
+                
+                telemetria.setLatitude(latitude);
+                telemetria.setLongitude(longitude);
+                telemetria.setVelocidade(velocidade);
 
-                if (json.has("nivel_combustivel")) {
-                    double nivel = json.get("nivel_combustivel").asDouble();
-                    telemetria.setNivelCombustivel(nivel);
-                    log.trace("⛽ Combustível: {}%", nivel);
-                }
-
-                if (json.has("hdop")) {
-                    telemetria.setHdop(json.get("hdop").asDouble());
-                }
-                if (json.has("satelites")) {
-                    telemetria.setSatelites(json.get("satelites").asInt());
-                }
-                if (json.has("sinal_gsm")) {
-                    telemetria.setSinalGsm(json.get("sinal_gsm").asDouble());
-                }
+                // Mapear TODOS os campos do JSON
+                mapearTodosCampos(telemetria, json);
 
                 if (json.has("timestamp")) {
                     long ts = json.get("timestamp").asLong();
@@ -222,7 +247,9 @@ public class TelemetriaKafkaConsumer {
 
                 log.trace("💾 Salvando telemetria");
                 Telemetria saved = telemetriaRepository.save(telemetria);
-                log.trace("✅ Telemetria salva: {}", saved.getId());
+                log.info("[DEBUG] ✅ Telemetria salva com sucesso! ID={}, veiculoId={}, tenantId={}, dataHora={}", 
+                    saved.getId(), saved.getVeiculoId(), saved.getTenantId(), saved.getDataHora());
+                log.info("[DEBUG] ==================== FIM MENSAGEM ====================\n");
 
                 // ✅ RF05 RN-TEL-003: SNAP-TO-ROAD OSRM
                 log.trace("🛣️ Snap-to-road");
@@ -301,6 +328,7 @@ public class TelemetriaKafkaConsumer {
 
         } catch (Exception e) {
             log.error("❌ ERRO no processamento: {}", e.getMessage(), e);
+            log.error("[DEBUG] Mensagem que causou erro (primeiros 500 chars): {}", mensagem.substring(0, Math.min(500, mensagem.length())));
             metrics.incrementarDescartadas();
             try {
                 log.debug("📤 Enviando para DLQ");
@@ -352,6 +380,137 @@ public class TelemetriaKafkaConsumer {
             long tempoEstimado = (long) (lag / taxa * 1000);
             log.info("⏱️ Tempo estimado para recuperação: {}ms", tempoEstimado);
         }
+    }
+
+    /**
+     * Mapeia TODOS os campos do JSON para a entidade Telemetria
+     */
+    private void mapearTodosCampos(Telemetria telemetria, JsonNode json) {
+        log.info("[DEBUG] Iniciando mapeamento completo de {} campos", json.size());
+        int camposMapeados = 0;
+        
+        // GPS
+        if (json.has("altitude")) { telemetria.setAltitude(json.get("altitude").asDouble()); camposMapeados++; }
+        if (json.has("direcao")) { telemetria.setDirecao(json.get("direcao").asDouble()); camposMapeados++; }
+        if (json.has("hdop")) { telemetria.setHdop(json.get("hdop").asDouble()); camposMapeados++; }
+        if (json.has("satelites")) { telemetria.setSatelites(json.get("satelites").asInt()); camposMapeados++; }
+        if (json.has("precisao_gps")) { telemetria.setPrecisaoGps(json.get("precisao_gps").asDouble()); camposMapeados++; }
+        if (json.has("lat_snap")) { telemetria.setLatSnap(json.get("lat_snap").asDouble()); camposMapeados++; }
+        if (json.has("lng_snap")) { telemetria.setLngSnap(json.get("lng_snap").asDouble()); camposMapeados++; }
+        if (json.has("nome_via")) { telemetria.setNomeVia(json.get("nome_via").asText()); camposMapeados++; }
+        
+        // Motor / OBD-II
+        if (json.has("ignicao")) { telemetria.setIgnicao(json.get("ignicao").asBoolean()); camposMapeados++; }
+        if (json.has("rpm")) { telemetria.setRpm(json.get("rpm").asDouble()); camposMapeados++; }
+        if (json.has("carga_motor")) { telemetria.setCargaMotor(json.get("carga_motor").asDouble()); camposMapeados++; }
+        if (json.has("torque_motor")) { telemetria.setTorqueMotor(json.get("torque_motor").asDouble()); camposMapeados++; }
+        if (json.has("temperatura_motor")) { telemetria.setTemperaturaMotor(json.get("temperatura_motor").asDouble()); camposMapeados++; }
+        if (json.has("pressao_oleo")) { telemetria.setPressaoOleo(json.get("pressao_oleo").asDouble()); camposMapeados++; }
+        if (json.has("tensao_bateria")) { telemetria.setTensaoBateria(json.get("tensao_bateria").asDouble()); camposMapeados++; }
+        if (json.has("odometro")) { telemetria.setOdometro(json.get("odometro").asDouble()); camposMapeados++; }
+        if (json.has("horas_motor")) { telemetria.setHorasMotor(json.get("horas_motor").asDouble()); camposMapeados++; }
+        if (json.has("aceleracao")) { telemetria.setAceleracao(json.get("aceleracao").asDouble()); camposMapeados++; }
+        if (json.has("inclinacao")) { telemetria.setInclinacao(json.get("inclinacao").asDouble()); camposMapeados++; }
+        
+        // Combustível
+        if (json.has("nivel_combustivel")) { telemetria.setNivelCombustivel(json.get("nivel_combustivel").asDouble()); camposMapeados++; }
+        if (json.has("consumo_combustivel")) { telemetria.setConsumoCombustivel(json.get("consumo_combustivel").asDouble()); camposMapeados++; }
+        if (json.has("consumo_acumulado")) { telemetria.setConsumoAcumulado(json.get("consumo_acumulado").asDouble()); camposMapeados++; }
+        if (json.has("tempo_ocioso")) { telemetria.setTempoOcioso(json.get("tempo_ocioso").asInt()); camposMapeados++; }
+        if (json.has("tempo_motor_ligado")) { telemetria.setTempoMotorLigado(json.get("tempo_motor_ligado").asInt()); camposMapeados++; }
+        
+        // Comportamento
+        if (json.has("frenagem_brusca")) { telemetria.setFrenagemBrusca(json.get("frenagem_brusca").asBoolean()); camposMapeados++; }
+        if (json.has("numero_frenagens")) { telemetria.setNumeroFrenagens(json.get("numero_frenagens").asInt()); camposMapeados++; }
+        if (json.has("numero_aceleracoes_bruscas")) { telemetria.setNumeroAceleracoesBruscas(json.get("numero_aceleracoes_bruscas").asInt()); camposMapeados++; }
+        if (json.has("excesso_velocidade")) { telemetria.setExcessoVelocidade(json.get("excesso_velocidade").asBoolean()); camposMapeados++; }
+        if (json.has("velocidade_limite_via")) { telemetria.setVelocidadeLimiteVia(json.get("velocidade_limite_via").asDouble()); camposMapeados++; }
+        if (json.has("curva_brusca")) { telemetria.setCurvaBrusca(json.get("curva_brusca").asBoolean()); camposMapeados++; }
+        if (json.has("pontuacao_motorista")) { telemetria.setPontuacaoMotorista(json.get("pontuacao_motorista").asInt()); camposMapeados++; }
+        
+        // Segurança
+        if (json.has("colisao_detectada")) { telemetria.setColisaoDetectada(json.get("colisao_detectada").asBoolean()); camposMapeados++; }
+        if (json.has("geofence_violada")) { telemetria.setGeofenceViolada(json.get("geofence_violada").asBoolean()); camposMapeados++; }
+        if (json.has("geofence_id")) { 
+            if (!json.get("geofence_id").isNull()) { telemetria.setGeofenceId(json.get("geofence_id").asLong()); camposMapeados++; }
+        }
+        if (json.has("cinto_seguranca")) { telemetria.setCintoSeguranca(json.get("cinto_seguranca").asBoolean()); camposMapeados++; }
+        if (json.has("porta_aberta")) { telemetria.setPortaAberta(json.get("porta_aberta").asBoolean()); camposMapeados++; }
+        if (json.has("botao_panico")) { telemetria.setBotaoPanico(json.get("botao_panico").asBoolean()); camposMapeados++; }
+        if (json.has("adulteracao_gps")) { telemetria.setAdulteracaoGps(json.get("adulteracao_gps").asBoolean()); camposMapeados++; }
+        if (json.has("impreciso")) { telemetria.setImpreciso(json.get("impreciso").asBoolean()); camposMapeados++; }
+        if (json.has("preservar_dados")) { telemetria.setPreservarDados(json.get("preservar_dados").asBoolean()); camposMapeados++; }
+        
+        // Carga
+        if (json.has("temperatura_carga")) { telemetria.setTemperaturaCarga(json.get("temperatura_carga").asDouble()); camposMapeados++; }
+        if (json.has("umidade_carga")) { telemetria.setUmidadeCarga(json.get("umidade_carga").asDouble()); camposMapeados++; }
+        if (json.has("peso_carga_kg")) { telemetria.setPesoCargaKg(json.get("peso_carga_kg").asDouble()); camposMapeados++; }
+        if (json.has("porta_bau_aberta")) { telemetria.setPortaBauAberta(json.get("porta_bau_aberta").asBoolean()); camposMapeados++; }
+        if (json.has("impacto_carga")) { telemetria.setImpactoCarga(json.get("impacto_carga").asBoolean()); camposMapeados++; }
+        if (json.has("g_force_impacto")) { telemetria.setGForceImpacto(json.get("g_force_impacto").asDouble()); camposMapeados++; }
+        
+        // Pneus
+        if (json.has("pressao_pneus_json")) { 
+            telemetria.setPressaoPneusJson(json.get("pressao_pneus_json").toString()); 
+            camposMapeados++; 
+        }
+        if (json.has("alerta_pneu")) { telemetria.setAlertaPneu(json.get("alerta_pneu").asBoolean()); camposMapeados++; }
+        
+        // DMS (câmera)
+        if (json.has("fadiga_detectada")) { telemetria.setFadigaDetectada(json.get("fadiga_detectada").asBoolean()); camposMapeados++; }
+        if (json.has("distracao_detectada")) { telemetria.setDistracaoDetectada(json.get("distracao_detectada").asBoolean()); camposMapeados++; }
+        if (json.has("uso_celular_detectado")) { telemetria.setUsoCelularDetectado(json.get("uso_celular_detectado").asBoolean()); camposMapeados++; }
+        if (json.has("cigarro_detectado")) { telemetria.setCigarroDetectado(json.get("cigarro_detectado").asBoolean()); camposMapeados++; }
+        if (json.has("ausencia_cinto_dms")) { telemetria.setAusenciaCintoDms(json.get("ausencia_cinto_dms").asBoolean()); camposMapeados++; }
+        if (json.has("score_dms")) { telemetria.setScoreDms(json.get("score_dms").asInt()); camposMapeados++; }
+        
+        // Ambiente
+        if (json.has("temperatura_externa")) { telemetria.setTemperaturaExterna(json.get("temperatura_externa").asDouble()); camposMapeados++; }
+        if (json.has("umidade_externa")) { telemetria.setUmidadeExterna(json.get("umidade_externa").asDouble()); camposMapeados++; }
+        if (json.has("chuva_detectada")) { telemetria.setChuvaDetectada(json.get("chuva_detectada").asBoolean()); camposMapeados++; }
+        if (json.has("condicao_pista")) { telemetria.setCondicaoPista(json.get("condicao_pista").asText()); camposMapeados++; }
+        
+        // Conectividade
+        if (json.has("sinal_gsm")) { telemetria.setSinalGsm(json.get("sinal_gsm").asDouble()); camposMapeados++; }
+        if (json.has("sinal_gps")) { telemetria.setSinalGps(json.get("sinal_gps").asDouble()); camposMapeados++; }
+        if (json.has("tecnologia_rede")) { telemetria.setTecnologiaRede(json.get("tecnologia_rede").asText()); camposMapeados++; }
+        if (json.has("firmware_versao")) { telemetria.setFirmwareVersao(json.get("firmware_versao").asText()); camposMapeados++; }
+        if (json.has("modo_offline")) { telemetria.setModoOffline(json.get("modo_offline").asBoolean()); camposMapeados++; }
+        if (json.has("delay_sincronizacao_s")) { telemetria.setDelaySincronizacaoS(json.get("delay_sincronizacao_s").asInt()); camposMapeados++; }
+        
+        // Tacógrafo
+        if (json.has("tacografo_status")) { telemetria.setTacografoStatus(json.get("tacografo_status").asText()); camposMapeados++; }
+        if (json.has("tacografo_velocidade")) { telemetria.setTacografoVelocidade(json.get("tacografo_velocidade").asDouble()); camposMapeados++; }
+        if (json.has("tacografo_distancia")) { telemetria.setTacografoDistancia(json.get("tacografo_distancia").asDouble()); camposMapeados++; }
+        if (json.has("horas_direcao_acumuladas")) { telemetria.setHorasDirecaoAcumuladas(json.get("horas_direcao_acumuladas").asDouble()); camposMapeados++; }
+        
+        // Manutenção
+        if (json.has("manutencao_pendente")) { telemetria.setManutencaoPendente(json.get("manutencao_pendente").asBoolean()); camposMapeados++; }
+        if (json.has("proxima_revisao")) {
+            if (!json.get("proxima_revisao").isNull()) {
+                String proximaRevisaoStr = json.get("proxima_revisao").asText();
+                telemetria.setProximaRevisao(LocalDateTime.parse(proximaRevisaoStr));
+                camposMapeados++;
+            }
+        }
+        if (json.has("desgaste_freio")) { telemetria.setDesgasteFreio(json.get("desgaste_freio").asDouble()); camposMapeados++; }
+        
+        // DTC / Payload
+        if (json.has("dtc_codes")) { 
+            telemetria.setDtcCodes(json.get("dtc_codes").toString()); 
+            camposMapeados++; 
+        }
+        if (json.has("payload")) {
+            try {
+                Map<String, Object> payloadMap = objectMapper.convertValue(json.get("payload"), new TypeReference<Map<String, Object>>() {});
+                telemetria.setPayload(payloadMap);
+                camposMapeados++;
+            } catch (Exception e) {
+                log.warn("[DEBUG] Erro ao converter payload para Map: {}", e.getMessage());
+            }
+        }
+        
+        log.info("[DEBUG] Total de campos mapeados: {}", camposMapeados);
     }
 
     public static byte[] comprimirGzip(String dados) {

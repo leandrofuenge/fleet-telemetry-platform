@@ -14,9 +14,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "veiculos_cache", indexes = {
@@ -24,8 +22,6 @@ import lombok.Setter;
         @Index(name = "idx_vc_device", columnList = "device_id"),
         @Index(name = "idx_vc_placa", columnList = "placa")
 })
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -75,4 +71,118 @@ public class VeiculoCache {
     @UpdateTimestamp
     @Column(name = "sincronizado_em")
     private LocalDateTime sincronizadoEm;
+
+    // ==================== GETTERS ====================
+    public Long getId() {
+        return id;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public String getPlaca() {
+        return placa;
+    }
+
+    public String getModelo() {
+        return modelo;
+    }
+
+    public String getMarca() {
+        return marca;
+    }
+
+    public String getTipoVeiculo() {
+        return tipoVeiculo;
+    }
+
+    public Double getConsumoMedio() {
+        return consumoMedio;
+    }
+
+    public Double getCapacidadeCargaKg() {
+        return capacidadeCargaKg;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public String getDeviceImei() {
+        return deviceImei;
+    }
+
+    public Double getPbtKg() {
+        return pbtKg;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public LocalDateTime getSincronizadoEm() {
+        return sincronizadoEm;
+    }
+
+    // ==================== SETTERS ====================
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+    }
+
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
+    }
+
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
+
+    public void setTipoVeiculo(String tipoVeiculo) {
+        this.tipoVeiculo = tipoVeiculo;
+    }
+
+    public void setConsumoMedio(Double consumoMedio) {
+        this.consumoMedio = consumoMedio;
+    }
+
+    public void setCapacidadeCargaKg(Double capacidadeCargaKg) {
+        this.capacidadeCargaKg = capacidadeCargaKg;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public void setDeviceImei(String deviceImei) {
+        this.deviceImei = deviceImei;
+    }
+
+    public void setPbtKg(Double pbtKg) {
+        this.pbtKg = pbtKg;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public void setSincronizadoEm(LocalDateTime sincronizadoEm) {
+        this.sincronizadoEm = sincronizadoEm;
+    }
 }

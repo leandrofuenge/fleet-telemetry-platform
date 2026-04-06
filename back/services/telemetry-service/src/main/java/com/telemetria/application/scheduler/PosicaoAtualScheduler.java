@@ -1,5 +1,7 @@
 package com.telemetria.application.scheduler;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.telemetria.domain.service.AlertaService;
 import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 import com.telemetria.infrastructure.persistence.VeiculoRepository;
-
-import java.util.List;
 
 @Component
 public class PosicaoAtualScheduler {

@@ -44,15 +44,15 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
             @Param("inicio") LocalDateTime inicio, 
             @Param("fim") LocalDateTime fim);
     
+    // Método que retorna count (usado internamente)
+    @Query(value = "SELECT COUNT(*) FROM alertas WHERE veiculo_id = :veiculoId AND tipo = :tipo AND resolvido = FALSE", 
+           nativeQuery = true)
+    long countByVeiculoIdAndTipoAndResolvidoFalse(@Param("veiculoId") Long veiculoId, @Param("tipo") String tipo);
+    
+    // Método que retorna Optional (já existente)
     @Query(value = "SELECT * FROM alertas WHERE veiculo_id = :veiculoId AND tipo = :tipo AND resolvido = FALSE ORDER BY data_hora DESC LIMIT 1", 
            nativeQuery = true)
     Optional<Alerta> findPrimeiroByVeiculoIdAndTipoOrderByDataHoraDesc(
-            @Param("veiculoId") Long veiculoId,
-            @Param("tipo") String tipo);
-    
-    @Query(value = "SELECT COUNT(*) > 0 FROM alertas WHERE veiculo_id = :veiculoId AND tipo = :tipo AND resolvido = FALSE", 
-           nativeQuery = true)
-    boolean existsByVeiculoIdAndTipoAndResolvidoFalse(
             @Param("veiculoId") Long veiculoId,
             @Param("tipo") String tipo);
     
@@ -75,7 +75,7 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
     // ================ MÉTODOS DE CONVENIÊNCIA COM ENUM ================
     
     default boolean existsByVeiculoIdAndTipoAndResolvidoFalse(Long veiculoId, TipoAlerta tipo) {
-        return existsByVeiculoIdAndTipoAndResolvidoFalse(veiculoId, tipo.name());
+        return countByVeiculoIdAndTipoAndResolvidoFalse(veiculoId, tipo.name()) > 0;
     }
     
     default Optional<Alerta> findPrimeiroByVeiculoIdAndTipoOrderByDataHoraDesc(Long veiculoId, TipoAlerta tipo) {

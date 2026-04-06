@@ -64,11 +64,7 @@ public class RotaService {
         log.info("➕ Salvando nova rota - Nome: {}, Origem: {}, Destino: {}", 
                 rota.getNome(), rota.getOrigem(), rota.getDestino());
         
-        log.debug("📝 Dados da rota: {}", rota);
-        
-        // Validações de negócio
-        log.debug("🔍 Validando dados da rota...");
-        
+        // Validações básicas
         if (rota.getNome() == null || rota.getNome().trim().isEmpty()) {
             log.error("❌ Nome da rota é obrigatório");
             throw new RotaValidationException("Nome da rota é obrigatório");
@@ -83,8 +79,14 @@ public class RotaService {
             log.error("❌ Destino da rota é obrigatório");
             throw new RotaValidationException("Destino da rota é obrigatório");
         }
+
+        // RN-ROT-001: Rota não pode ser ativada sem cálculo OSRM.
+        // distanciaPrevista e pontosRota são preenchidos pelo cálculo OSRM.
+        if (Boolean.TRUE.equals(rota.getAtiva())) {
+            validarCalculoOsrmRealizado(rota);
+        }
         
-        // Verifica duplicidade (SOLUÇÃO 2)
+        // Verifica duplicidade
         Long quantidadeComMesmoNome = rotaRepository.countByNome(rota.getNome());
 
         if (quantidadeComMesmoNome != null && quantidadeComMesmoNome > 0) {
@@ -92,13 +94,8 @@ public class RotaService {
             throw new RotaDuplicateException("Rota com nome '" + rota.getNome() + "' já existe");
         }
         
-        log.debug("✅ Validações OK");
-        
         Rota rotaSalva = rotaRepository.save(rota);
-        
         log.info("✅ Rota salva com ID: {}", rotaSalva.getId());
-        log.debug("📝 Rota salva completa: {}", rotaSalva);
-        
         return rotaSalva;
     }
 
@@ -188,6 +185,16 @@ public class RotaService {
         }
         
         if (dados.getAtiva() != null && !dados.getAtiva().equals(rota.getAtiva())) {
+            // RN-ROT-001: Se está sendo ativada, garantir que o cálculo OSRM já foi feito.
+            if (Boolean.TRUE.equals(dados.getAtiva())) {
+                // Validar contra os dados que serão salvos (mescla atual + novos valores)
+                Rota rotaParaValidar = new Rota();
+                rotaParaValidar.setDistanciaPrevista(
+                        dados.getDistanciaPrevista() != null ? dados.getDistanciaPrevista() : rota.getDistanciaPrevista());
+                rotaParaValidar.setPontosRota(
+                        dados.getPontosRota() != null ? dados.getPontosRota() : rota.getPontosRota());
+                validarCalculoOsrmRealizado(rotaParaValidar);
+            }
             log.debug("📝 Atualizando ativa: {} → {}", rota.getAtiva(), dados.getAtiva());
             rota.setAtiva(dados.getAtiva());
             modificado = true;

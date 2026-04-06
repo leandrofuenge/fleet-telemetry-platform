@@ -13,6 +13,8 @@ import com.telemetria.domain.entity.Telemetria;
 import com.telemetria.infrastructure.persistence.PosicaoAtualRepository;
 import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class TelemetriaService {
 
@@ -66,7 +68,12 @@ public class TelemetriaService {
         return telemetriaRepository.findByVeiculoIdAndDataHoraBetween(veiculoId, inicio, fim);
     }
 
-    // ✅ RF06 RN-POS-001: UPSERT Posição Atual
+    // ✅ RF06 - Veículos sem sinal (30min + ignição)
+    public List<Long> findVeiculosSemSinal(int minutosSemSinal, Boolean ultimaIgnicaoOn) {
+        return telemetriaRepository.findVeiculosSemSinal(minutosSemSinal, ultimaIgnicaoOn);
+    }
+    
+    @Transactional
     public void atualizarPosicaoAtual(Long veiculoId, Long tenantId, String veiculoUuid,
             Double latitude, Double longitude, Double velocidade, Double direcao,
             Boolean ignicao, LocalDateTime ultimaTelemetria) {
@@ -76,8 +83,4 @@ public class TelemetriaService {
         System.out.println("✅ [RF06] Posição atualizada com sucesso");
     }
 
-    // ✅ RF06 - Veículos sem sinal (30min + ignição)
-    public List<Long> findVeiculosSemSinal(int minutosSemSinal, Boolean ultimaIgnicaoOn) {
-        return telemetriaRepository.findVeiculosSemSinal(minutosSemSinal, ultimaIgnicaoOn);
-    }
 }
