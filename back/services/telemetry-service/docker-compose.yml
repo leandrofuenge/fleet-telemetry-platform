@@ -163,9 +163,9 @@ services:
       MQTT_CLIENT_ID: telemetry-service-local
       MQTT_USERNAME: ""
       MQTT_PASSWORD: ""
-      OPENWEATHER_API_KEY: "91b6024312de28818287658535809806"
+      OPENWEATHER_API_KEY: ""
       OPENWEATHER_API_URL: "https://api.openweathermap.org/data/2.5/weather"
-      IPLOCATE_API_KEY: "bca9a31b2cf5b255ec67c39b6bd34059"
+      IPLOCATE_API_KEY: ""
       IPLOCATE_API_URL: "https://www.iplocate.io/api/lookup/"
       SERVER_PORT: 8080
     volumes:
