@@ -1,7 +1,13 @@
 package com.app.telemetria.domain.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +21,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.app.telemetria.domain.entity.Rota;
-import com.app.telemetria.domain.exception.RotaDuplicateException;
-import com.app.telemetria.domain.exception.RotaNotFoundException;
-import com.app.telemetria.domain.exception.RotaValidationException;
-import com.app.telemetria.infrastructure.persistence.RotaRepository;
+import com.telemetria.domain.entity.Rota;
+import com.telemetria.domain.exception.RotaDuplicateException;
+import com.telemetria.domain.exception.RotaNotFoundException;
+import com.telemetria.domain.exception.RotaValidationException;
+import com.telemetria.domain.service.RotaService;
+import com.telemetria.infrastructure.persistence.RotaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class RotaServiceTest {

@@ -9,6 +9,8 @@ public class PontoRota {
     private Double longitude;
     private Integer ordem;
     private String endereco;
+    private Double latSnap;
+    private Double lngSnap;
 
     public PontoRota() {
     }
@@ -19,6 +21,7 @@ public class PontoRota {
         this.ordem = ordem;
     }
 
+    // Getters e Setters
     public Double getLatitude() {
         return latitude;
     }
@@ -49,5 +52,21 @@ public class PontoRota {
 
     public void setEndereco(String endereco) {
         this.endereco = endereco;
+    }
+
+    public Double getLatSnap() {
+        return latSnap;
+    }
+
+    public void setLatSnap(Double latSnap) {
+        this.latSnap = latSnap;
+    }
+
+    public Double getLngSnap() {
+        return lngSnap;
+    }
+
+    public void setLngSnap(Double lngSnap) {
+        this.lngSnap = lngSnap;
     }
 }

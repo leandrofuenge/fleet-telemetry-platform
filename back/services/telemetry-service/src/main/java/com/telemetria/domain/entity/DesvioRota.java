@@ -24,7 +24,8 @@ import jakarta.persistence.Table;
         @Index(name = "idx_desvio_veiculo", columnList = "veiculo_id"),
         @Index(name = "idx_desvio_viagem", columnList = "viagem_id"),
         @Index(name = "idx_desvio_data", columnList = "data_hora_desvio"),
-        @Index(name = "idx_desvio_resolvido", columnList = "resolvido")
+        @Index(name = "idx_desvio_resolvido", columnList = "resolvido"),
+        @Index(name = "idx_desvio_tipo_via", columnList = "tipo_via")
 })
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class DesvioRota {
@@ -93,6 +94,22 @@ public class DesvioRota {
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
+
+    @Column(name = "aprovado_gestor")
+    private Boolean aprovadoGestor; // NULL = pendente, TRUE = aprovado, FALSE = reprovado
+
+    @Column(name = "data_aprovacao_gestor")
+    private LocalDateTime dataAprovacaoGestor;
+
+    @Column(name = "gestor_id")
+    private Long gestorId;
+
+    @Column(name = "justificativa_gestor", length = 500)
+    private String justificativaGestor;
+
+    // RN-ROT-002: Tipo de via do desvio (URBANO, RODOVIA, PORTO_INDUSTRIAL)
+    @Column(name = "tipo_via", length = 30)
+    private String tipoVia;
 
     // ── Relacionamentos JPA (objetos completos) ────────────────
     @ManyToOne(fetch = FetchType.LAZY)
@@ -294,6 +311,14 @@ public class DesvioRota {
 
     // Não ter setter para criadoEm porque tem @CreationTimestamp
 
+    public String getTipoVia() {
+        return tipoVia;
+    }
+
+    public void setTipoVia(String tipoVia) {
+        this.tipoVia = tipoVia;
+    }
+
     public Veiculo getVeiculo() {
         return veiculo;
     }
@@ -316,6 +341,39 @@ public class DesvioRota {
 
     public void setViagem(Viagem viagem) {
         this.viagem = viagem;
+    }
+
+    // RN-DEV-002: Getters e Setters para aprovação do gestor
+    public Boolean getAprovadoGestor() {
+        return aprovadoGestor;
+    }
+
+    public void setAprovadoGestor(Boolean aprovadoGestor) {
+        this.aprovadoGestor = aprovadoGestor;
+    }
+
+    public LocalDateTime getDataAprovacaoGestor() {
+        return dataAprovacaoGestor;
+    }
+
+    public void setDataAprovacaoGestor(LocalDateTime dataAprovacaoGestor) {
+        this.dataAprovacaoGestor = dataAprovacaoGestor;
+    }
+
+    public Long getGestorId() {
+        return gestorId;
+    }
+
+    public void setGestorId(Long gestorId) {
+        this.gestorId = gestorId;
+    }
+
+    public String getJustificativaGestor() {
+        return justificativaGestor;
+    }
+
+    public void setJustificativaGestor(String justificativaGestor) {
+        this.justificativaGestor = justificativaGestor;
     }
 
     // ================================
@@ -347,6 +405,11 @@ public class DesvioRota {
         private Boolean alertaEnviado = false;
         private Boolean resolvido = false;
         private String motivo;
+        private String tipoVia;
+        private Boolean aprovadoGestor;
+        private LocalDateTime dataAprovacaoGestor;
+        private Long gestorId;
+        private String justificativaGestor;
         private Veiculo veiculo;
         private Rota rota;
         private Viagem viagem;
@@ -454,6 +517,31 @@ public class DesvioRota {
             return this;
         }
 
+        public Builder tipoVia(String tipoVia) {
+            this.tipoVia = tipoVia;
+            return this;
+        }
+
+        public Builder aprovadoGestor(Boolean aprovadoGestor) {
+            this.aprovadoGestor = aprovadoGestor;
+            return this;
+        }
+
+        public Builder dataAprovacaoGestor(LocalDateTime dataAprovacaoGestor) {
+            this.dataAprovacaoGestor = dataAprovacaoGestor;
+            return this;
+        }
+
+        public Builder gestorId(Long gestorId) {
+            this.gestorId = gestorId;
+            return this;
+        }
+
+        public Builder justificativaGestor(String justificativaGestor) {
+            this.justificativaGestor = justificativaGestor;
+            return this;
+        }
+
         public Builder veiculo(Veiculo veiculo) {
             this.veiculo = veiculo;
             return this;
@@ -494,8 +582,53 @@ public class DesvioRota {
             desvio.setVeiculo(this.veiculo);
             desvio.setRota(this.rota);
             desvio.setViagem(this.viagem);
+            desvio.setTipoVia(this.tipoVia);
+            desvio.setAprovadoGestor(this.aprovadoGestor);
+            desvio.setDataAprovacaoGestor(this.dataAprovacaoGestor);
+            desvio.setGestorId(this.gestorId);
+            desvio.setJustificativaGestor(this.justificativaGestor);
             return desvio;
         }
+    }
+
+    // ================================
+    // Métodos utilitários
+    // ================================
+
+    /**
+     * Verifica se o desvio atingiu o limite crítico de km extras
+     * RN-ROT-002: Alerta crítico quando km extras >= 2km
+     */
+    public boolean isAlertaCritico() {
+        return kmExtras != null && kmExtras >= 2.0;
+    }
+
+    /**
+     * Obtém a tolerância do desvio baseada no tipo de via
+     * RN-ROT-002: URBANO=80m, RODOVIA=150m, PORTO_INDUSTRIAL=200m
+     */
+    public double getToleranciaMetros() {
+        if (tipoVia == null) {
+            return 150.0; // Default rodovia
+        }
+        
+        switch (tipoVia.toUpperCase()) {
+            case "URBANO":
+                return 80.0;
+            case "RODOVIA":
+                return 150.0;
+            case "PORTO_INDUSTRIAL":
+                return 200.0;
+            default:
+                return 150.0;
+        }
+    }
+
+    /**
+     * Verifica se a distância atual está fora da tolerância
+     */
+    public boolean isForaTolerancia() {
+        return distanciaMetros != null && distanciaMetros > getToleranciaMetros();
     }
 
     @Override
@@ -507,6 +640,8 @@ public class DesvioRota {
                 ", latitudeDesvio=" + latitudeDesvio +
                 ", longitudeDesvio=" + longitudeDesvio +
                 ", dataHoraDesvio=" + dataHoraDesvio +
+                ", kmExtras=" + kmExtras +
+                ", tipoVia='" + tipoVia + '\'' +
                 ", resolvido=" + resolvido +
                 '}';
     }

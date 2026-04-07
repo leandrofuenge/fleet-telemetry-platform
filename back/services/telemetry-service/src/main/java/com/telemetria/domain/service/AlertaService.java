@@ -726,7 +726,7 @@ public class AlertaService {
     }
 
     @Transactional
-    public void processarMultiplasTelemetrias(List<Telemetria> telemetrias) {
+    public CompletableFuture<List<String>> processarMultiplasTelemetrias(List<Telemetria> telemetrias) {
         log.info("🔄 Processando lote de {} telemetrias", telemetrias.size());
         
         for (Telemetria t : telemetrias) {
@@ -736,6 +736,7 @@ public class AlertaService {
                 log.error("❌ Falha ao processar telemetria {}: {}", t.getId(), e.getMessage());
             }
         }
+		return null;
     }
 
     // ================ MÉTODOS AUXILIARES ================
@@ -1502,5 +1503,63 @@ public class AlertaService {
         log.info("✅ Alerta de veículo sem sinal salvo com ID: {}", alerta.getId());
         enviarAlertaWebSocket(alerta);
     }
-
+    
+    /**
+     * RN-VIA-002 - Cria alerta de score crítico (< 700)
+     */
+    public void criarAlertaScoreCritico(Long motoristaId, int score, Long viagemId) {
+        log.warn("📢 Criando alerta de score crítico - Motorista ID: {}, Score: {}", motoristaId, score);
+        
+        Optional<Motorista> optMotorista = motoristaRepository.findById(motoristaId);
+        String nomeMotorista = optMotorista.map(Motorista::getNome).orElse("Desconhecido");
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(optMotorista.map(Motorista::getTenantId).orElse(1L))
+                .motoristaId(motoristaId)
+                .viagemId(viagemId)
+                .tipo(TipoAlerta.SCORE_CRITICO)
+                .severidade(SeveridadeAlerta.ALTO)
+                .mensagem(String.format(
+                    "Motorista %s está com score crítico: %d/1000. " +
+                    "Score mínimo recomendado é 700. Necessário acompanhamento do gestor.",
+                    nomeMotorista, score))
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta de score crítico salvo com ID: {}", alerta.getId());
+    }
+    
+    /**
+     * Cria alerta genérico com todos os parâmetros
+     */
+    public void criarAlertaCompleto(Long tenantId, Long veiculoId, String veiculoUuid, Long viagemId, 
+                           TipoAlerta tipo, SeveridadeAlerta severidade, String mensagem,
+                           Double latitude, Double longitude, Double velocidadeKmh, Double odometroKm) {
+        log.info("📢 Criando alerta - Veículo: {}, Tipo: {}, Severidade: {}", 
+                veiculoId, tipo, severidade);
+        
+        Alerta alerta = Alerta.builder()
+                .tenantId(tenantId)
+                .veiculoId(veiculoId)
+                .veiculoUuid(veiculoUuid)
+                .viagemId(viagemId)
+                .tipo(tipo)
+                .severidade(severidade)
+                .mensagem(mensagem)
+                .latitude(latitude)
+                .longitude(longitude)
+                .velocidadeKmh(velocidadeKmh)
+                .odometroKm(odometroKm)
+                .dataHora(LocalDateTime.now())
+                .lido(false)
+                .resolvido(false)
+                .build();
+        
+        alertaRepository.save(alerta);
+        log.info("✅ Alerta salvo com ID: {}", alerta.getId());
+        enviarAlertaWebSocket(alerta);
+    }
 }

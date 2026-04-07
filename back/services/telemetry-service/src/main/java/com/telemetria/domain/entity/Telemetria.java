@@ -50,6 +50,10 @@ public class Telemetria {
     @Column(name = "veiculo_uuid", nullable = false, length = 36)
     private String veiculoUuid;
 
+    @Column(name = "uso_celular")
+    private Boolean usoCelular;
+
+    
     @Column(name = "impreciso", nullable = false)
     private Boolean impreciso = false;
     
@@ -1215,5 +1219,11 @@ public class Telemetria {
         this.impreciso = impreciso;
     }
     
-}
+    public Boolean getUsoCelular() {
+        return usoCelular;
+    }
 
+    public void setUsoCelular(Boolean usoCelular) {
+        this.usoCelular = usoCelular;
+    }   
+}

@@ -20,17 +20,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.app.telemetria.domain.entity.Cliente;
-import com.app.telemetria.domain.entity.DesvioRota;
-import com.app.telemetria.domain.entity.PontoRota;
-import com.app.telemetria.domain.entity.Rota;
-import com.app.telemetria.domain.entity.Telemetria;
-import com.app.telemetria.domain.entity.Veiculo;
-import com.app.telemetria.infrastructure.integration.geocoding.GeocodingService;
-import com.app.telemetria.infrastructure.persistence.DesvioRotaRepository;
-import com.app.telemetria.infrastructure.persistence.RotaRepository;
-import com.app.telemetria.infrastructure.persistence.TelemetriaRepository;
-import com.app.telemetria.infrastructure.persistence.VeiculoRepository;
+import com.telemetria.domain.entity.Cliente;
+import com.telemetria.domain.entity.DesvioRota;
+import com.telemetria.domain.entity.PontoRota;
+import com.telemetria.domain.entity.Rota;
+import com.telemetria.domain.entity.Telemetria;
+import com.telemetria.domain.entity.Veiculo;
+import com.telemetria.domain.service.DetectorDesvioRotaService;
+import com.telemetria.infrastructure.integration.geocoding.GeocodingService;
+import com.telemetria.infrastructure.persistence.DesvioRotaRepository;
+import com.telemetria.infrastructure.persistence.RotaRepository;
+import com.telemetria.infrastructure.persistence.TelemetriaRepository;
+import com.telemetria.infrastructure.persistence.VeiculoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DetectorDesvioRotaServiceTest {

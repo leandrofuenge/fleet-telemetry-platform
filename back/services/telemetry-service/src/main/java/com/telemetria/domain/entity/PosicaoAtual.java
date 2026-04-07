@@ -18,17 +18,13 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "posicao_atual", indexes = {
         @Index(name = "idx_pa_tenant", columnList = "tenant_id"),
         @Index(name = "idx_pa_status", columnList = "status_veiculo")
 })
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -98,4 +94,160 @@ public class PosicaoAtual {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "veiculo_id")
     private VeiculoCache veiculo;
+
+    // ==================== GETTERS ====================
+
+    public Long getVeiculoId() {
+        return veiculoId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public String getVeiculoUuid() {
+        return veiculoUuid;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public Double getVelocidade() {
+        return velocidade;
+    }
+
+    public Double getDirecao() {
+        return direcao;
+    }
+
+    public Boolean getIgnicao() {
+        return ignicao;
+    }
+
+    public String getStatusVeiculo() {
+        return statusVeiculo;
+    }
+
+    public Long getMotoristaId() {
+        return motoristaId;
+    }
+
+    public Long getViagemId() {
+        return viagemId;
+    }
+
+    public Double getOdometro() {
+        return odometro;
+    }
+
+    public Double getNivelCombustivel() {
+        return nivelCombustivel;
+    }
+
+    public Double getBateriaV() {
+        return bateriaV;
+    }
+
+    public LocalDateTime getUltimaTelemetria() {
+        return ultimaTelemetria;
+    }
+
+    public LocalDateTime getUltimaAtualizacao() {
+        return ultimaAtualizacao;
+    }
+
+    public String getNomeLocal() {
+        return nomeLocal;
+    }
+
+    public Integer getAlertasAtivos() {
+        return alertasAtivos;
+    }
+
+    public VeiculoCache getVeiculo() {
+        return veiculo;
+    }
+
+    // ==================== SETTERS ====================
+
+    public void setVeiculoId(Long veiculoId) {
+        this.veiculoId = veiculoId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public void setVeiculoUuid(String veiculoUuid) {
+        this.veiculoUuid = veiculoUuid;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setVelocidade(Double velocidade) {
+        this.velocidade = velocidade;
+    }
+
+    public void setDirecao(Double direcao) {
+        this.direcao = direcao;
+    }
+
+    public void setIgnicao(Boolean ignicao) {
+        this.ignicao = ignicao;
+    }
+
+    public void setStatusVeiculo(String statusVeiculo) {
+        this.statusVeiculo = statusVeiculo;
+    }
+
+    public void setMotoristaId(Long motoristaId) {
+        this.motoristaId = motoristaId;
+    }
+
+    public void setViagemId(Long viagemId) {
+        this.viagemId = viagemId;
+    }
+
+    public void setOdometro(Double odometro) {
+        this.odometro = odometro;
+    }
+
+    public void setNivelCombustivel(Double nivelCombustivel) {
+        this.nivelCombustivel = nivelCombustivel;
+    }
+
+    public void setBateriaV(Double bateriaV) {
+        this.bateriaV = bateriaV;
+    }
+
+    public void setUltimaTelemetria(LocalDateTime ultimaTelemetria) {
+        this.ultimaTelemetria = ultimaTelemetria;
+    }
+
+    public void setUltimaAtualizacao(LocalDateTime ultimaAtualizacao) {
+        this.ultimaAtualizacao = ultimaAtualizacao;
+    }
+
+    public void setNomeLocal(String nomeLocal) {
+        this.nomeLocal = nomeLocal;
+    }
+
+    public void setAlertasAtivos(Integer alertasAtivos) {
+        this.alertasAtivos = alertasAtivos;
+    }
+
+    public void setVeiculo(VeiculoCache veiculo) {
+        this.veiculo = veiculo;
+    }
 }

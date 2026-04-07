@@ -30,6 +30,10 @@ import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 import com.telemetria.infrastructure.persistence.VeiculoRepository;
 import com.telemetria.infrastructure.persistence.ViagemRepository;
 
+import jakarta.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @RestController
 @RequestMapping("/api/v1/telemetria")
 public class TelemetriaController {
@@ -59,18 +63,17 @@ public class TelemetriaController {
     public ResponseEntity<String> criar(@RequestBody TelemetriaRequest request) {
         log.info("📡 [CONTROLLER] Requisição de telemetria recebida");
         log.debug("[CONTROLLER] Dados recebidos - Veículo ID: {}, Lat: {}, Lng: {}, Vel: {}, DataHora: {}",
-                request.getVeiculo() != null ? request.getVeiculo().getId() : null,
+                request.resolveVeiculoId(),
                 request.getLatitude(),
                 request.getLongitude(),
                 request.getVelocidade(),
                 request.getDataHora());
 
-        if (request.getVeiculo() == null || request.getVeiculo().getId() == null) {
-            log.error("❌ [CONTROLLER] ID do veículo não informado");
-            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "ID do veículo é obrigatório");
+        Long veiculoId = request.resolveVeiculoId();
+        if (veiculoId == null) {
+            log.error("❌ [CONTROLLER] ID do veículo não informado (esperado: veiculo.id ou veiculo_id)");
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "ID do veículo é obrigatório (veiculo.id ou veiculo_id)");
         }
-
-        Long veiculoId = request.getVeiculo().getId();
         log.debug("[CONTROLLER] Buscando veículo ID: {}", veiculoId);
         
         Veiculo veiculo = veiculoRepository.findById(veiculoId)
@@ -230,6 +233,8 @@ public class TelemetriaController {
 
     public static class TelemetriaRequest {
         private VeiculoRequest veiculo;
+        @JsonProperty("veiculo_id")  // Mapeia campo do TelemetriaBus
+        private Long veiculoId;
         private Double latitude;
         private Double longitude;
         private Double velocidade;
@@ -238,6 +243,17 @@ public class TelemetriaController {
 
         public VeiculoRequest getVeiculo() { return veiculo; }
         public void setVeiculo(VeiculoRequest veiculo) { this.veiculo = veiculo; }
+        public Long getVeiculoId() { return veiculoId; }
+        public void setVeiculoId(Long veiculoId) { this.veiculoId = veiculoId; }
+        
+        /**
+         * Obtém ID do veículo de qualquer formato (flat ou aninhado)
+         */
+        public Long resolveVeiculoId() {
+            if (veiculoId != null) return veiculoId;
+            if (veiculo != null) return veiculo.getId();
+            return null;
+        }
         public Double getLatitude() { return latitude; }
         public void setLatitude(Double latitude) { this.latitude = latitude; }
         public Double getLongitude() { return longitude; }

@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.telemetria.domain.entity.PontoRota;
 import com.telemetria.domain.entity.Rota;
+import com.telemetria.domain.exception.BusinessException;
+import com.telemetria.domain.exception.ErrorCode;
 import com.telemetria.domain.exception.RotaDuplicateException;
 import com.telemetria.domain.exception.RotaNotFoundException;
 import com.telemetria.domain.exception.RotaValidationException;
 import com.telemetria.infrastructure.persistence.RotaRepository;
+import com.telemetria.util.DistanciaCalculator;
 
 @Service
 public class RotaService {
@@ -21,6 +25,9 @@ public class RotaService {
     @Autowired
     private RotaRepository rotaRepository;
 
+    @Autowired
+    private DistanciaCalculator distanciaCalculator;  // ← INJEÇÃO ADICIONADA
+    
     // ================ MÉTODOS CRUD ================
 
     /**
@@ -99,7 +106,7 @@ public class RotaService {
         return rotaSalva;
     }
 
-    /**
+	/**
      * Atualiza uma rota existente
      */
     public Rota atualizar(Long id, Rota dados) {
@@ -283,5 +290,95 @@ public class RotaService {
         log.info("✅ Encontradas {} rotas para motorista {}", rotas.size(), motoristaId);
         
         return rotas;
+    }
+    
+    
+    
+    private void validarCalculoOsrmRealizado(Rota rota) {
+        // Verifica se a rota existe
+        if (rota == null) {
+            log.warn("Rota nula para validação OSRM");
+            return;
+        }
+        
+        // 1. Validar se os pontos da rota foram calculados pelo OSRM
+        List<PontoRota> pontosRota = rota.getPontosRota();
+        if (pontosRota == null || pontosRota.isEmpty()) {
+            log.warn("Rota {} não possui pontos calculados pelo OSRM", rota.getId());
+            return;
+        }
+        
+        // 2. Verificar se os pontos têm coordenadas de snap (lat_snap, lng_snap)
+        boolean temSnap = pontosRota.stream()
+                .anyMatch(p -> p.getLatSnap() != null && p.getLngSnap() != null);
+        
+        if (!temSnap) {
+            log.warn("Rota {} não possui pontos com snap-to-road OSRM", rota.getId());
+            // Opcional: marcar rota como inconsistente
+            rota.setStatus("INCONSISTENTE");
+        }
+        
+        // 3. Validar distância prevista (deve ser > 0)
+        if (rota.getDistanciaPrevista() == null || rota.getDistanciaPrevista() <= 0) {
+            log.error("Rota {} com distância prevista inválida: {} km", 
+                      rota.getId(), rota.getDistanciaPrevista());
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                String.format("Distância da rota %s não foi calculada corretamente pelo OSRM", rota.getNome()));
+        }
+        
+        // 4. Validar tempo previsto (deve ser > 0)
+        if (rota.getTempoPrevisto() == null || rota.getTempoPrevisto() <= 0) {
+            log.error("Rota {} com tempo previsto inválido: {} minutos", 
+                      rota.getId(), rota.getTempoPrevisto());
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                String.format("Tempo da rota %s não foi calculado corretamente pelo OSRM", rota.getNome()));
+        }
+        
+        // 5. Validar origem e destino
+        if (rota.getLatitudeOrigem() == null || rota.getLongitudeOrigem() == null) {
+            log.error("Rota {} sem coordenadas de origem válidas", rota.getId());
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Coordenadas de origem não definidas");
+        }
+        
+        if (rota.getLatitudeDestino() == null || rota.getLongitudeDestino() == null) {
+            log.error("Rota {} sem coordenadas de destino válidas", rota.getId());
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR, "Coordenadas de destino não definidas");
+        }
+        
+        // 6. Verificar consistência entre distância prevista e distância calculada
+        double distanciaCalculada = calcularDistanciaTotalRota(pontosRota);
+        double distanciaPrevista = rota.getDistanciaPrevista();
+        double diferencaPercentual = Math.abs(distanciaCalculada - distanciaPrevista) / distanciaPrevista * 100;
+        
+        if (diferencaPercentual > 10) { // tolerância de 10%
+            log.warn("Rota {} com inconsistência de distância: prevista={}km, calculada={}km, diferença={:.1f}%",
+                     rota.getId(), distanciaPrevista, distanciaCalculada, diferencaPercentual);
+        }
+        
+        log.info("✅ Rota {} validada com sucesso: distância={}km, tempo={}min, pontos={}",
+                 rota.getId(), rota.getDistanciaPrevista(), rota.getTempoPrevisto(), pontosRota.size());
+    }
+
+    /**
+     * Calcula a distância total da rota baseada nos pontos OSRM
+     */
+    private double calcularDistanciaTotalRota(List<PontoRota> pontosRota) {
+        if (pontosRota == null || pontosRota.size() < 2) {
+            return 0.0;
+        }
+        
+        double distanciaTotal = 0.0;
+        for (int i = 0; i < pontosRota.size() - 1; i++) {
+            PontoRota p1 = pontosRota.get(i);
+            PontoRota p2 = pontosRota.get(i + 1);
+            
+            double lat1 = p1.getLatSnap() != null ? p1.getLatSnap() : p1.getLatitude();
+            double lon1 = p1.getLngSnap() != null ? p1.getLngSnap() : p1.getLongitude();
+            double lat2 = p2.getLatSnap() != null ? p2.getLatSnap() : p2.getLatitude();
+            double lon2 = p2.getLngSnap() != null ? p2.getLngSnap() : p2.getLongitude();
+            
+            distanciaTotal += distanciaCalculator.calcularDistancia(lat1, lon1, lat2, lon2);
+        }
+        return distanciaTotal;
     }
 }

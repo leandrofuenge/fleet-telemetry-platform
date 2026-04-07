@@ -40,8 +40,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/motoristas").permitAll()
                 .requestMatchers("/api/v1/motoristas/buscar/**").permitAll()
                 
+                // ===== TELEMETRIA - TODOS OS ENDPOINTS LIBERADOS =====
+                .requestMatchers("/api/v1/telemetria/**").permitAll()
+                
                 // ===== PROMETHEUS (métricas) =====
-                .requestMatchers("/actuator/prometheus").permitAll()   // <-- ADICIONAR ESTA LINHA
+                .requestMatchers("/actuator/prometheus").permitAll()
                 
                 // ===== MATRIZ DE VISIBILIDADE =====
                 // Veículos (RN: MOTORISTA: próprio, OPERADOR/GESTOR/ADMIN: todos)
@@ -51,11 +54,6 @@ public class SecurityConfig {
                 // Motoristas (RN: MOTORISTA: próprio perfil, OPERADOR/GESTOR/ADMIN: todos)
                 .requestMatchers("/api/v1/motoristas/meu-perfil").hasRole("MOTORISTA")
                 .requestMatchers("/api/v1/motoristas/**").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
-                
-                // Telemetria (RN: MOTORISTA: própria viagem, OPERADOR: leitura completa, GESTOR: leitura+export)
-                .requestMatchers("/api/v1/telemetria/viagem/**").hasAnyRole("MOTORISTA", "OPERADOR", "GESTOR", "ADMIN")
-                .requestMatchers("/api/v1/telemetria/exportar/**").hasAnyRole("GESTOR", "ADMIN")
-                .requestMatchers("/api/v1/telemetria/**").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
                 
                 // Alertas (RN: MOTORISTA: próprios, OPERADOR: ver/resolver, GESTOR: criar regras)
                 .requestMatchers("/api/v1/alertas/meus").hasRole("MOTORISTA")
@@ -84,7 +82,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -1,9 +1,18 @@
 package com.app.telemetria.domain.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,15 +30,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.app.telemetria.domain.entity.HistoricoSenha;
-import com.app.telemetria.domain.entity.SessaoAtiva;
-import com.app.telemetria.domain.entity.Usuario;
-import com.app.telemetria.domain.enums.Perfil;
-import com.app.telemetria.domain.exception.BusinessException;
-import com.app.telemetria.domain.exception.ErrorCode;
-import com.app.telemetria.infrastructure.persistence.HistoricoSenhaRepository;
-import com.app.telemetria.infrastructure.persistence.SessaoAtivaRepository;
-import com.app.telemetria.infrastructure.persistence.UsuarioRepository;
+import com.telemetria.domain.entity.HistoricoSenha;
+import com.telemetria.domain.entity.SessaoAtiva;
+import com.telemetria.domain.entity.Usuario;
+import com.telemetria.domain.enums.Perfil;
+import com.telemetria.domain.exception.BusinessException;
+import com.telemetria.domain.exception.ErrorCode;
+import com.telemetria.domain.service.UsuarioService;
+import com.telemetria.infrastructure.persistence.HistoricoSenhaRepository;
+import com.telemetria.infrastructure.persistence.SessaoAtivaRepository;
+import com.telemetria.infrastructure.persistence.UsuarioRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 

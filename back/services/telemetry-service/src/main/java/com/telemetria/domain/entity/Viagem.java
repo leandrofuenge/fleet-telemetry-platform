@@ -81,6 +81,12 @@ public class Viagem {
     @Column(name = "motorista_id", insertable = false, updatable = false)
     private Long motoristaId;
 
+    /**
+     * ID da rota (apenas leitura, espelha a FK)
+     */
+    @Column(name = "rota_id", insertable = false, updatable = false)
+    private Long rotaId;
+
     // ── Relacionamentos principais ─────────────────────────────
 
     /**
@@ -115,6 +121,10 @@ public class Viagem {
     @JoinColumn(name = "rota_id")
     private Rota rota;
 
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+    
+    
     // ── Relacionamentos derivados ──────────────────────────────
 
     /**
@@ -252,6 +262,13 @@ public class Viagem {
         return motoristaId;
     }
 
+    public Long getRotaId() {
+        if (rotaId == null && rota != null) {
+            rotaId = rota.getId();
+        }
+        return rotaId;
+    }
+
     // ── Getters e setters para relacionamentos principais ──────
 
     public Veiculo getVeiculo() {
@@ -294,6 +311,11 @@ public class Viagem {
 
     public void setRota(Rota rota) {
         this.rota = rota;
+        if (rota != null) {
+            this.rotaId = rota.getId();
+        } else {
+            this.rotaId = null;
+        }
     }
 
     // ── Getters e setters para listas ──────────────────────────
@@ -331,4 +353,13 @@ public class Viagem {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+    
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+    
 }

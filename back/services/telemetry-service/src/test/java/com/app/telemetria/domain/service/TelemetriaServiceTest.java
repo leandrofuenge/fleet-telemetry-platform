@@ -19,8 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.app.telemetria.domain.entity.Telemetria;
-import com.app.telemetria.infrastructure.persistence.TelemetriaRepository;
+import com.telemetria.domain.entity.Telemetria;
+import com.telemetria.domain.service.TelemetriaService;
+import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class TelemetriaServiceTest {

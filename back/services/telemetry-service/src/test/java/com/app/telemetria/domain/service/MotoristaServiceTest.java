@@ -1,8 +1,15 @@
 package com.app.telemetria.domain.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,12 +25,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import com.app.telemetria.domain.entity.Carga;
-import com.app.telemetria.domain.entity.Motorista;
-import com.app.telemetria.domain.entity.Veiculo;
-import com.app.telemetria.domain.exception.BusinessException;
-import com.app.telemetria.domain.exception.ErrorCode;
-import com.app.telemetria.infrastructure.persistence.MotoristaRepository;
+import com.telemetria.domain.entity.Carga;
+import com.telemetria.domain.entity.Motorista;
+import com.telemetria.domain.entity.Veiculo;
+import com.telemetria.domain.exception.BusinessException;
+import com.telemetria.domain.exception.ErrorCode;
+import com.telemetria.domain.service.AlertaService;
+import com.telemetria.domain.service.MotoristaService;
+import com.telemetria.infrastructure.persistence.MotoristaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class MotoristaServiceTest {
