@@ -1,1 +1,0 @@
-DISTANCIA_TOTAL = distancia_total_rota()

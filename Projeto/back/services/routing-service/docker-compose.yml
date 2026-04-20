@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  routing-service:
+    build: .
+    container_name: fleet-routing-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8082
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/fleet_routing?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo&characterEncoding=UTF-8&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root123
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

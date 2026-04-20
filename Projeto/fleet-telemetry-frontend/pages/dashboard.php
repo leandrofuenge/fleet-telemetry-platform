@@ -3,29 +3,133 @@ require_once '../config.php';
 $page_title = 'Dashboard';
 $page_icon = '📊';
 
-// Dados simulados
-$stats = [
-    'veiculos_ativos' => 12,
-    'veiculos_total' => 15,
-    'entregas_hoje' => 87,
-    'entregas_concluidas' => 64,
-    'motoristas_ativos' => 10,
-    'alertas_ativos' => 3,
-    'eficiencia_media' => 92.5
-];
+// Verificar se usuário está logado
+if (!isset($_SESSION['usuario'])) {
+    header('Location: login.php');
+    exit;
+}
 
-$veiculos_em_rota = [
-    ['id' => 'V001', 'placa' => 'ABC-1234', 'motorista' => 'João Silva', 'status' => 'em_rota', 'progresso' => 65, 'eta' => '14:30'],
-    ['id' => 'V002', 'placa' => 'DEF-5678', 'motorista' => 'Maria Santos', 'status' => 'em_rota', 'progresso' => 40, 'eta' => '16:15'],
-    ['id' => 'V003', 'placa' => 'GHI-9012', 'motorista' => 'Pedro Costa', 'status' => 'parado', 'progresso' => 80, 'eta' => '13:45'],
-    ['id' => 'V004', 'placa' => 'JKL-3456', 'motorista' => 'Ana Oliveira', 'status' => 'em_rota', 'progresso' => 25, 'eta' => '17:00'],
-];
+// Função para chamar a API de dashboard
+function getDashboardStats() {
+    $url = API_URL . '/dashboard/stats';
+    
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n" .
+                       "Authorization: Bearer " . ($_SESSION['token'] ?? '') . "\r\n",
+            'method' => 'GET',
+            'timeout' => 30
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $resultado = @file_get_contents($url, false, $context);
+    
+    if ($resultado === false) {
+        return null;
+    }
+    
+    return json_decode($resultado, true);
+}
 
-$alertas_recentes = [
-    ['id' => 1, 'tipo' => 'DESVIO_ROTA', 'veiculo' => 'ABC-1234', 'motorista' => 'João Silva', 'gravidade' => 'MEDIA', 'timestamp' => '2026-04-20 09:15'],
-    ['id' => 2, 'tipo' => 'PARADA_LONGA', 'veiculo' => 'GHI-9012', 'motorista' => 'Pedro Costa', 'gravidade' => 'BAIXA', 'timestamp' => '2026-04-20 08:45'],
-    ['id' => 3, 'tipo' => 'EXCESSO_VELOCIDADE', 'veiculo' => 'DEF-5678', 'motorista' => 'Maria Santos', 'gravidade' => 'ALTA', 'timestamp' => '2026-04-20 08:30'],
-];
+// Função para buscar veículos em rota
+function getVeiculosEmRota() {
+    $url = API_URL . '/veiculos/em-rota';
+    
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n" .
+                       "Authorization: Bearer " . ($_SESSION['token'] ?? '') . "\r\n",
+            'method' => 'GET',
+            'timeout' => 30
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $resultado = @file_get_contents($url, false, $context);
+    
+    if ($resultado === false) {
+        return [];
+    }
+    
+    return json_decode($resultado, true);
+}
+
+// Função para buscar alertas recentes
+function getAlertasRecentes() {
+    $url = API_URL . '/alertas/recentes?limit=5';
+    
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n" .
+                       "Authorization: Bearer " . ($_SESSION['token'] ?? '') . "\r\n",
+            'method' => 'GET',
+            'timeout' => 30
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $resultado = @file_get_contents($url, false, $context);
+    
+    if ($resultado === false) {
+        return [];
+    }
+    
+    return json_decode($resultado, true);
+}
+
+// Buscar dados da API
+$stats = getDashboardStats();
+$veiculos_em_rota = getVeiculosEmRota();
+$alertas_recentes = getAlertasRecentes();
+
+// Verificar se API está disponível
+$api_disponivel = ($stats !== null);
+$erro_api = !$api_disponivel;
+
+// Valores padrão apenas se API falhar (fallback vazio)
+if (!$api_disponivel) {
+    $stats = [
+        'veiculos_ativos' => 0,
+        'veiculos_total' => 0,
+        'entregas_hoje' => 0,
+        'entregas_concluidas' => 0,
+        'motoristas_ativos' => 0,
+        'alertas_ativos' => 0,
+        'eficiencia_media' => 0
+    ];
+}
+
+// Verificar se as funções já existem no config.php antes de declarar
+if (!function_exists('getAlertaIcon')) {
+    function getAlertaIcon($tipo) {
+        $icones = [
+            'DESVIO_ROTA' => '🔄',
+            'PARADA_LONGA' => '⏸️',
+            'EXCESSO_VELOCIDADE' => '⚡',
+            'FRENAGEM_BRUSCA' => '🛑',
+            'COLISAO' => '💥',
+            'MANUTENCAO' => '🔧',
+            'GEOFENCE' => '🚧'
+        ];
+        return $icones[$tipo] ?? '⚠️';
+    }
+}
+
+if (!function_exists('traduzirTipoAlerta')) {
+    function traduzirTipoAlerta($tipo) {
+        $traducoes = [
+            'DESVIO_ROTA' => 'Desvio de Rota',
+            'PARADA_LONGA' => 'Parada Longa',
+            'EXCESSO_VELOCIDADE' => 'Excesso de Velocidade',
+            'FRENAGEM_BRUSCA' => 'Frenagem Brusca',
+            'COLISAO' => 'Colisão Detectada',
+            'MANUTENCAO' => 'Manutenção Pendente',
+            'GEOFENCE' => 'Violação de Geofence'
+        ];
+        return $traducoes[$tipo] ?? str_replace('_', ' ', $tipo);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -52,6 +156,7 @@ $alertas_recentes = [
         .stat-label { color: #666; font-size: 14px; }
         .stat-trend { font-size: 13px; margin-top: 8px; }
         .stat-trend.up { color: #27ae60; }
+        .stat-trend.down { color: #e74c3c; }
         .dashboard-row {
             display: grid;
             grid-template-columns: 1.5fr 1fr;
@@ -109,10 +214,10 @@ $alertas_recentes = [
             justify-content: center;
             margin-right: 12px;
         }
-        .alert-icon.CRITICA { background: #fee; color: #c00; }
-        .alert-icon.ALTA { background: #fef3e0; color: #e67e22; }
-        .alert-icon.MEDIA { background: #fff3cd; color: #856404; }
-        .alert-icon.BAIXA { background: #d5f5e3; color: #1e8449; }
+        .alert-icon.CRITICO { background: #fee; color: #c00; }
+        .alert-icon.ALTO { background: #fef3e0; color: #e67e22; }
+        .alert-icon.MEDIO { background: #fff3cd; color: #856404; }
+        .alert-icon.BAIXO { background: #d5f5e3; color: #1e8449; }
         .alert-content { flex: 1; }
         .alert-title { font-weight: 600; margin-bottom: 3px; }
         .alert-meta { font-size: 12px; color: #666; }
@@ -153,6 +258,7 @@ $alertas_recentes = [
         }
         .status-em_rota { background: #d1ecf1; color: #0c5460; }
         .status-parado { background: #fef9e7; color: #7d6608; }
+        .status-offline { background: #f8d7da; color: #721c24; }
         .live-badge {
             background: #e74c3c;
             color: white;
@@ -160,6 +266,19 @@ $alertas_recentes = [
             border-radius: 12px;
             font-size: 11px;
             animation: pulse 2s infinite;
+        }
+        .api-error {
+            background: #fadbd8;
+            color: #922b21;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e74c3c;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -182,27 +301,33 @@ $alertas_recentes = [
             </div>
         </div>
         
+        <!-- Mensagem de erro da API -->
+        <?php if ($erro_api): ?>
+        <div class="api-error">
+            ⚠️ Não foi possível conectar à API. Verifique se o serviço está disponível em <?= API_URL ?>
+        </div>
+        <?php endif; ?>
+        
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?= $stats['veiculos_ativos'] ?>/<?= $stats['veiculos_total'] ?></div>
                 <div class="stat-label">Veículos Ativos</div>
-                <div class="stat-trend up">↑ 2 desde ontem</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value"><?= $stats['entregas_concluidas'] ?>/<?= $stats['entregas_hoje'] ?></div>
                 <div class="stat-label">Entregas Hoje</div>
+                <?php if ($stats['entregas_hoje'] > 0): ?>
                 <div class="stat-trend"><?= round(($stats['entregas_concluidas']/$stats['entregas_hoje'])*100) ?>% concluído</div>
+                <?php endif; ?>
             </div>
             <div class="stat-card">
                 <div class="stat-value"><?= $stats['motoristas_ativos'] ?></div>
                 <div class="stat-label">Motoristas Ativos</div>
-                <div class="stat-trend up">↑ 1 em treinamento</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value"><?= $stats['eficiencia_media'] ?>%</div>
+                <div class="stat-value"><?= number_format($stats['eficiencia_media'], 1) ?>%</div>
                 <div class="stat-label">Eficiência Média</div>
-                <div class="stat-trend up">↑ 2.5% vs ontem</div>
             </div>
         </div>
         
@@ -213,6 +338,12 @@ $alertas_recentes = [
                     <span>🚚 Veículos em Rota</span>
                     <a href="monitoramento.php" style="color: #2c5364; text-decoration: none;">Ver todos →</a>
                 </div>
+                <?php if (empty($veiculos_em_rota)): ?>
+                <div class="empty-state">
+                    <span style="font-size: 48px;">🚛</span>
+                    <p>Nenhum veículo em rota no momento</p>
+                </div>
+                <?php else: ?>
                 <div class="vehicle-list">
                     <?php foreach ($veiculos_em_rota as $v): ?>
                     <div class="vehicle-item">
@@ -220,19 +351,26 @@ $alertas_recentes = [
                             <span style="font-size: 24px;">🚛</span>
                         </div>
                         <div class="vehicle-info">
-                            <div class="vehicle-plate"><?= $v['placa'] ?></div>
-                            <div class="vehicle-driver"><?= $v['motorista'] ?></div>
+                            <div class="vehicle-plate"><?= htmlspecialchars($v['placa'] ?? $v['id'] ?? 'N/A') ?></div>
+                            <div class="vehicle-driver"><?= htmlspecialchars($v['motorista'] ?? 'Sem motorista') ?></div>
+                            <?php if (isset($v['progresso'])): ?>
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: <?= $v['progresso'] ?>%"></div>
                             </div>
+                            <?php endif; ?>
                         </div>
                         <div style="text-align: right;">
-                            <span class="status-badge status-<?= $v['status'] ?>"><?= ucfirst($v['status']) ?></span>
+                            <span class="status-badge status-<?= $v['status'] ?? 'offline' ?>">
+                                <?= ucfirst($v['status'] ?? 'Offline') ?>
+                            </span>
+                            <?php if (isset($v['eta'])): ?>
                             <div style="font-size: 12px; margin-top: 5px;">ETA: <?= $v['eta'] ?></div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
             
             <!-- Alertas Recentes -->
@@ -241,22 +379,34 @@ $alertas_recentes = [
                     <span>⚠️ Alertas Recentes</span>
                     <a href="alertas.php" style="color: #2c5364; text-decoration: none;">Ver todos →</a>
                 </div>
+                <?php if (empty($alertas_recentes)): ?>
+                <div class="empty-state">
+                    <span style="font-size: 48px;">✅</span>
+                    <p>Nenhum alerta recente</p>
+                </div>
+                <?php else: ?>
                 <div style="max-height: 350px; overflow-y: auto;">
                     <?php foreach ($alertas_recentes as $alerta): ?>
                     <div class="alert-item">
-                        <div class="alert-icon <?= $alerta['gravidade'] ?>">
-                            <?= $alerta['tipo'] === 'DESVIO_ROTA' ? '🔄' : ($alerta['tipo'] === 'PARADA_LONGA' ? '⏸️' : '⚡') ?>
+                        <div class="alert-icon <?= $alerta['severidade'] ?? 'MEDIO' ?>">
+                            <?= getAlertaIcon($alerta['tipo'] ?? '') ?>
                         </div>
                         <div class="alert-content">
-                            <div class="alert-title"><?= str_replace('_', ' ', $alerta['tipo']) ?></div>
-                            <div class="alert-meta"><?= $alerta['veiculo'] ?> • <?= $alerta['motorista'] ?></div>
+                            <div class="alert-title"><?= traduzirTipoAlerta($alerta['tipo'] ?? '') ?></div>
+                            <div class="alert-meta">
+                                <?= htmlspecialchars($alerta['veiculo'] ?? 'Veículo #' . ($alerta['veiculoId'] ?? '?')) ?>
+                                <?php if (isset($alerta['motorista'])): ?>
+                                • <?= htmlspecialchars($alerta['motorista']) ?>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <div style="font-size: 12px; color: #666;">
-                            <?= date('H:i', strtotime($alerta['timestamp'])) ?>
+                            <?= isset($alerta['timestamp']) ? date('H:i', strtotime($alerta['timestamp'])) : '--:--' ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         

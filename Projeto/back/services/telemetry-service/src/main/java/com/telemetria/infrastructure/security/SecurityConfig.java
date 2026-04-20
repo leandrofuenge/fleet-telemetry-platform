@@ -32,9 +32,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Endpoints públicos
+                // ========================================================
+                // ENDPOINTS PÚBLICOS (SEM AUTENTICAÇÃO)
+                // ========================================================
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/public/**").permitAll()
+                
+                // ===== ALERTAS - TOTALMENTE PÚBLICOS =====
+                .requestMatchers("/api/v1/alertas/**").permitAll()
+                
+                // ===== VEÍCULOS E MOTORISTAS (consulta pública) =====
                 .requestMatchers("/api/v1/veiculos").permitAll()
                 .requestMatchers("/api/v1/veiculos/buscar/**").permitAll()
                 .requestMatchers("/api/v1/motoristas").permitAll()
@@ -45,21 +52,27 @@ public class SecurityConfig {
                 
                 // ===== PROMETHEUS (métricas) =====
                 .requestMatchers("/actuator/prometheus").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 
-                // ===== MATRIZ DE VISIBILIDADE =====
+                // ===== SWAGGER / API DOCS (se tiver) =====
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                
+                // ========================================================
+                // ENDPOINTS PROTEGIDOS (COM AUTENTICAÇÃO)
+                // ========================================================
+                
                 // Veículos (RN: MOTORISTA: próprio, OPERADOR/GESTOR/ADMIN: todos)
                 .requestMatchers("/api/v1/veiculos/meus").hasRole("MOTORISTA")
-                .requestMatchers("/api/v1/veiculos/**").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
+                .requestMatchers("/api/v1/veiculos/novo").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
+                .requestMatchers("/api/v1/veiculos/editar/**").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
+                .requestMatchers("/api/v1/veiculos/excluir/**").hasAnyRole("ADMIN", "GESTOR")
                 
                 // Motoristas (RN: MOTORISTA: próprio perfil, OPERADOR/GESTOR/ADMIN: todos)
                 .requestMatchers("/api/v1/motoristas/meu-perfil").hasRole("MOTORISTA")
-                .requestMatchers("/api/v1/motoristas/**").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
-                
-                // Alertas (RN: MOTORISTA: próprios, OPERADOR: ver/resolver, GESTOR: criar regras)
-                .requestMatchers("/api/v1/alertas/meus").hasRole("MOTORISTA")
-                .requestMatchers("/api/v1/alertas/resolver/**").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
-                .requestMatchers("/api/v1/alertas/regras/**").hasAnyRole("GESTOR", "ADMIN")
-                .requestMatchers("/api/v1/alertas/**").hasAnyRole("OPERADOR", "GESTOR", "ADMIN")
+                .requestMatchers("/api/v1/motoristas/novo").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
+                .requestMatchers("/api/v1/motoristas/editar/**").hasAnyRole("ADMIN", "GESTOR", "OPERADOR")
+                .requestMatchers("/api/v1/motoristas/excluir/**").hasAnyRole("ADMIN", "GESTOR")
                 
                 // Financeiro (RN: apenas GESTOR consolidado, ADMIN completo)
                 .requestMatchers("/api/v1/financeiro/consolidado").hasAnyRole("GESTOR", "ADMIN")
@@ -72,6 +85,7 @@ public class SecurityConfig {
                 // Admin (super admin)
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 
+                // Qualquer outra requisição precisa de autenticação
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -82,10 +96,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Permitir origens do frontend
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:5173", 
+            "http://localhost:8080",
+            "http://localhost:8081",
+            "http://127.0.0.1:8080",
+            "http://127.0.0.1:5173"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

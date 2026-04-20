@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -19,16 +17,7 @@ RUN mkdir -p /var/www/html/data/uploads /var/www/html/data/datasets /var/www/htm
     && chmod -R 755 /var/www/html \
     && chmod -R 775 /var/www/html/data
 
-RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html\n\
-    <Directory /var/www/html>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 RUN { \
     echo 'upload_max_filesize = 50M'; \
@@ -38,9 +27,6 @@ RUN { \
     echo 'date.timezone = America/Sao_Paulo'; \
     echo 'display_errors = On'; \
 } > /usr/local/etc/php/conf.d/custom.ini
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:80/ || exit 1
 
 EXPOSE 80
 
