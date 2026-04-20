@@ -1,131 +1,115 @@
 services:
-
   telemetry-service:
     build: .
     container_name: fleet-telemetry-service
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "9050:9050"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8081
-
-      # MYSQL
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fleet_telemetry?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: fleet_user
-      SPRING_DATASOURCE_PASSWORD: fleet_pass
-
-      # FLYWAY
-      SPRING_FLYWAY_ENABLED: "true"
-      SPRING_FLYWAY_URL: jdbc:mysql://mysql:3306/fleet_telemetry?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_FLYWAY_USER: fleet_user
-      SPRING_FLYWAY_PASSWORD: fleet_pass
-
-      # REDIS
+      SERVER_PORT: 9050
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/telemetria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo&characterEncoding=UTF-8&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_FLYWAY_ENABLED: "false"
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD: redis_pass
-
-      # MQTT
-      MQTT_BROKER_URL: tcp://mosquitto:1883
-
-      # KAFKA
+      SPRING_DATA_REDIS_PASSWORD: ""
+      JWT_SECRET: devSecretKey1234567890123456789012345678901234567890
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-
-      # ACTUATOR
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
-      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
-
+      MQTT_BROKER_URL: tcp://mosquitto:1883
+      MQTT_CLIENT_ID: telemetry-service
+      OPENWEATHER_API_KEY: ""
+      IPLOCATE_API_KEY: ""
+    volumes:
+      - ../../../logs:/app/logs
+    networks:
+      - fleet-network
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_started
+      kafka:
         condition: service_healthy
       mosquitto:
         condition: service_started
-      kafka:
-        condition: service_started
-    networks:
-      - fleet-network
 
   mysql:
-    image: mysql:8.4
-    container_name: fleet-mysql
+    image: mysql:8.0
+    container_name: mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: fleet_telemetry
-      MYSQL_USER: fleet_user
-      MYSQL_PASSWORD: fleet_pass
-      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: telemetria
     ports:
       - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_pass"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
     networks:
       - fleet-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h localhost -uroot -proot123 -e 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   redis:
-    image: redis:7-alpine
-    container_name: fleet-redis
+    image: redis:7
+    container_name: redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass redis_pass
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis_pass", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - fleet-network
 
-  mosquitto:
-    image: eclipse-mosquitto:2
-    container_name: fleet-mosquitto
+  zookeeper:
+    image: zookeeper:3.9
+    container_name: zookeeper
     restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
     ports:
-      - "1883:1883"
-    volumes:
-      - mosquitto-data:/mosquitto/data
-      - mosquitto-log:/mosquitto/log
+      - "2181:2181"
     networks:
       - fleet-network
 
   kafka:
-    image: apache/kafka:3.7.2
-    container_name: fleet-kafka
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: kafka
     restart: unless-stopped
+    hostname: kafka
     ports:
       - "9092:9092"
     environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-    volumes:
-      - kafka-data:/var/lib/kafka/data
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - fleet-network
+    depends_on:
+      zookeeper:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
     networks:
       - fleet-network
 
 networks:
   fleet-network:
-    driver: bridge
-
-volumes:
-  mysql-data:
-  redis-data:
-  mosquitto-data:
-  mosquitto-log:
-  kafka-data:
+    name: fleet-network

@@ -11,7 +11,7 @@ if (!isset($_SESSION['usuario'])) {
 
 // Função para chamar a API de dashboard
 function getDashboardStats() {
-    $url = API_URL . '/dashboard/stats';
+    $url = API_URL . '/alertas/dashboard';
     
     $options = [
         'http' => [
@@ -32,9 +32,9 @@ function getDashboardStats() {
     return json_decode($resultado, true);
 }
 
-// Função para buscar veículos em rota
-function getVeiculosEmRota() {
-    $url = API_URL . '/veiculos/em-rota';
+// Função para buscar dados dos veículos
+function getVeiculosData() {
+    $url = API_URL . '/veiculos';
     
     $options = [
         'http' => [
@@ -48,16 +48,16 @@ function getVeiculosEmRota() {
     $context = stream_context_create($options);
     $resultado = @file_get_contents($url, false, $context);
     
-    if ($resultado === false) {
-        return [];
+    if ($resultado !== false) {
+        return json_decode($resultado, true);
     }
     
-    return json_decode($resultado, true);
+    return ['veiculos' => []];
 }
 
 // Função para buscar alertas recentes
 function getAlertasRecentes() {
-    $url = API_URL . '/alertas/recentes?limit=5';
+    $url = API_URL . '/alertas';
     
     $options = [
         'http' => [
@@ -71,35 +71,42 @@ function getAlertasRecentes() {
     $context = stream_context_create($options);
     $resultado = @file_get_contents($url, false, $context);
     
-    if ($resultado === false) {
-        return [];
+    if ($resultado !== false) {
+        return json_decode($resultado, true);
     }
     
-    return json_decode($resultado, true);
+    return ['alertas' => []];
 }
 
 // Buscar dados da API
 $stats = getDashboardStats();
-$veiculos_em_rota = getVeiculosEmRota();
+$veiculos_data = getVeiculosData();
 $alertas_recentes = getAlertasRecentes();
 
 // Verificar se API está disponível
 $api_disponivel = ($stats !== null);
 $erro_api = !$api_disponivel;
 
-// Valores padrão apenas se API falhar (fallback vazio)
-if (!$api_disponivel) {
-    $stats = [
-        'veiculos_ativos' => 0,
-        'veiculos_total' => 0,
-        'entregas_hoje' => 0,
-        'entregas_concluidas' => 0,
-        'motoristas_ativos' => 0,
-        'alertas_ativos' => 0,
-        'eficiencia_media' => 0
-    ];
+// Valores padrão para evitar undefined array key
+$default_stats = [
+    'veiculos_ativos' => 0,
+    'veiculos_total' => 0,
+    'entregas_hoje' => 0,
+    'entregas_concluidas' => 0,
+    'motoristas_ativos' => 0,
+    'alertas_ativos' => 0,
+    'eficiencia_media' => 0.0
+];
+
+if (!$api_disponivel || !is_array($stats)) {
+    $stats = $default_stats;
+} else {
+    $stats = array_merge($default_stats, $stats);
 }
 
+// Extrair listas das respostas da API
+$veiculos_em_rota = $veiculos_data['veiculos'] ?? $veiculos_data['content'] ?? $veiculos_data ?? [];
+$alertas_recentes_list = $alertas_recentes['alertas'] ?? $alertas_recentes['content'] ?? $alertas_recentes ?? [];
 // Verificar se as funções já existem no config.php antes de declarar
 if (!function_exists('getAlertaIcon')) {
     function getAlertaIcon($tipo) {
@@ -311,22 +318,22 @@ if (!function_exists('traduzirTipoAlerta')) {
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value"><?= $stats['veiculos_ativos'] ?>/<?= $stats['veiculos_total'] ?></div>
+                <div class="stat-value"><?= $stats['veiculos_ativos'] ?? 0 ?>/<?= $stats['veiculos_total'] ?? 0 ?></div>
                 <div class="stat-label">Veículos Ativos</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value"><?= $stats['entregas_concluidas'] ?>/<?= $stats['entregas_hoje'] ?></div>
+                <div class="stat-value"><?= $stats['entregas_concluidas'] ?? 0 ?>/<?= $stats['entregas_hoje'] ?? 0 ?></div>
                 <div class="stat-label">Entregas Hoje</div>
-                <?php if ($stats['entregas_hoje'] > 0): ?>
-                <div class="stat-trend"><?= round(($stats['entregas_concluidas']/$stats['entregas_hoje'])*100) ?>% concluído</div>
+                <?php if (($stats['entregas_hoje'] ?? 0) > 0): ?>
+                <div class="stat-trend"><?= round((($stats['entregas_concluidas'] ?? 0)/($stats['entregas_hoje'] ?? 1))*100) ?>% concluído</div>
                 <?php endif; ?>
             </div>
             <div class="stat-card">
-                <div class="stat-value"><?= $stats['motoristas_ativos'] ?></div>
+                <div class="stat-value"><?= $stats['motoristas_ativos'] ?? 0 ?></div>
                 <div class="stat-label">Motoristas Ativos</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value"><?= number_format($stats['eficiencia_media'], 1) ?>%</div>
+                <div class="stat-value"><?= number_format($stats['eficiencia_media'] ?? 0, 1) ?>%</div>
                 <div class="stat-label">Eficiência Média</div>
             </div>
         </div>
@@ -379,14 +386,14 @@ if (!function_exists('traduzirTipoAlerta')) {
                     <span>⚠️ Alertas Recentes</span>
                     <a href="alertas.php" style="color: #2c5364; text-decoration: none;">Ver todos →</a>
                 </div>
-                <?php if (empty($alertas_recentes)): ?>
+                <?php if (empty($alertas_recentes_list)): ?>
                 <div class="empty-state">
                     <span style="font-size: 48px;">✅</span>
                     <p>Nenhum alerta recente</p>
                 </div>
                 <?php else: ?>
                 <div style="max-height: 350px; overflow-y: auto;">
-                    <?php foreach ($alertas_recentes as $alerta): ?>
+                    <?php foreach ($alertas_recentes_list as $alerta): ?>
                     <div class="alert-item">
                         <div class="alert-icon <?= $alerta['severidade'] ?? 'MEDIO' ?>">
                             <?= getAlertaIcon($alerta['tipo'] ?? '') ?>

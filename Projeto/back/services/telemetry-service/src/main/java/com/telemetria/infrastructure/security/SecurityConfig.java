@@ -85,8 +85,8 @@ public class SecurityConfig {
                 // Admin (super admin)
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 
-                // Qualquer outra requisição precisa de autenticação
-                .anyRequest().authenticated()
+                // Qualquer outra requisição permitida (DEBUG MODE - DESABILITAR AUTENTICAÇÃO)
+                .anyRequest().permitAll()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

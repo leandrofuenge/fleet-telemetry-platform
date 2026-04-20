@@ -1,3 +1,11 @@
+<?php
+require_once '../config.php';
+
+if (!isset($_SESSION['usuario'])) {
+    header('Location: ../login.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -496,7 +504,7 @@
     
     <script>
         // Configurações da API
-        const API_BASE_URL = 'http://localhost:9050/api/v1';
+        const API_BASE_URL = '<?= API_URL ?>';
         const MAPBOX_TOKEN = 'pk.eyJ1IjoiZXhlbXBsbyIsImEiOiJjbXRlc3RlMDAwMDAwMDAwMDAwMDAwMDAifQ.xxxxxxxxxxx';
         const DEFAULT_CENTER_LAT = -23.5505;
         const DEFAULT_CENTER_LNG = -46.6333;

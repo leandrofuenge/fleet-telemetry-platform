@@ -1,0 +1,15 @@
+# Disable directory listing
+Options -Indexes
+
+# Prevent viewing of sensitive files
+<FilesMatch "^\.|\.(env|ini|log|sh|md|git|yml|yaml|json)$">
+    Require all denied
+</FilesMatch>
+
+# Prevent viewing of config files
+<FilesMatch "^(config\.php)$">
+    Require all denied
+</FilesMatch>
+
+# Allow API/Websocket configuration from env vars if needed
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1

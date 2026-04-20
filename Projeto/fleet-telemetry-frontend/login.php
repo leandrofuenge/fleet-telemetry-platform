@@ -12,7 +12,7 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $login = $_POST['email'] ?? '';
+    $login = $_POST['login'] ?? '';
     $senha = $_POST['senha'] ?? '';
     $lembrar = isset($_POST['lembrar']);
     
@@ -27,12 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'senha' => $senha
         ];
         
+        // Tentar file_get_contents como alternativa ao cURL
         $options = [
             'http' => [
-                'header'  => "Content-Type: application/json\r\n",
+                'header'  => "Content-Type: application/json\r\nAccept: application/json\r\n",
                 'method'  => 'POST',
                 'content' => json_encode($dados),
-                'timeout' => 30.0,
+                'timeout' => 30,
                 'ignore_errors' => true
             ]
         ];
@@ -40,18 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $context = stream_context_create($options);
         $resultado = @file_get_contents($loginUrl, false, $context);
         
+        // Tentar obter status code
         $statusCode = 500;
         if (isset($http_response_header)) {
             foreach ($http_response_header as $header) {
                 if (preg_match('#HTTP/\d+\.\d+ (\d+)#', $header, $matches)) {
                     $statusCode = intval($matches[1]);
+                    break;
                 }
             }
         }
         
         if ($resultado === false) {
             $error = 'Serviço de autenticação indisponível. Tente novamente mais tarde.';
-            error_log("[Login] Erro ao conectar à API: " . $loginUrl);
         } else {
             $resposta = json_decode($resultado, true);
             
@@ -63,11 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (count($tokenParts) >= 2) {
                     $payload = json_decode(base64_decode(strtr($tokenParts[1], '-_', '+/')), true);
                     
-                    // CORREÇÃO: Normalizar perfil para minúsculo
-                    $perfil = PERFIL_GESTOR; // padrão 'gestor'
+                    // Mapear roles para perfis sincronizados com Java
+                    $perfil = PERFIL_GESTOR; // padrão
                     $roles = $payload['roles'] ?? $payload['authorities'] ?? [];
                     
-                    // Mapear roles para perfis (case-insensitive)
                     foreach ($roles as $role) {
                         $roleUpper = strtoupper($role);
                         if (strpos($roleUpper, 'MOTORISTA') !== false) {
@@ -81,9 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             break;
                         }
                     }
-                    
-                    // CORREÇÃO: Garantir que o perfil está em minúsculo
-                    $perfil = strtolower($perfil);
                     
                     $_SESSION['usuario'] = [
                         'id' => $payload['userId'] ?? $payload['sub'] ?? 0,
@@ -103,8 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setcookie('remember_token', $refreshToken, time() + 30*24*3600, '/');
                     }
                     
-                    // CORREÇÃO: Redirecionar baseado no perfil normalizado
-                    if ($perfil === PERFIL_ADMIN || $perfil === PERFIL_GESTOR) {
+                    if ($perfil === PERFIL_ADMIN || $perfil === PERFIL_GESTOR || $perfil === PERFIL_OPERADOR) {
                         $redirect = 'pages/dashboard.php';
                     } elseif ($perfil === PERFIL_MOTORISTA) {
                         $redirect = 'pages/motorista-dashboard.php';
@@ -286,6 +283,19 @@ if (!isset($_SESSION['usuario']) && isset($_COOKIE['remember_token'])) {
             padding: 2px 8px;
             border-radius: 4px;
         }
+        .btn-debug {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .btn-debug:hover {
+            background: #555;
+        }
         .footer {
             text-align: center;
             margin-top: 20px;
@@ -316,7 +326,7 @@ if (!isset($_SESSION['usuario']) && isset($_COOKIE['remember_token'])) {
                     <label>Email / Login</label>
                     <div class="input-wrapper">
                         <span class="input-icon">📧</span>
-                        <input type="text" name="email" placeholder="seu@email.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                        <input type="text" name="login" placeholder="seu@email.com" value="<?= htmlspecialchars($_POST['login'] ?? '') ?>" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -338,15 +348,6 @@ if (!isset($_SESSION['usuario']) && isset($_COOKIE['remember_token'])) {
                 
                 <button type="submit" class="btn-login">🚀 Entrar na Plataforma</button>
             </form>
-            
-            <?php if (DEBUG_MODE): ?>
-            <div class="demo-credentials">
-                <div class="demo-title">🔧 Credenciais de Teste (Debug Mode)</div>
-                <div class="demo-item"><span>Gestor:</span> <code>gestor@frota.com / 123456</code></div>
-                <div class="demo-item"><span>Motorista:</span> <code>motorista@frota.com / 123456</code></div>
-                <div class="demo-item"><span>Admin:</span> <code>admin@telemetria.com / admin123</code></div>
-            </div>
-            <?php endif; ?>
         </div>
         
         <div class="footer">
@@ -361,7 +362,7 @@ if (!isset($_SESSION['usuario']) && isset($_COOKIE['remember_token'])) {
             
             if (input.type === 'password') {
                 input.type = 'text';
-                toggle.textContent = '🙈';
+                toggle.textContent = '👁️';
             } else {
                 input.type = 'password';
                 toggle.textContent = '👁️';
