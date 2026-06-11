@@ -132,15 +132,15 @@ public class Alerta {
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "veiculo_id", insertable = false, updatable = false)
     private Veiculo veiculo;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "motorista_id", insertable = false, updatable = false)
     private Motorista motorista;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "viagem_id", insertable = false, updatable = false)
     private Viagem viagem;
 
@@ -370,102 +370,267 @@ public class Alerta {
 
     // ===== GETTERS E SETTERS =====
     
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() { 
+        return id; 
+    }
     
-    public String getUuid() { return uuid; }
-    public void setUuid(String uuid) { this.uuid = uuid; }
+    public void setId(Long id) { 
+        this.id = id; 
+    }
     
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
+    public String getUuid() { 
+        return uuid; 
+    }
     
-    public Long getVeiculoId() { return veiculoId; }
-    public void setVeiculoId(Long veiculoId) { this.veiculoId = veiculoId; }
+    public void setUuid(String uuid) { 
+        this.uuid = uuid; 
+    }
     
-    public String getVeiculoUuid() { return veiculoUuid; }
-    public void setVeiculoUuid(String veiculoUuid) { this.veiculoUuid = veiculoUuid; }
+    public Long getTenantId() { 
+        return tenantId; 
+    }
     
-    public Long getMotoristaId() { return motoristaId; }
-    public void setMotoristaId(Long motoristaId) { this.motoristaId = motoristaId; }
+    public void setTenantId(Long tenantId) { 
+        this.tenantId = tenantId; 
+    }
     
-    public Long getViagemId() { return viagemId; }
-    public void setViagemId(Long viagemId) { this.viagemId = viagemId; }
+    public Long getVeiculoId() { 
+        return veiculoId; 
+    }
     
-    public Long getTelemetriaId() { return telemetriaId; }
-    public void setTelemetriaId(Long telemetriaId) { this.telemetriaId = telemetriaId; }
+    public void setVeiculoId(Long veiculoId) { 
+        this.veiculoId = veiculoId; 
+    }
     
-    public Long getRegraId() { return regraId; }
-    public void setRegraId(Long regraId) { this.regraId = regraId; }
+    public String getVeiculoUuid() { 
+        return veiculoUuid; 
+    }
     
-    public TipoAlerta getTipo() { return tipo; }
-    public void setTipo(TipoAlerta tipo) { this.tipo = tipo; }
+    public void setVeiculoUuid(String veiculoUuid) { 
+        this.veiculoUuid = veiculoUuid; 
+    }
     
-    public SeveridadeAlerta getSeveridade() { return severidade; }
-    public void setSeveridade(SeveridadeAlerta severidade) { this.severidade = severidade; }
+    public Long getMotoristaId() { 
+        return motoristaId; 
+    }
     
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
+    public void setMotoristaId(Long motoristaId) { 
+        this.motoristaId = motoristaId; 
+    }
     
-    public String getMensagem() { return mensagem; }
-    public void setMensagem(String mensagem) { this.mensagem = mensagem; }
+    public Long getViagemId() { 
+        return viagemId; 
+    }
     
-    public Double getLatitude() { return latitude; }
-    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public void setViagemId(Long viagemId) { 
+        this.viagemId = viagemId; 
+    }
     
-    public Double getLongitude() { return longitude; }
-    public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public Long getTelemetriaId() { 
+        return telemetriaId; 
+    }
     
-    public Double getVelocidadeKmh() { return velocidadeKmh; }
-    public void setVelocidadeKmh(Double velocidadeKmh) { this.velocidadeKmh = velocidadeKmh; }
+    public void setTelemetriaId(Long telemetriaId) { 
+        this.telemetriaId = telemetriaId; 
+    }
     
-    public Double getOdometroKm() { return odometroKm; }
-    public void setOdometroKm(Double odometroKm) { this.odometroKm = odometroKm; }
+    public Long getRegraId() { 
+        return regraId; 
+    }
     
-    public String getNomeLocal() { return nomeLocal; }
-    public void setNomeLocal(String nomeLocal) { this.nomeLocal = nomeLocal; }
+    public void setRegraId(Long regraId) { 
+        this.regraId = regraId; 
+    }
     
-    public Map<String, Object> getDadosContexto() { return dadosContexto; }
-    public void setDadosContexto(Map<String, Object> dadosContexto) { this.dadosContexto = dadosContexto; }
+    public TipoAlerta getTipo() { 
+        return tipo; 
+    }
     
-    public LocalDateTime getDataHora() { return dataHora; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+    public void setTipo(TipoAlerta tipo) { 
+        this.tipo = tipo; 
+    }
     
-    public Boolean getLido() { return lido; }
-    public void setLido(Boolean lido) { this.lido = lido; }
+    public SeveridadeAlerta getSeveridade() { 
+        return severidade; 
+    }
     
-    public String getLidoPor() { return lidoPor; }
-    public void setLidoPor(String lidoPor) { this.lidoPor = lidoPor; }
+    public void setSeveridade(SeveridadeAlerta severidade) { 
+        this.severidade = severidade; 
+    }
     
-    public LocalDateTime getDataHoraLeitura() { return dataHoraLeitura; }
-    public void setDataHoraLeitura(LocalDateTime dataHoraLeitura) { this.dataHoraLeitura = dataHoraLeitura; }
+    public String getCategoria() { 
+        return categoria; 
+    }
     
-    public Boolean getResolvido() { return resolvido; }
-    public void setResolvido(Boolean resolvido) { this.resolvido = resolvido; }
+    public void setCategoria(String categoria) { 
+        this.categoria = categoria; 
+    }
     
-    public String getResolvidoPor() { return resolvidoPor; }
-    public void setResolvidoPor(String resolvidoPor) { this.resolvidoPor = resolvidoPor; }
+    public String getMensagem() { 
+        return mensagem; 
+    }
     
-    public LocalDateTime getDataHoraResolucao() { return dataHoraResolucao; }
-    public void setDataHoraResolucao(LocalDateTime dataHoraResolucao) { this.dataHoraResolucao = dataHoraResolucao; }
+    public void setMensagem(String mensagem) { 
+        this.mensagem = mensagem; 
+    }
     
-    public String getObservacaoResolucao() { return observacaoResolucao; }
-    public void setObservacaoResolucao(String observacaoResolucao) { this.observacaoResolucao = observacaoResolucao; }
+    public Double getLatitude() { 
+        return latitude; 
+    }
     
-    public Boolean getNotificacaoEnviada() { return notificacaoEnviada; }
-    public void setNotificacaoEnviada(Boolean notificacaoEnviada) { this.notificacaoEnviada = notificacaoEnviada; }
+    public void setLatitude(Double latitude) { 
+        this.latitude = latitude; 
+    }
     
-    public Object getCanaisNotificados() { return canaisNotificados; }
-    public void setCanaisNotificados(Object canaisNotificados) { this.canaisNotificados = canaisNotificados; }
+    public Double getLongitude() { 
+        return longitude; 
+    }
     
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public void setLongitude(Double longitude) { 
+        this.longitude = longitude; 
+    }
     
-    public Veiculo getVeiculo() { return veiculo; }
-    public void setVeiculo(Veiculo veiculo) { this.veiculo = veiculo; }
+    public Double getVelocidadeKmh() { 
+        return velocidadeKmh; 
+    }
     
-    public Motorista getMotorista() { return motorista; }
-    public void setMotorista(Motorista motorista) { this.motorista = motorista; }
+    public void setVelocidadeKmh(Double velocidadeKmh) { 
+        this.velocidadeKmh = velocidadeKmh; 
+    }
     
-    public Viagem getViagem() { return viagem; }
-    public void setViagem(Viagem viagem) { this.viagem = viagem; }
+    public Double getOdometroKm() { 
+        return odometroKm; 
+    }
+    
+    public void setOdometroKm(Double odometroKm) { 
+        this.odometroKm = odometroKm; 
+    }
+    
+    public String getNomeLocal() { 
+        return nomeLocal; 
+    }
+    
+    public void setNomeLocal(String nomeLocal) { 
+        this.nomeLocal = nomeLocal; 
+    }
+    
+    public Map<String, Object> getDadosContexto() { 
+        return dadosContexto; 
+    }
+    
+    public void setDadosContexto(Map<String, Object> dadosContexto) { 
+        this.dadosContexto = dadosContexto; 
+    }
+    
+    public LocalDateTime getDataHora() { 
+        return dataHora; 
+    }
+    
+    public void setDataHora(LocalDateTime dataHora) { 
+        this.dataHora = dataHora; 
+    }
+    
+    public Boolean getLido() { 
+        return lido; 
+    }
+    
+    public void setLido(Boolean lido) { 
+        this.lido = lido; 
+    }
+    
+    public String getLidoPor() { 
+        return lidoPor; 
+    }
+    
+    public void setLidoPor(String lidoPor) { 
+        this.lidoPor = lidoPor; 
+    }
+    
+    public LocalDateTime getDataHoraLeitura() { 
+        return dataHoraLeitura; 
+    }
+    
+    public void setDataHoraLeitura(LocalDateTime dataHoraLeitura) { 
+        this.dataHoraLeitura = dataHoraLeitura; 
+    }
+    
+    public Boolean getResolvido() { 
+        return resolvido; 
+    }
+    
+    public void setResolvido(Boolean resolvido) { 
+        this.resolvido = resolvido; 
+    }
+    
+    public String getResolvidoPor() { 
+        return resolvidoPor; 
+    }
+    
+    public void setResolvidoPor(String resolvidoPor) { 
+        this.resolvidoPor = resolvidoPor; 
+    }
+    
+    public LocalDateTime getDataHoraResolucao() { 
+        return dataHoraResolucao; 
+    }
+    
+    public void setDataHoraResolucao(LocalDateTime dataHoraResolucao) { 
+        this.dataHoraResolucao = dataHoraResolucao; 
+    }
+    
+    public String getObservacaoResolucao() { 
+        return observacaoResolucao; 
+    }
+    
+    public void setObservacaoResolucao(String observacaoResolucao) { 
+        this.observacaoResolucao = observacaoResolucao; 
+    }
+    
+    public Boolean getNotificacaoEnviada() { 
+        return notificacaoEnviada; 
+    }
+    
+    public void setNotificacaoEnviada(Boolean notificacaoEnviada) { 
+        this.notificacaoEnviada = notificacaoEnviada; 
+    }
+    
+    public Object getCanaisNotificados() { 
+        return canaisNotificados; 
+    }
+    
+    public void setCanaisNotificados(Object canaisNotificados) { 
+        this.canaisNotificados = canaisNotificados; 
+    }
+    
+    public LocalDateTime getCriadoEm() { 
+        return criadoEm; 
+    }
+    
+    public void setCriadoEm(LocalDateTime criadoEm) { 
+        this.criadoEm = criadoEm; 
+    }
+    
+    public Veiculo getVeiculo() { 
+        return veiculo; 
+    }
+    
+    public void setVeiculo(Veiculo veiculo) { 
+        this.veiculo = veiculo; 
+    }
+    
+    public Motorista getMotorista() { 
+        return motorista; 
+    }
+    
+    public void setMotorista(Motorista motorista) { 
+        this.motorista = motorista; 
+    }
+    
+    public Viagem getViagem() { 
+        return viagem; 
+    }
+    
+    public void setViagem(Viagem viagem) { 
+        this.viagem = viagem; 
+    }
 }

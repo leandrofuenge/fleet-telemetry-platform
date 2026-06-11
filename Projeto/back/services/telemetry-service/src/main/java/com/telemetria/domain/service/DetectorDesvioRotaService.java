@@ -55,7 +55,7 @@ public class DetectorDesvioRotaService {
     private final DesvioRotaRepository desvioRotaRepository;
     private final VeiculoRepository veiculoRepository;
     private final AlertaRepository alertaRepository;
-    private final ClassificadorViaService classificadorViaService;
+    private final ClassificacaoTipoViaService classificacaoTipoViaService;
     private final DistanciaCalculator distanciaCalculator;
     private final GeocodingService geocodingService;
     private final OSRMMapMatchingService mapMatchingService;
@@ -67,7 +67,7 @@ public class DetectorDesvioRotaService {
             DesvioRotaRepository desvioRotaRepository,
             VeiculoRepository veiculoRepository,
             AlertaRepository alertaRepository,
-            ClassificadorViaService classificadorViaService,
+            ClassificacaoTipoViaService classificacaoTipoViaService,
             DistanciaCalculator distanciaCalculator,
             GeocodingService geocodingService,
             OSRMMapMatchingService mapMatchingService,
@@ -77,7 +77,7 @@ public class DetectorDesvioRotaService {
         this.desvioRotaRepository = desvioRotaRepository;
         this.veiculoRepository = veiculoRepository;
         this.alertaRepository = alertaRepository;
-        this.classificadorViaService = classificadorViaService;
+        this.classificacaoTipoViaService = classificacaoTipoViaService;
         this.distanciaCalculator = distanciaCalculator;
         this.geocodingService = geocodingService;
         this.mapMatchingService = mapMatchingService;
@@ -125,7 +125,7 @@ public class DetectorDesvioRotaService {
                 rota);
 
         // RN-ROT-002: Classificar tipo de via
-        TipoVia tipoVia = classificadorViaService.classificar(
+        TipoVia tipoVia = classificacaoTipoViaService.classificarTipoVia(
                 ultimaTelemetria.getLatitude(),
                 ultimaTelemetria.getLongitude());
         

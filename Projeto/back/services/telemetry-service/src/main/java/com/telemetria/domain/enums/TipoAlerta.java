@@ -137,7 +137,8 @@ public enum TipoAlerta {
     CONDICAO_PISTA_PERIGOSA("Condição de pista perigosa"),
     
     // Outros
-    OUTRO("Tipo de alerta não especificado");
+    OUTRO("Tipo de alerta não especificado"), 
+    VELOCIDADE_IMPOSSIVEL("Velocidade impossivel");
 
     private final String descricao;
 

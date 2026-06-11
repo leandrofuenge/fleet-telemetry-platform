@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Repository;
 import com.telemetria.domain.entity.Alerta;
 import com.telemetria.domain.enums.SeveridadeAlerta;
 import com.telemetria.domain.enums.TipoAlerta;
+
+import jakarta.transaction.Transactional;
 
 @Repository
 public interface AlertaRepository extends JpaRepository<Alerta, Long> {
@@ -89,4 +92,62 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
     default List<Alerta> findBySeveridadeAndResolvidoFalseOrderByDataHoraDesc(SeveridadeAlerta severidade) {
         return findBySeveridadeAndResolvidoFalseOrderByDataHoraDesc(severidade.name());
     }
+
+	boolean existsByViagemIdAndTipo(Long id, TipoAlerta inicioViagem);
+
+	Optional<Alerta> findPrimeiroByVeiculoIdAndTipoAndResolvidoFalse(Long veiculoId, TipoAlerta gpsSemSinal);
+
+	boolean existsByViagemIdAndTipoAndResolvidoFalse(Long id, TipoAlerta tempoDirecao);
+	
+	
+	@Modifying // Informa ao Spring Data que é uma query de escrita (UPDATE/DELETE)
+    @Query("UPDATE Alerta a SET a.resolvido = true, a.dataHoraResolucao = :dataResolucao " +
+           "WHERE a.veiculoId = :veiculoId AND a.tipo = :tipo AND a.resolvido = false")
+    int resolverAlertasAtivos(@Param("veiculoId") Long veiculoId, 
+                             @Param("tipo") TipoAlerta tipo, 
+                             @Param("dataResolucao") LocalDateTime dataResolucao);
+	
+	
+	boolean existsByVeiculoIdAndTipoAndResolvidoFalseAndMensagemContaining(
+		    Long veiculoId, 
+		    TipoAlerta tipo, 
+		    String trechoMensagem
+		);
+	
+	
+	boolean existsByMotoristaIdAndTipoAndSeveridadeAndResolvidoFalse(
+		    Long motoristaId, 
+		    TipoAlerta tipo, 
+		    SeveridadeAlerta severidade
+		);	
+	
+	
+	@Modifying
+	@Transactional
+	@Query("UPDATE Alerta a SET a.resolvido = true, a.dataResolucao = NOW() " +
+	       "WHERE a.motoristaId = :motoristaId AND a.tipo = :tipo AND a.resolvido = false")
+	void resolverAlertasAtivosPorMotoristaETipo(
+	    @Param("motoristaId") Long motoristaId, 
+	    @Param("tipo") TipoAlerta tipo
+	);
+
+	boolean existsByMotoristaIdAndTipoAndResolvidoFalse(Long id, TipoAlerta cnhVencida);
+
+	boolean existsByVeiculoIdAndTipoAndResolvidoFalseAndDataHoraAfter(Long veiculoId, TipoAlerta saltoPosicao,
+			LocalDateTime limiteJanela);
+	
+	
+	/**
+     * SÊNIOR: Executa a resolução (fechamento) em lote de alertas ativos para um Veículo específico.
+     * O uso do @Modifying garante uma operação de escrita (UPDATE) direta e de alta performance.
+     */
+    @Modifying
+    @Transactional // Garante o commit da transação de escrita
+    @Query("UPDATE Alerta a SET a.resolvido = true, a.dataResolucao = NOW() " +
+           "WHERE a.veiculoId = :veiculoId AND a.tipo = :tipo AND a.resolvido = false")
+    void resolverAlertasAtivosPorVeiculoETipo(
+        @Param("veiculoId") Long veiculoId, 
+        @Param("tipo") TipoAlerta tipo
+    );
+	
 }

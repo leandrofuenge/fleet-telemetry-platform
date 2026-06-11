@@ -456,4 +456,28 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
         """, nativeQuery = true)
     int deleteJornadaAntiga(@Param("veiculoId") Long veiculoId, 
                           @Param("dataLimite") LocalDateTime dataLimite);
+  
+    
+    /**
+     * Busca a última telemetria anterior a uma determinada data/hora para um veículo específico
+     * 
+     * @param veiculoId ID do veículo
+     * @param processadoEm Data/hora de referência (busca registros anteriores a esta)
+     * @return Optional com a telemetria mais recente encontrada, ou empty se não existir
+     */
+    Optional<Telemetria> findTopByVeiculoIdAndProcessadoEmBeforeOrderByProcessadoEmDesc(
+            Long veiculoId, 
+            LocalDateTime processadoEm);
+    
+    // Alternativa usando @Query explícito (mais legível em alguns casos)
+    @Query("SELECT t FROM Telemetria t " +
+           "WHERE t.veiculoId = :veiculoId " +
+           "AND t.processadoEm < :processadoEm " +
+           "ORDER BY t.processadoEm DESC")
+    Optional<Telemetria> buscarUltimaTelemetriaAnterior(
+            @Param("veiculoId") Long veiculoId,
+            @Param("processadoEm") LocalDateTime processadoEm);
 }
+
+
+

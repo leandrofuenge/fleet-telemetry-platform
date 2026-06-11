@@ -3,6 +3,7 @@ package com.telemetria.infrastructure.persistence;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,12 +11,22 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.telemetria.domain.entity.Alerta;
 import com.telemetria.domain.entity.PosicaoAtual;
 
 @Repository
 public interface PosicaoAtualRepository extends JpaRepository<PosicaoAtual, Long> {
     
     Optional<PosicaoAtual> findByVeiculoId(Long veiculoId);
+
+    /**
+     * SÊNIOR: Update cirúrgico in-place para controle de transição de zona.
+     * Atualiza apenas a coluna necessária sem passar pelo fluxo pesado de persistência do JPA.
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE PosicaoAtual p SET p.zonaAtual = :zona WHERE p.veiculoId = :veiculoId")
+    int atualizarZonaAtual(@Param("veiculoId") Long veiculoId, @Param("zona") String zona);
 
     // RF06 RN-POS-001: UPSERT nativo MySQL (mais rápido que save())
     @Modifying
@@ -47,4 +58,15 @@ public interface PosicaoAtualRepository extends JpaRepository<PosicaoAtual, Long
                           @Param("ignicao") Boolean ignicao,
                           @Param("statusVeiculo") String statusVeiculo,
                           @Param("ultimaTelemetria") LocalDateTime ultimaTelemetria);
+
+    
+    
+    
+	Page<Alerta> findUltimaPosicaoByVeiculoId(Long veiculoId);
+	
+	
+	
+	
+	
+	
 }

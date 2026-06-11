@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.telemetria.domain.entity.Telemetria;
 import com.telemetria.domain.entity.Veiculo;
 import com.telemetria.domain.exception.BusinessException;
@@ -29,10 +30,6 @@ import com.telemetria.infrastructure.integration.weather.WeatherAlertService;
 import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 import com.telemetria.infrastructure.persistence.VeiculoRepository;
 import com.telemetria.infrastructure.persistence.ViagemRepository;
-
-import jakarta.validation.Valid;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @RestController
 @RequestMapping("/api/v1/telemetria")

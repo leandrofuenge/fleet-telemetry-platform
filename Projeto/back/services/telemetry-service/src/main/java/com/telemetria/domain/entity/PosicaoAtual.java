@@ -36,6 +36,8 @@ public class PosicaoAtual {
 
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
+    
+    private String zonaAtual; 
 
     @Column(name = "veiculo_uuid", nullable = false, length = 36)
     private String veiculoUuid;
@@ -250,4 +252,19 @@ public class PosicaoAtual {
     public void setVeiculo(VeiculoCache veiculo) {
         this.veiculo = veiculo;
     }
+    
+    
+    public String getZonaAtual() {
+        return this.zonaAtual;
+    }
+
+    public void setZonaAtual(String zonaAtual) {
+        this.zonaAtual = zonaAtual;
+    }
+    
+    
+    
+    
+    
+    
 }

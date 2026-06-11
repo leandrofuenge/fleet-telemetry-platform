@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.telemetria.domain.entity.Geofence;
 import com.telemetria.domain.entity.Telemetria;
 import com.telemetria.infrastructure.persistence.GeofenceRepository;
+import com.telemetria.infrastructure.persistence.TelemetriaRepository;
+
 
 @Service
 public class GeofenceService {
@@ -23,7 +25,7 @@ public class GeofenceService {
     private static final Logger log = LoggerFactory.getLogger(GeofenceService.class);
 
     private final GeofenceRepository geofenceRepository;
-    private final TelemetriaService telemetriaService;
+    private final TelemetriaRepository telemetriaRepository; // ← Repositório direto
     private final AlertaService alertaService;
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -32,18 +34,15 @@ public class GeofenceService {
 
     @Autowired
     public GeofenceService(GeofenceRepository geofenceRepository,
-                           TelemetriaService telemetriaService,
+                           TelemetriaRepository telemetriaRepository, // ← Mudança
                            AlertaService alertaService,
                            RedisTemplate<String, String> redisTemplate) {
         this.geofenceRepository = geofenceRepository;
-        this.telemetriaService = telemetriaService;
+        this.telemetriaRepository = telemetriaRepository;
         this.alertaService = alertaService;
         this.redisTemplate = redisTemplate;
     }
 
-    /**
-     * Verifica todas as geofences ativas para o veículo e gera alertas de entrada/saída com cooldown.
-     */
     @Transactional
     public void verificarGeofences(Telemetria telemetria) {
         if (telemetria == null || telemetria.getVeiculo() == null) {
@@ -51,70 +50,90 @@ public class GeofenceService {
         }
 
         Long tenantId = telemetria.getTenantId();
-        String veiculoUuid = telemetria.getVeiculo().getUuid(); // precisa ter getUuid() em Veiculo
+        Long veiculoId = telemetria.getVeiculoId(); // Usar ID, não UUID
+        String veiculoUuid = telemetria.getVeiculo().getUuid();
 
         List<Geofence> geofences = geofenceRepository.findAtivasPorVeiculo(tenantId, veiculoUuid);
         if (geofences.isEmpty()) {
             return;
         }
 
-        // Busca a telemetria anterior para saber se o veículo já estava dentro ou fora
-        Optional<Telemetria> ultimaAnterior = telemetriaService.buscarUltimaPorVeiculo(telemetria.getVeiculoId());
+        // Buscar última telemetria anterior (evita ciclo de dependência)
+        Optional<Telemetria> ultimaAnterior = telemetriaRepository
+            .findTopByVeiculoIdAndProcessadoEmBeforeOrderByProcessadoEmDesc(
+                veiculoId, telemetria.getProcessadoEm());
+        
         Telemetria anterior = ultimaAnterior.orElse(null);
 
         for (Geofence geofence : geofences) {
-            boolean estaDentro = pontoEstaDentroGeofence(telemetria.getLatitude(), telemetria.getLongitude(), geofence);
-            boolean estavaDentro = anterior != null && pontoEstaDentroGeofence(anterior.getLatitude(), anterior.getLongitude(), geofence);
-
-            Geofence.TipoAlertaGeofence tipoAlerta = geofence.getTipoAlerta();
-            boolean deveGerarAlerta = false;
-            String mensagem = null;
-
-            if (tipoAlerta == Geofence.TipoAlertaGeofence.ENTRADA) {
-                if (estaDentro && !estavaDentro) {
-                    deveGerarAlerta = true;
-                    mensagem = "Veículo entrou na geofence: " + geofence.getNome();
-                }
-            } else if (tipoAlerta == Geofence.TipoAlertaGeofence.SAIDA) {
-                if (!estaDentro && estavaDentro) {
-                    deveGerarAlerta = true;
-                    mensagem = "Veículo saiu da geofence: " + geofence.getNome();
-                }
-            } else if (tipoAlerta == Geofence.TipoAlertaGeofence.AMBOS) {
-                if (estaDentro && !estavaDentro) {
-                    deveGerarAlerta = true;
-                    mensagem = "Veículo entrou na geofence: " + geofence.getNome();
-                } else if (!estaDentro && estavaDentro) {
-                    deveGerarAlerta = true;
-                    mensagem = "Veículo saiu da geofence: " + geofence.getNome();
-                }
-            }
-
-            if (deveGerarAlerta) {
-                String key = String.format("geofence:cooldown:%d:%d:%s",
-                        telemetria.getVeiculoId(), geofence.getId(),
-                        (estaDentro ? "ENTRADA" : "SAIDA"));
-                Boolean hasKey = redisTemplate.hasKey(key);
-                if (Boolean.TRUE.equals(hasKey)) {
-                    log.debug("Cooldown ativo para geofence {} do veículo {}", geofence.getId(), telemetria.getVeiculoId());
-                    continue;
-                }
-
-                alertaService.criarAlertaGeofence(telemetria, geofence, mensagem);
-                redisTemplate.opsForValue().set(key, LocalDateTime.now().toString(), Duration.ofMinutes(cooldownMinutes));
-                log.info("Alerta de geofence gerado para veículo {} na geofence {}: {}",
-                        telemetria.getVeiculoId(), geofence.getNome(), mensagem);
-            }
+            processarGeofence(telemetria, anterior, geofence);
         }
     }
 
-    // ========== Lógica de ponto dentro de círculo/polígono ==========
+    private void processarGeofence(Telemetria atual, Telemetria anterior, Geofence geofence) {
+        boolean estaDentro = pontoEstaDentroGeofence(atual, geofence);
+        boolean estavaDentro = anterior != null && pontoEstaDentroGeofence(anterior, geofence);
 
-    private boolean pontoEstaDentroGeofence(double lat, double lng, Geofence geofence) {
+        TipoTransicao transicao = determinarTransicao(estaDentro, estavaDentro, geofence.getTipoAlerta());
+        
+        if (transicao != null && !estaEmCooldown(atual, geofence, transicao)) {
+            String mensagem = gerarMensagem(transicao, geofence.getNome());
+            alertaService.criarAlertaGeofence(atual, geofence, mensagem);
+            registrarCooldown(atual, geofence, transicao);
+            log.info("Alerta geofence [{}] veículo {}: {}", 
+                transicao, atual.getVeiculoId(), mensagem);
+        }
+    }
+
+    private enum TipoTransicao { ENTRADA, SAIDA }
+
+    private TipoTransicao determinarTransicao(boolean estaDentro, boolean estavaDentro, 
+                                               Geofence.TipoAlertaGeofence tipoAlerta) {
+        if (tipoAlerta == Geofence.TipoAlertaGeofence.ENTRADA && estaDentro && !estavaDentro) {
+            return TipoTransicao.ENTRADA;
+        }
+        if (tipoAlerta == Geofence.TipoAlertaGeofence.SAIDA && !estaDentro && estavaDentro) {
+            return TipoTransicao.SAIDA;
+        }
+        if (tipoAlerta == Geofence.TipoAlertaGeofence.AMBOS) {
+            if (estaDentro && !estavaDentro) return TipoTransicao.ENTRADA;
+            if (!estaDentro && estavaDentro) return TipoTransicao.SAIDA;
+        }
+        return null;
+    }
+
+    private String gerarMensagem(TipoTransicao transicao, String geofenceNome) {
+        return transicao == TipoTransicao.ENTRADA 
+            ? "Veículo entrou na geofence: " + geofenceNome
+            : "Veículo saiu da geofence: " + geofenceNome;
+    }
+
+    private boolean estaEmCooldown(Telemetria telemetria, Geofence geofence, TipoTransicao transicao) {
+        String key = String.format("geofence:cooldown:%d:%d:%s",
+            telemetria.getVeiculoId(), geofence.getId(), transicao.name());
+        
+        // Operação atômica usando SET NX com TTL
+        Boolean wasAbsent = redisTemplate.opsForValue()
+            .setIfAbsent(key, LocalDateTime.now().toString(), Duration.ofMinutes(cooldownMinutes));
+        
+        return Boolean.FALSE.equals(wasAbsent); // Se já existia, está em cooldown
+    }
+
+    private void registrarCooldown(Telemetria telemetria, Geofence geofence, TipoTransicao transicao) {
+        // O cooldown já foi registrado no método estaEmCooldown usando setIfAbsent
+        // Este método pode ser removido ou usado para logging adicional
+    }
+
+    // ========== CORREÇÃO: Geofence com coordenadas corretas ==========
+
+    private boolean pontoEstaDentroGeofence(Telemetria telemetria, Geofence geofence) {
+        double lat = telemetria.getLatitude();
+        double lng = telemetria.getLongitude();
+        
         if (geofence.getTipo() == Geofence.TipoGeofence.CIRCULO) {
             return pontoEstaDentroCirculo(lat, lng,
-                    geofence.getLatitudeCentro(), geofence.getLongitudeCentro(),
-                    geofence.getRaio());
+                geofence.getLatitudeCentro(), geofence.getLongitudeCentro(),
+                geofence.getRaio());
         } else if (geofence.getTipo() == Geofence.TipoGeofence.POLIGONO) {
             return pontoEstaDentroPoligono(lat, lng, geofence.getVertices());
         }
@@ -122,39 +141,53 @@ public class GeofenceService {
     }
 
     private boolean pontoEstaDentroCirculo(double lat, double lng, double centroLat, double centroLng, double raioKm) {
-        double distancia = haversine(lat, lng, centroLat, centroLng);
-        return distancia <= raioKm;
+        return haversine(lat, lng, centroLat, centroLng) <= raioKm;
     }
 
     private double haversine(double lat1, double lng1, double lat2, double lng2) {
-        final int R = 6371; // km
+        final double RAIO_TERRA_KM = 6371.0;
         double dLat = Math.toRadians(lat2 - lat1);
         double dLng = Math.toRadians(lng2 - lng1);
+        
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                    Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        
+        return RAIO_TERRA_KM * c;
     }
 
+    /**
+     * Algoritmo de ponto em polígono (Ray casting) - CORRIGIDO
+     * Coordenadas: (latitude, longitude) ou (x, y)
+     */
     private boolean pontoEstaDentroPoligono(double lat, double lng, List<Geofence.CoordenadasDto> vertices) {
         if (vertices == null || vertices.size() < 3) {
+            log.warn("Polígono com menos de 3 vértices: size={}", vertices != null ? vertices.size() : 0);
             return false;
         }
+
         boolean dentro = false;
         int n = vertices.size();
-        for (int i = 0, j = n - 1; i < n; j = i++) {
-            double xi = vertices.get(i).getLat();
-            double yi = vertices.get(i).getLng();
-            double xj = vertices.get(j).getLat();
-            double yj = vertices.get(j).getLng();
 
-            boolean intersect = ((yi > lng) != (yj > lng)) &&
-                    (lat < (xj - xi) * (lng - yi) / ((yj - yi) != 0 ? (yj - yi) : 1e-9) + xi);
-            if (intersect) {
-                dentro = !dentro;
+        for (int i = 0, j = n - 1; i < n; j = i++) {
+            double latI = vertices.get(i).getLat();
+            double lngI = vertices.get(i).getLng();
+            double latJ = vertices.get(j).getLat();
+            double lngJ = vertices.get(j).getLng();
+
+            // Verifica se o ponto está entre as latitudes dos vértices
+            boolean entreLatitudes = (lngI > lng) != (lngJ > lng);
+            
+            if (entreLatitudes) {
+                // Calcula a interseção do raio com a aresta
+                double intersecaoX = latJ + (latI - latJ) * (lng - lngJ) / (lngI - lngJ);
+                if (lat < intersecaoX) {
+                    dentro = !dentro;
+                }
             }
         }
+        
         return dentro;
     }
 }

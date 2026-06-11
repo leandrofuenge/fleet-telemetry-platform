@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.telemetria.domain.entity.DispositivoIot;
@@ -23,4 +25,18 @@ public interface DispositivoIotRepository extends JpaRepository<DispositivoIot, 
     Optional<DispositivoIot> findByVeiculoIdAndTipo(Long veiculoId, TipoDispositivo tipo);
     
     boolean existsByDeviceIdAndVeiculoIdNot(String deviceId, Long veiculoId);
+    
+    /**
+     * Remove o vínculo de qualquer dispositivo anterior do veículo antes de associar o novo,
+     * evitando duplicidade de telemetria ativa para o mesmo veículo.
+     */
+    @Modifying
+    @Query("UPDATE DispositivoIot d SET d.status = 'INATIVO', d.veiculoId = null " +
+           "WHERE d.veiculoId = :veiculoId AND d.tipo = :tipo AND d.status = 'ATIVO'")
+    void desvincularDispositivosAtivosPorVeiculo(
+        @Param("veiculoId") Long veiculoId, 
+        @Param("tipo") TipoDispositivo tipo
+    );
+     
+	
 }

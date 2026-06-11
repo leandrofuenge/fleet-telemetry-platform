@@ -139,7 +139,7 @@ public class GpsValidationService {
                 long minutos = Duration.between(inicio, atual.getDataHora()).toMinutes();
                 if (minutos >= hdopTempoMinutos) {
                     atual.setImpreciso(true);
-                    alertaService.criarAlertaHdopAlto(atual);
+                    alertaService.criarAlertaHdopAlto(atual, minutos);
                     // Opcional: resetar para não gerar alertas repetidos (podemos manter flag)
                 }
             }

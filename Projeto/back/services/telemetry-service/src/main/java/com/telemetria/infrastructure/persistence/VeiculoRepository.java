@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.telemetria.domain.entity.Veiculo;
+
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
@@ -95,5 +98,9 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
     @Query("SELECT v FROM Veiculo v WHERE v.tacografoObrigatorio = true AND " +
            "v.dataVencimentoTacografo BETWEEN CURRENT_DATE AND :diasAteVencimento")
     List<Veiculo> findTacografoVencendoEmDias(@Param("diasAteVencimento") LocalDate diasAteVencimento);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 🔒 Bloqueia a linha no banco até o fim do @Transactional
+    @Query("SELECT v FROM Veiculo v WHERE v.id = :id")
+    Optional<Veiculo> findByIdWithLock(@Param("id") Long id);
+       
 }
-
