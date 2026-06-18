@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,9 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -31,6 +33,8 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.telemetria.domain.entity.GeocodingCache;
 import com.telemetria.infrastructure.persistence.GeocodingCacheRepository;
 
@@ -39,19 +43,18 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class HybridGeocodingService {
 
-    // Cache de nível 1 (local - Caffeine)
-    private final Map<String, Boolean> memoriaCache;
+    private static final Logger log = LoggerFactory.getLogger(HybridGeocodingService.class);
+    private static final String GEO_KEY = "geocaching:urbano";
+    private static final long MIN_INTERVALO_MS = 1000;
 
-    // Cache de nível 2 (distribuído - Redis)
+    // CORREÇÃO: Cache L1 Real com expiração para evitar OutOfMemory de chaves infinitas
+    private final Cache<String, Boolean> memoriaCache;
+
     private final ValueOperations<String, String> redisCache;
     private final RedisTemplate<String, String> redisTemplate;
-    private static final String GEO_KEY = "geocaching:urbano";
-
     private final GeocodingCacheRepository cacheRepository;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-
-    // Áreas pré-processadas (em memória)
     private final List<BoundingBox> areasUrbanasPreProcessadas;
 
     @Value("${nominatim.api.url:https://nominatim.openstreetmap.org}")
@@ -60,63 +63,64 @@ public class HybridGeocodingService {
     @Value("${app.cache.redis.ttl:604800}")
     private long redisTtl;
 
-    private static final long MIN_INTERVALO_MS = 1000;
     private long ultimaConsulta = 0;
 
     public HybridGeocodingService(
             RedisTemplate<String, String> redisTemplate,
             GeocodingCacheRepository cacheRepository) {
 
-        this.memoriaCache = new ConcurrentHashMap<>();
+        // Configura o Caffeine para guardar no máximo 10 mil coordenadas e expirar em 1 hora
+        this.memoriaCache = Caffeine.newBuilder()
+                .maximumSize(10000)
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .build();
+
         this.redisTemplate = redisTemplate;
         this.redisCache = redisTemplate.opsForValue();
         this.cacheRepository = cacheRepository;
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
+                .build();
         this.objectMapper = new ObjectMapper();
         this.areasUrbanasPreProcessadas = carregarAreasUrbanasPreProcessadas();
-
-        // Inicialização segura (não lança exceção se Redis falhar)
-        try {
-            inicializarGeoCache();
-        } catch (Exception e) {
-            System.err.println("⚠️ Redis indisponível durante inicialização do HybridGeocodingService: " + e.getMessage());
-            System.err.println("O serviço continuará funcionando com fallbacks (memória, banco, Nominatim).");
-        }
     }
 
     @PostConstruct
     public void init() {
-        // Garante que a inicialização seja tentada novamente após a construção do bean
         try {
             if (redisTemplate.getConnectionFactory() != null) {
                 redisTemplate.getConnectionFactory().getConnection().ping();
-                System.out.println("✅ Redis conectado com sucesso.");
+                log.info("✅ Redis conectado com sucesso no HybridGeocodingService.");
                 inicializarGeoCache();
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Redis ainda indisponível: " + e.getMessage());
+            log.error("⚠️ Redis indisponível na inicialização. Operando em modo degradado: {}", e.getMessage());
         }
     }
 
     private void inicializarGeoCache() {
-        for (BoundingBox box : areasUrbanasPreProcessadas) {
-            String id = String.format("bbox:%s:%d", box.tipo, box.populacao);
+        try {
+            for (BoundingBox box : areasUrbanasPreProcessadas) {
+                String id = String.format("bbox:%s:%d", box.tipo, box.populacao);
+                adicionarLocalGeo(id + "_sw", box.minLat, box.minLon);
+                adicionarLocalGeo(id + "_se", box.minLat, box.maxLon);
+                adicionarLocalGeo(id + "_nw", box.maxLat, box.minLon);
+                adicionarLocalGeo(id + "_ne", box.maxLat, box.maxLon);
 
-            adicionarLocalGeo(id + "_sw", box.minLat, box.minLon);
-            adicionarLocalGeo(id + "_se", box.minLat, box.maxLon);
-            adicionarLocalGeo(id + "_nw", box.maxLat, box.minLon);
-            adicionarLocalGeo(id + "_ne", box.maxLat, box.maxLon);
-
-            double centroLat = (box.minLat + box.maxLat) / 2;
-            double centroLon = (box.minLon + box.maxLon) / 2;
-            adicionarLocalGeo(id + "_center", centroLat, centroLon);
+                double centroLat = (box.minLat + box.maxLat) / 2;
+                double centroLon = (box.minLon + box.maxLon) / 2;
+                adicionarLocalGeo(id + "_center", centroLat, centroLon);
+            }
+            log.info("✅ Cache GEO inicializado com {} áreas no Redis.", areasUrbanasPreProcessadas.size());
+        } catch (Exception e) {
+            log.warn("⚠️ Não foi possível semear o cache GEO inicial no Redis: {}", e.getMessage());
         }
-        System.out.println("✅ Cache GEO inicializado com " + areasUrbanasPreProcessadas.size() + " áreas");
     }
 
     public boolean verificarAreaUrbana(Double latitude, Double longitude) {
-        if (latitude == null || longitude == null)
+        if (latitude == null || longitude == null) {
             return false;
+        }
 
         // Arredonda para 4 casas decimais (precisão ~11m)
         BigDecimal latArred = BigDecimal.valueOf(latitude).setScale(4, RoundingMode.HALF_UP);
@@ -124,82 +128,93 @@ public class HybridGeocodingService {
         String chaveFormatada = latArred + "," + lngArred;
         String chaveRedis = "geocoding:" + chaveFormatada;
 
-        // 1. CAFFEINE
-        Boolean cached = memoriaCache.get(chaveFormatada);
+        // 1. CAMADA L1: CAFFEINE
+        Boolean cached = memoriaCache.getIfPresent(chaveFormatada);
         if (cached != null) {
             return cached;
         }
 
+        // 2. CAMADA L2: REDIS (Chave Exata)
         try {
-            // 2. REDIS
             String redisValue = redisCache.get(chaveRedis);
             if (redisValue != null) {
                 boolean resultado = Boolean.parseBoolean(redisValue);
                 memoriaCache.put(chaveFormatada, resultado);
                 return resultado;
             }
-
-            // 2.5. REDIS GEO
-            boolean isProximoUrbano = isProximoUrbano(latitude, longitude, 5.0);
-            if (isProximoUrbano) {
-                memoriaCache.put(chaveFormatada, true);
-                redisCache.set(chaveRedis, "true", redisTtl, TimeUnit.SECONDS);
-                return true;
-            }
-
         } catch (Exception e) {
-            System.err.println("Erro ao acessar Redis: " + e.getMessage());
+            log.warn("Falha ao acessar chave exata no Redis: {}", e.getMessage());
         }
 
-        // 3. BANCO DE DADOS
+        // 3. CAMADA L3: BANCO DE DADOS RELACIONAL (Postgres/MySQL)
         Optional<GeocodingCache> cacheDB = cacheRepository.findByLatArredAndLngArred(latArred, lngArred);
         if (cacheDB.isPresent()) {
             boolean resultado = cacheDB.get().getIsUrbano() != null && cacheDB.get().getIsUrbano();
             memoriaCache.put(chaveFormatada, resultado);
-            try {
-                redisCache.set(chaveRedis, String.valueOf(resultado), redisTtl, TimeUnit.SECONDS);
-                adicionarLocalGeo("cache:" + cacheDB.get().getId(), latitude, longitude);
-            } catch (Exception e) {
-                // Redis offline, apenas log
-                System.err.println("Não foi possível salvar no Redis: " + e.getMessage());
-            }
+            asyncSincronizarCaches(chaveRedis, "cache:" + cacheDB.get().getId(), latitude, longitude, resultado);
             return resultado;
         }
 
-        // 4. ÁREAS PRÉ-PROCESSADAS
+        // 4. CAMADA L4: ÁREAS PRÉ-PROCESSADAS EM MEMÓRIA
         Boolean areaPreProcessada = verificarAreaPreProcessada(latitude, longitude);
         if (areaPreProcessada != null) {
-            salvarEmTodosCaches(chaveFormatada, chaveRedis, areaPreProcessada);
-            adicionarLocalGeo("preprocessado:" + UUID.randomUUID(), latitude, longitude);
+            persistirResultadoCompleto(latArred, lngArred, latitude, longitude, chaveFormatada, chaveRedis, areaPreProcessada, "preprocessado");
             return areaPreProcessada;
         }
 
-        // 5. NOMINATIM
+        // 5. CAMADA L5: REDIS GEO (Busca Espacial por Raio de Proximidade)
+        // CORREÇÃO: Posicionado após o banco relacional para evitar falsos positivos rurais
+        try {
+            if (isProximoUrbano(latitude, longitude, 5.0)) {
+                persistirResultadoCompleto(latArred, lngArred, latitude, longitude, chaveFormatada, chaveRedis, true, "redis_geo");
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao executar busca por raio no Redis GEO: {}", e.getMessage());
+        }
+
+        // 6. CAMADA L6: API EXTERNA NOMINATIM (Último caso - Operação Síncrona Bloqueante)
         try {
             Boolean resultado = consultarNominatim(latitude, longitude);
             if (resultado != null) {
-                salvarEmTodosCaches(chaveFormatada, chaveRedis, resultado);
-                salvarNoBanco(latArred, lngArred, resultado, "nominatim");
-                adicionarLocalGeo("nominatim:" + UUID.randomUUID(), latitude, longitude);
+                persistirResultadoCompleto(latArred, lngArred, latitude, longitude, chaveFormatada, chaveRedis, resultado, "nominatim");
                 return resultado;
             }
         } catch (Exception e) {
-            // fallback
+            log.error("Erro na consulta síncrona ao Nominatim: {}", e.getMessage());
         }
 
+        // 7. CAMADA L7: FALLBACK FINAL
         Boolean fallback = verificarProximidadeCidadesConhecidas(latitude, longitude);
-        salvarEmTodosCaches(chaveFormatada, chaveRedis, fallback);
-        salvarNoBanco(latArred, lngArred, fallback, "fallback");
-        adicionarLocalGeo("fallback:" + UUID.randomUUID(), latitude, longitude);
+        persistirResultadoCompleto(latArred, lngArred, latitude, longitude, chaveFormatada, chaveRedis, fallback, "fallback");
         return fallback;
     }
 
-    private void salvarEmTodosCaches(String chaveLocal, String chaveRedis, Boolean valor) {
-        memoriaCache.put(chaveLocal, valor);
+    /**
+     * Centraliza e padroniza a gravação e distribuição dos dados em todas as mídias.
+     */
+    private void persistirResultadoCompleto(BigDecimal latArred, BigDecimal lngArred, double lat, double lng,
+                                            String chaveLocal, String chaveRedis, boolean resultado, String origem) {
+        memoriaCache.put(chaveLocal, resultado);
         try {
-            redisCache.set(chaveRedis, String.valueOf(valor), redisTtl, TimeUnit.SECONDS);
+            salvarNoBanco(latArred, lngArred, resultado, origem);
         } catch (Exception e) {
-            // Redis offline, não faz nada
+            log.error("Erro ao persistir log de geocoding no banco relacional: {}", e.getMessage());
+        }
+        asyncSincronizarCaches(chaveRedis, origem + ":" + UUID.randomUUID(), lat, lng, resultado);
+    }
+
+    /**
+     * Sincroniza o Redis de forma segura sem interceptar a Thread principal em caso de timeout.
+     */
+    private void asyncSincronizarCaches(String chaveRedis, String geoId, double lat, double lng, boolean resultado) {
+        try {
+            redisCache.set(chaveRedis, String.valueOf(resultado), redisTtl, TimeUnit.SECONDS);
+            if (resultado) {
+                adicionarLocalGeo(geoId, lat, lng);
+            }
+        } catch (Exception e) {
+            log.warn("Redis indisponível para sincronização de registros: {}", e.getMessage());
         }
     }
 
@@ -209,7 +224,7 @@ public class HybridGeocodingService {
             redisTemplate.opsForGeo().add(GEO_KEY, point, localId);
             redisTemplate.expire(GEO_KEY, 30, TimeUnit.DAYS);
         } catch (Exception e) {
-            System.err.println("Erro ao adicionar local ao Redis GEO: " + e.getMessage());
+            log.warn("Erro ao indexar coordenada no Redis GEO: {}", e.getMessage());
         }
     }
 
@@ -221,7 +236,7 @@ public class HybridGeocodingService {
             GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(GEO_KEY, circle);
             return results != null && !results.getContent().isEmpty();
         } catch (Exception e) {
-            System.err.println("Erro na busca GEO: " + e.getMessage());
+            log.warn("Erro na verificação de raio de proximidade no Redis GEO: {}", e.getMessage());
             return false;
         }
     }
@@ -244,39 +259,22 @@ public class HybridGeocodingService {
                 for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results) {
                     RedisGeoCommands.GeoLocation<String> location = result.getContent();
                     Point point = location.getPoint();
-                    locais.add(new GeoLocationInfo(
-                            location.getName(),
-                            result.getDistance().getValue(),
-                            point.getY(),
-                            point.getX()));
+                    if (point != null) {
+                        locais.add(new GeoLocationInfo(
+                                location.getName(),
+                                result.getDistance().getValue(),
+                                point.getY(),
+                                point.getX()));
+                    }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Erro na busca GEO: " + e.getMessage());
+            log.error("Erro ao listar locais do Redis GEO por raio: {}", e.getMessage());
         }
         return locais;
     }
 
-    public static class GeoLocationInfo {
-        private String id;
-        private double distanciaKm;
-        private double latitude;
-        private double longitude;
-
-        public GeoLocationInfo(String id, double distanciaKm, double latitude, double longitude) {
-            this.id = id;
-            this.distanciaKm = distanciaKm;
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
-
-        public String getId() { return id; }
-        public double getDistanciaKm() { return distanciaKm; }
-        public double getLatitude() { return latitude; }
-        public double getLongitude() { return longitude; }
-    }
-
-    // ========== MÉTODOS AUXILIARES (inalterados) ==========
+    // ========== MÉTODOS AUXILIARES E ESTRUTURAS ==========
 
     private List<BoundingBox> carregarAreasUrbanasPreProcessadas() {
         List<BoundingBox> areas = new ArrayList<>();
@@ -298,9 +296,12 @@ public class HybridGeocodingService {
     }
 
     private Boolean consultarNominatim(Double lat, Double lon) throws Exception {
-        long agora = System.currentTimeMillis();
-        if (agora - ultimaConsulta < MIN_INTERVALO_MS) {
-            Thread.sleep(MIN_INTERVALO_MS - (agora - ultimaConsulta));
+        synchronized (this) {
+            long agora = System.currentTimeMillis();
+            if (agora - ultimaConsulta < MIN_INTERVALO_MS) {
+                Thread.sleep(MIN_INTERVALO_MS - (agora - ultimaConsulta));
+            }
+            ultimaConsulta = System.currentTimeMillis();
         }
 
         String url = String.format("%s/reverse?lat=%f&lon=%f&format=json&zoom=18", nominatimUrl, lat, lon);
@@ -308,8 +309,8 @@ public class HybridGeocodingService {
                 .uri(URI.create(url))
                 .header("User-Agent", "TelemetriaApp/1.0")
                 .build();
+        
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        ultimaConsulta = System.currentTimeMillis();
 
         if (response.statusCode() == 200) {
             JsonNode root = objectMapper.readTree(response.body());
@@ -329,6 +330,7 @@ public class HybridGeocodingService {
 
     private boolean verificarProximidadeCidadesConhecidas(Double lat, Double lon) {
         Map<String, double[]> centrosUrbanos = new HashMap<>();
+        // Formato: [Latitude, Longitude, Raio Limite em Metros]
         centrosUrbanos.put("SaoPaulo", new double[] { -23.5505, -46.6333, 30000.0 });
         centrosUrbanos.put("Rio", new double[] { -22.9068, -43.1729, 30000.0 });
         centrosUrbanos.put("BH", new double[] { -19.9167, -43.9345, 25000.0 });
@@ -342,8 +344,8 @@ public class HybridGeocodingService {
 
         for (Map.Entry<String, double[]> entry : centrosUrbanos.entrySet()) {
             double[] centro = entry.getValue();
-            double distancia = calcularDistanciaHaversine(lat, lon, centro[0], centro[1]);
-            if (distancia <= centro[2]) {
+            double distanciaMetros = calcularDistanciaHaversine(lat, lon, centro[0], centro[1]);
+            if (distanciaMetros <= centro[2]) {
                 return true;
             }
         }
@@ -364,23 +366,41 @@ public class HybridGeocodingService {
     }
 
     private double calcularDistanciaHaversine(double lat1, double lon1, double lat2, double lon2) {
-        double R = 6371;
+        double R = 6371; // Raio da Terra em KM
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                 Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c * 1000;
+        return R * c * 1000; // Retorno explícito em Metros
+    }
+
+    public static class GeoLocationInfo {
+        private final String id;
+        private final double distanciaKm;
+        private final double latitude;
+        private final double longitude;
+
+        public GeoLocationInfo(String id, double distanciaKm, double latitude, double longitude) {
+            this.id = id;
+            this.distanciaKm = distanciaKm;
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+
+        public String getId() { return id; }
+        public double getDistanciaKm() { return distanciaKm; }
+        public double getLatitude() { return latitude; }
+        public double getLongitude() { return longitude; }
     }
 
     private static class BoundingBox {
-        double minLat, minLon, maxLat, maxLon;
-        String tipo;
-        int populacao;
+        final double minLat, minLon, maxLat, maxLon;
+        final String tipo;
+        final int populacao;
 
-        BoundingBox(double minLat, double minLon, double maxLat, double maxLon,
-                    String tipo, int populacao) {
+        BoundingBox(double minLat, double minLon, double maxLat, double maxLon, String tipo, int populacao) {
             this.minLat = minLat;
             this.minLon = minLon;
             this.maxLat = maxLat;
