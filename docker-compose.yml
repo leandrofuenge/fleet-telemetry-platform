@@ -83,7 +83,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_FLYWAY_ENABLED: "true"
+      TZ: America/Sao_Paulo
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092

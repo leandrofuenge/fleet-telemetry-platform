@@ -5,6 +5,7 @@ package com.telemetria.api.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
@@ -97,6 +98,10 @@ public class TelemetriaController {
                     "Longitude deve estar entre -180 e 180");
         }
 
+        if (request.getEventId() == null || request.getEventId().isBlank()) {
+            request.setEventId(UUID.randomUUID().toString());
+        }
+
         CompletableFuture.runAsync(() -> {
             try {
                 kafkaTemplate.send(TOPIC, veiculo.getId().toString(), request)
@@ -117,7 +122,8 @@ public class TelemetriaController {
         log.info("✅ Telemetria aceita para processamento - Veículo ID: {}", veiculo.getId());
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body("Telemetria recebida e em processamento. ID do veículo: " + veiculo.getId());
+                .body("Telemetria recebida e em processamento. event_id=" + request.getEventId()
+                        + ", veículo=" + veiculo.getId());
     }
 
     @GetMapping("/veiculo/{veiculoId}")
@@ -232,6 +238,10 @@ public class TelemetriaController {
         private VeiculoRequest veiculo;
         @JsonProperty("veiculo_id")  // Mapeia campo do TelemetriaBus
         private Long veiculoId;
+        @JsonProperty("event_id")
+        private String eventId;
+        @JsonProperty("sequence_number")
+        private Long sequenceNumber;
         private Double latitude;
         private Double longitude;
         private Double velocidade;
@@ -242,6 +252,10 @@ public class TelemetriaController {
         public void setVeiculo(VeiculoRequest veiculo) { this.veiculo = veiculo; }
         public Long getVeiculoId() { return veiculoId; }
         public void setVeiculoId(Long veiculoId) { this.veiculoId = veiculoId; }
+        public String getEventId() { return eventId; }
+        public void setEventId(String eventId) { this.eventId = eventId; }
+        public Long getSequenceNumber() { return sequenceNumber; }
+        public void setSequenceNumber(Long sequenceNumber) { this.sequenceNumber = sequenceNumber; }
         
         /**
          * Obtém ID do veículo de qualquer formato (flat ou aninhado)

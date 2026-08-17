@@ -29,6 +29,20 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
 
     Logger log = LoggerFactory.getLogger(TelemetriaRepository.class);
 
+    boolean existsByTenantIdAndEventId(Long tenantId, String eventId);
+
+    Optional<Telemetria> findByTenantIdAndEventId(Long tenantId, String eventId);
+
+    Optional<Telemetria> findTopByVeiculoIdAndDeviceIdAndSequenceNumberIsNotNullOrderBySequenceNumberDesc(
+            Long veiculoId, String deviceId);
+
+    Optional<Telemetria> findTopByVeiculoIdAndSequenceNumberIsNotNullOrderBySequenceNumberDesc(Long veiculoId);
+
+    boolean existsByTenantIdAndDeviceIdAndSequenceNumber(Long tenantId, String deviceId, Long sequenceNumber);
+
+    boolean existsByTenantIdAndVeiculoIdAndDeviceIdIsNullAndSequenceNumber(
+            Long tenantId, Long veiculoId, Long sequenceNumber);
+
     // =========================================
     // SAVE com LOG - Método customizado
     // =========================================

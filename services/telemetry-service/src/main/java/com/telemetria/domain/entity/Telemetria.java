@@ -69,6 +69,23 @@ public class Telemetria {
     @Column(name = "imei_dispositivo", length = 20)
     private String imeiDispositivo;
 
+    /** Identificador idempotente enviado pelo dispositivo ou derivado do offset Kafka. */
+    @Column(name = "event_id", nullable = false, updatable = false, length = 128)
+    private String eventId;
+
+    /** Contador monotônico opcional mantido pelo dispositivo. */
+    @Column(name = "sequence_number")
+    private Long sequenceNumber;
+
+    @Column(name = "fora_de_ordem", nullable = false)
+    private Boolean foraDeOrdem = false;
+
+    @Column(name = "sequence_gap", nullable = false)
+    private Long sequenceGap = 0L;
+
+    @Column(name = "qualidade_dados", nullable = false)
+    private Integer qualidadeDados = 100;
+
     // ── GPS ────────────────────────────────────────────────────
     @Column(name = "latitude", nullable = false)
     private Double latitude;
@@ -316,6 +333,9 @@ public class Telemetria {
         this.modoOffline = false;
         this.manutencaoPendente = false;
         this.impreciso = false;
+        this.foraDeOrdem = false;
+        this.sequenceGap = 0L;
+        this.qualidadeDados = 100;
     }
 
     // ── Builder ────────────────────────────────────────────────
@@ -566,6 +586,46 @@ public class Telemetria {
 
     public void setImeiDispositivo(String imeiDispositivo) {
         this.imeiDispositivo = imeiDispositivo;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public Long getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public void setSequenceNumber(Long sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
+
+    public Boolean getForaDeOrdem() {
+        return foraDeOrdem;
+    }
+
+    public void setForaDeOrdem(Boolean foraDeOrdem) {
+        this.foraDeOrdem = foraDeOrdem;
+    }
+
+    public Long getSequenceGap() {
+        return sequenceGap;
+    }
+
+    public void setSequenceGap(Long sequenceGap) {
+        this.sequenceGap = sequenceGap;
+    }
+
+    public Integer getQualidadeDados() {
+        return qualidadeDados;
+    }
+
+    public void setQualidadeDados(Integer qualidadeDados) {
+        this.qualidadeDados = qualidadeDados;
     }
 
     public Double getLatitude() {

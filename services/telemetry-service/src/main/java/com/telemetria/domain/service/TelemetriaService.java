@@ -55,9 +55,9 @@ public class TelemetriaService {
             // 2. Cria a lista de validações que rodarão em paralelo no pool de threads do lote
             List<CompletableFuture<Void>> verificacoes = new ArrayList<>();
             
-            verificacoes.add(CompletableFuture.runAsync(() -> verificarExcessoVelocidade(telemetria), executor));
-            verificacoes.add(CompletableFuture.runAsync(() -> verificarNivelCombustivel(telemetria), executor));
-            verificacoes.add(CompletableFuture.runAsync(() -> verificarGpsSemSinal(telemetria), executor));
+            verificacoes.add(runAsync(() -> verificarExcessoVelocidade(telemetria), executor));
+            verificacoes.add(runAsync(() -> verificarNivelCombustivel(telemetria), executor));
+            verificacoes.add(runAsync(() -> verificarGpsSemSinal(telemetria), executor));
 
             // Aguarda todas as verificações assíncronas terminarem
             CompletableFuture.allOf(verificacoes.toArray(new CompletableFuture[0])).join();
@@ -84,6 +84,12 @@ public class TelemetriaService {
             log.error("❌ Erro no processamento da telemetria do veículo {}: {}", telemetria.getVeiculoId(), e.getMessage(), e);
             return CompletableFuture.failedFuture(e);
         }
+    }
+
+    private CompletableFuture<Void> runAsync(Runnable action, ExecutorService executor) {
+        return executor == null
+                ? CompletableFuture.runAsync(action)
+                : CompletableFuture.runAsync(action, executor);
     }
 
     /**

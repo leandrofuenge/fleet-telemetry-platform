@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.telemetria.domain.entity.Telemetria;
-import com.telemetria.domain.exception.BusinessException;
-import com.telemetria.domain.exception.ErrorCode;
 import com.telemetria.infrastructure.integration.geocoding.LocationClassifierService;
 import com.telemetria.infrastructure.persistence.TelemetriaRepository;
 import com.telemetria.util.DistanciaCalculator;
@@ -116,11 +114,11 @@ public class GpsValidationService {
 
         long segundos = Duration.between(prev.getDataHora(), atual.getDataHora()).getSeconds();
 
-        if (distanciaKm > saltoDistanciaKm && segundos < saltoTempoSegundos) {
-            // Gera alerta CRÍTICO e descarta o evento
+        if (distanciaKm > saltoDistanciaKm && segundos >= 0 && segundos < saltoTempoSegundos) {
+            // Preserva o dado suspeito para auditoria, mas sinaliza a adulteração.
+            atual.setAdulteracaoGps(true);
+            atual.setImpreciso(true);
             alertaService.criarAlertaSaltoPosicao(atual, distanciaKm, segundos);
-            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
-                String.format("Salto GPS impossível: %.1fkm em %ds", distanciaKm, segundos));
         }
     }
 
