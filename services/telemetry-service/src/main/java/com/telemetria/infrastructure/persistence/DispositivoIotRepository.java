@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Repository;
 
 import com.telemetria.domain.entity.DispositivoIot;
@@ -31,6 +32,7 @@ public interface DispositivoIotRepository extends JpaRepository<DispositivoIot, 
      * evitando duplicidade de telemetria ativa para o mesmo veículo.
      */
     @Modifying
+    @Transactional
     @Query("UPDATE DispositivoIot d SET d.status = 'INATIVO', d.veiculoId = null " +
            "WHERE d.veiculoId = :veiculoId AND d.tipo = :tipo AND d.status = 'ATIVO'")
     void desvincularDispositivosAtivosPorVeiculo(

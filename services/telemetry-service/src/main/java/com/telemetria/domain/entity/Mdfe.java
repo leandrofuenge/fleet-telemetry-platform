@@ -17,8 +17,8 @@ public class Mdfe {
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
     @Column(name = "viagem_id", nullable = false) private Long viagemId;
     @Column(name = "chave_mdfe", length = 44) private String chaveMdfe;
-    @Column(nullable = false) private String status = "PENDENTE";
-    @Column(name = "protocolo_autorizacao") private String protocoloAutorizacao;
+    @Column(nullable = false, length = 20) private String status = "PENDENTE";
+    @Column(name = "protocolo_autorizacao", length = 100) private String protocoloAutorizacao;
     @Column(name = "data_emissao") private LocalDateTime dataEmissao;
     @Column(name = "data_encerramento") private LocalDateTime dataEncerramento;
     @Column(name = "motivo_cancelamento", columnDefinition = "TEXT") private String motivoCancelamento;

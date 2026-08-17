@@ -48,7 +48,7 @@ public class DispositivoIot {
     @Column(name = "veiculo_id")
     private Long veiculoId;
 
-    @Column(name = "tipo")
+    @Column(name = "tipo", length = 50)
     @Enumerated(EnumType.STRING)
     private TipoDispositivo tipo;
 
@@ -70,11 +70,11 @@ public class DispositivoIot {
     @Column(name = "certificado_expira")
     private LocalDate certificadoExpira;
 
-    @Column(name = "status_cert", nullable = false, length = 15)
+    @Column(name = "status_cert", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private StatusCertificado statusCert = StatusCertificado.ATIVO;
 
-    @Column(name = "status", nullable = false, length = 15)
+    @Column(name = "status", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private StatusDispositivo status = StatusDispositivo.PENDENTE;
 

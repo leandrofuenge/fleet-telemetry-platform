@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.telemetria.domain.entity.HistoricoETA;
 
@@ -136,6 +138,8 @@ public interface HistoricoETARepository extends JpaRepository<HistoricoETA, Long
     /**
      * Deleta históricos de ETA antigos (para limpeza de dados)
      */
+    @Modifying
+    @Transactional
     @Query("DELETE FROM HistoricoETA h WHERE h.dataCalculo < :dataLimite")
     void deleteByDataCalculoBefore(@Param("dataLimite") LocalDateTime dataLimite);
     

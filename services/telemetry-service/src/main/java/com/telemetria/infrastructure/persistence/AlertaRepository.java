@@ -101,6 +101,7 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
 	
 	
 	@Modifying // Informa ao Spring Data que é uma query de escrita (UPDATE/DELETE)
+	@Transactional
     @Query("UPDATE Alerta a SET a.resolvido = true, a.dataHoraResolucao = :dataResolucao " +
            "WHERE a.veiculoId = :veiculoId AND a.tipo = :tipo AND a.resolvido = false")
     int resolverAlertasAtivos(@Param("veiculoId") Long veiculoId, 
@@ -124,7 +125,7 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
 	
 	@Modifying
 	@Transactional
-	@Query("UPDATE Alerta a SET a.resolvido = true, a.dataResolucao = NOW() " +
+	@Query("UPDATE Alerta a SET a.resolvido = true, a.dataHoraResolucao = CURRENT_TIMESTAMP " +
 	       "WHERE a.motoristaId = :motoristaId AND a.tipo = :tipo AND a.resolvido = false")
 	void resolverAlertasAtivosPorMotoristaETipo(
 	    @Param("motoristaId") Long motoristaId, 
@@ -143,7 +144,7 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
      */
     @Modifying
     @Transactional // Garante o commit da transação de escrita
-    @Query("UPDATE Alerta a SET a.resolvido = true, a.dataResolucao = NOW() " +
+    @Query("UPDATE Alerta a SET a.resolvido = true, a.dataHoraResolucao = CURRENT_TIMESTAMP " +
            "WHERE a.veiculoId = :veiculoId AND a.tipo = :tipo AND a.resolvido = false")
     void resolverAlertasAtivosPorVeiculoETipo(
         @Param("veiculoId") Long veiculoId, 

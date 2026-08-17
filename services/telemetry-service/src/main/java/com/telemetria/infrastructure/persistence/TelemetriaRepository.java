@@ -387,6 +387,7 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
      * @return Número de registros atualizados
      */
     @Modifying
+    @Transactional
     @Query(value = """
         UPDATE posicao_atual 
         SET status_veiculo = 'DESCONHECIDO' 
@@ -401,6 +402,7 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
      * @return Número de registros atualizados
      */
     @Modifying
+    @Transactional
     @Query(value = """
         UPDATE posicao_atual 
         SET status_veiculo = 'DESCONHECIDO' 
@@ -413,27 +415,9 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
     // =========================================
 
     /**
-     * Deleta telemetrias antigas de um veículo que não são de jornada nem preservadas
-     * 
-     * @param veiculoId Identificador do veículo
-     * @param dataLimite Data limite para deleção
-     * @return Número de registros deletados
-     */
-    @Modifying
-    @Query(value = """
-        DELETE FROM telemetria 
-        WHERE veiculo_id = :veiculoId 
-          AND data_hora < :dataLimite 
-          AND (preservar_dados IS NULL OR preservar_dados = FALSE)
-          AND tipo NOT IN ('JORNADA_LEI_12619')
-        """, nativeQuery = true)
-    int deleteByVeiculoIdAndDataHoraBeforeAndPreservarDadosFalse(
-        @Param("veiculoId") Long veiculoId, 
-        @Param("dataLimite") LocalDateTime dataLimite);
-
-    /**
-     * RN-POS-002: Deleta telemetrias normais (não jornada, não preservadas) 
-     * com data anterior ao limite estabelecido
+     * RN-POS-002: Deleta somente telemetrias não preservadas com data anterior
+     * ao limite do plano. Dados legais ou de sinistro devem ser marcados com
+     * preservar_dados=true no momento da ingestão.
      * 
      * @param veiculoId Identificador do veículo
      * @param dataLimite Data limite para deleção
@@ -446,30 +430,9 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
         WHERE veiculo_id = :veiculoId 
           AND data_hora < :dataLimite 
           AND (preservar_dados IS NULL OR preservar_dados = FALSE)
-          AND (tipo IS NULL OR tipo NOT IN ('JORNADA_LEI_12619'))
         """, nativeQuery = true)
     int deleteDadosNormaisAntigos(@Param("veiculoId") Long veiculoId, 
                                  @Param("dataLimite") LocalDateTime dataLimite);
-
-    /**
-     * RN-POS-002: Deleta dados de jornada (Lei 12.619) com data anterior ao limite (2 anos),
-     * desde que não estejam marcados como preservar_dados
-     * 
-     * @param veiculoId Identificador do veículo
-     * @param dataLimite Data limite para deleção (normalmente 2 anos atrás)
-     * @return Número de registros deletados
-     */
-    @Modifying
-    @Transactional
-    @Query(value = """
-        DELETE FROM telemetria 
-        WHERE veiculo_id = :veiculoId 
-          AND data_hora < :dataLimite 
-          AND (preservar_dados IS NULL OR preservar_dados = FALSE)
-          AND tipo = 'JORNADA_LEI_12619'
-        """, nativeQuery = true)
-    int deleteJornadaAntiga(@Param("veiculoId") Long veiculoId, 
-                          @Param("dataLimite") LocalDateTime dataLimite);
   
     
     /**

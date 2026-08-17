@@ -24,7 +24,7 @@ public class EscalaMotorista {
     @Column(name="rota_id") private Long rotaId;
     @Column(name="data_inicio_turno", nullable=false) private LocalDateTime dataInicioTurno;
     @Column(name="data_fim_turno", nullable=false) private LocalDateTime dataFimTurno;
-    @Enumerated(EnumType.STRING) @Column(nullable=false) private StatusEscala status = StatusEscala.PLANEJADA;
+    @Enumerated(EnumType.STRING) @Column(nullable=false, length=20) private StatusEscala status = StatusEscala.PLANEJADA;
     @Column(name="confirmado_motorista", nullable=false) private Boolean confirmadoMotorista = false;
     @Column(name="motivo_cancelamento", columnDefinition="TEXT") private String motivoCancelamento;
     @Column(name="criado_por", length=36) private String criadoPor;

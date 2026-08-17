@@ -68,7 +68,7 @@ public class Alerta {
     @Enumerated(EnumType.STRING)
     private TipoAlerta tipo;
 
-    @Column(name = "severidade", nullable = false, length = 20)
+    @Column(name = "severidade", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private SeveridadeAlerta severidade;
 

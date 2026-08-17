@@ -97,12 +97,12 @@ public class Jornada {
     @Builder.Default
     private Boolean alertaLimite30min = false;
 
-    @Column(name = "status", nullable = false, length = 15)
+    @Column(name = "status", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private StatusJornada status = StatusJornada.ABERTA;
 
-    @Column(name = "origem_dado", nullable = false, length = 15)
+    @Column(name = "origem_dado", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private OrigemDado origemDado = OrigemDado.TELEMETRIA;

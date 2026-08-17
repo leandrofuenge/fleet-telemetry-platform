@@ -15,8 +15,8 @@ import jakarta.persistence.Table;
 public class RntrcConsulta {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
-    @Column(nullable = false) private String rntrc;
-    @Column(nullable = false) private String situacao;
+    @Column(nullable = false, length = 30) private String rntrc;
+    @Column(nullable = false, length = 20) private String situacao;
     @Column(name = "data_consulta", nullable = false) private LocalDateTime dataConsulta = LocalDateTime.now();
     @Column(name = "expira_em", nullable = false) private LocalDateTime expiraEm = LocalDateTime.now().plusHours(24);
     public Long getId() { return id; } public void setId(Long value) { id = value; }

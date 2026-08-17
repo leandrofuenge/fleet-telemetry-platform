@@ -33,9 +33,6 @@ public class TelemetriaRetentionScheduler {
         "ENTERPRISE", 365   // 1 ano padrão (configurável via propriedade)
     );
 
-    // Retenção mínima para dados de jornada (2 anos = 730 dias)
-    private static final int RETENCAO_JORNADA_DIAS = 730;
-
     // Propriedade para sobrescrever retenção do plano ENTERPRISE (máximo 5 anos)
     @Value("${retencao.enterprise.dias:365}")
     private int retencaoEnterpriseDias;
@@ -46,7 +43,6 @@ public class TelemetriaRetentionScheduler {
         log.info("🧹 [RF06] Iniciando limpeza mensal de telemetria");
 
         AtomicInteger totalDeletadosNormais = new AtomicInteger(0);
-        AtomicInteger totalDeletadosJornada = new AtomicInteger(0);
 
         veiculoRepository.findAll().forEach(veiculo -> {
             if (!veiculo.getAtivo()) return;
@@ -62,20 +58,10 @@ public class TelemetriaRetentionScheduler {
                          veiculo.getPlaca(), veiculo.getPlano(), deletadosNormais, diasRetencao);
             }
 
-            // 2. Limpeza de dados de jornada (Lei 12.619) com retenção mínima de 2 anos
-            LocalDateTime limiteJornada = LocalDateTime.now().minusDays(RETENCAO_JORNADA_DIAS);
-            int deletadosJornada = telemetriaRepository.deleteJornadaAntiga(veiculo.getId(), limiteJornada);
-            totalDeletadosJornada.addAndGet(deletadosJornada);
-
-            if (deletadosJornada > 0) {
-                log.info("🗑️ Veículo {}: {} registros de jornada deletados (retenção {} dias)",
-                         veiculo.getPlaca(), deletadosJornada, RETENCAO_JORNADA_DIAS);
-            }
         });
 
-        log.info("🧹 [RF06] Limpeza mensal CONCLUÍDA - Total deletados: {} normais + {} jornada = {} registros",
-                 totalDeletadosNormais.get(), totalDeletadosJornada.get(),
-                 totalDeletadosNormais.get() + totalDeletadosJornada.get());
+        log.info("🧹 [RF06] Limpeza mensal CONCLUÍDA - Total de registros não preservados deletados: {}",
+                 totalDeletadosNormais.get());
     }
 
     private int calcularDiasRetencao(String plano) {

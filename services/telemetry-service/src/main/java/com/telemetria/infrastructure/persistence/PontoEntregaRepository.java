@@ -49,8 +49,13 @@ public interface PontoEntregaRepository extends JpaRepository<PontoEntrega, Long
     /**
      * Busca próximo ponto pendente da viagem
      */
-    @Query("SELECT p FROM PontoEntrega p WHERE p.viagemId = :viagemId AND p.status = 'PENDENTE' ORDER BY p.ordem ASC LIMIT 1")
-    Optional<PontoEntrega> findProximoPendente(@Param("viagemId") Long viagemId);
+    Optional<PontoEntrega> findFirstByViagemIdAndStatusOrderByOrdemAsc(
+            Long viagemId, StatusPontoEntrega status);
+
+    default Optional<PontoEntrega> findProximoPendente(Long viagemId) {
+        return findFirstByViagemIdAndStatusOrderByOrdemAsc(
+                viagemId, StatusPontoEntrega.PENDENTE);
+    }
 
     /**
      * Conta total de pontos de uma viagem

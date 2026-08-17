@@ -15,7 +15,7 @@ public class Cte {
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
     @Column(name = "carga_id", nullable = false) private Long cargaId;
     @Column(name = "chave_cte", nullable = false, length = 44) private String chaveCte;
-    @Column(nullable = false) private String status = "AUTORIZADO";
+    @Column(nullable = false, length = 20) private String status = "AUTORIZADO";
     @Column(name = "valor_total") private Double valorTotal;
     @Column(name = "peso_kg") private Double pesoKg;
     public Long getId() { return id; } public void setId(Long value) { id = value; }

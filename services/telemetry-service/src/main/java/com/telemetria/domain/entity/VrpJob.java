@@ -25,11 +25,11 @@ import lombok.Setter;
 public class VrpJob {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
-    @Column(nullable = false) private String status = "PENDENTE";
-    @Column(name = "tipo_vrp", nullable = false) private String tipoVrp;
+    @Column(nullable = false, length = 20) private String status = "PENDENTE";
+    @Column(name = "tipo_vrp", nullable = false, length = 30) private String tipoVrp;
     @Column(name = "num_veiculos") private Integer numVeiculos;
     @Column(name = "num_pontos") private Integer numPontos;
-    @Column(name = "solver_usado") private String solverUsado;
+    @Column(name = "solver_usado", length = 40) private String solverUsado;
     @Column(name = "tempo_execucao_ms") private Long tempoExecucaoMs;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "plano_resultado", columnDefinition = "json")

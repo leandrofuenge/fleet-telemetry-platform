@@ -22,10 +22,10 @@ public class MensagemViagem {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
     @Column(name = "viagem_id", nullable = false) private Long viagemId;
-    @Column(name = "remetente_uuid", nullable = false) private String remetenteUuid;
-    @Column(name = "tipo_remetente", nullable = false) private String tipoRemetente;
+    @Column(name = "remetente_uuid", nullable = false, length = 36) private String remetenteUuid;
+    @Column(name = "tipo_remetente", nullable = false, length = 20) private String tipoRemetente;
     @Column(nullable = false, columnDefinition = "TEXT") private String conteudo;
-    @Column(name = "tipo_conteudo", nullable = false) private String tipoConteudo = "TEXTO";
+    @Column(name = "tipo_conteudo", nullable = false, length = 20) private String tipoConteudo = "TEXTO";
     @Column(name = "transcricao", columnDefinition = "TEXT") private String transcricao;
     @Column(nullable = false) private Boolean lida = false;
     @Column(name = "criado_em", nullable = false) private LocalDateTime criadoEm = LocalDateTime.now();

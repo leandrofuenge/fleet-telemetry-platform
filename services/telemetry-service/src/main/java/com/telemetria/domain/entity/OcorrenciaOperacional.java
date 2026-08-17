@@ -21,14 +21,14 @@ import lombok.Setter;
 public class OcorrenciaOperacional {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
-    @Column(nullable = false) private String tipo;
+    @Column(nullable = false, length = 40) private String tipo;
     @Column(nullable = false) private String titulo;
     @Column(columnDefinition = "TEXT") private String descricao;
     private Double latitude;
     private Double longitude;
     @Column(name = "raio_impacto_m") private Double raioImpactoM;
-    @Column(nullable = false) private String fonte;
-    @Column(nullable = false) private String status = "ATIVA";
+    @Column(nullable = false, length = 30) private String fonte;
+    @Column(nullable = false, length = 20) private String status = "ATIVA";
     @Column(name = "previsao_liberacao") private LocalDateTime previsaoLiberacao;
     @Column(name = "criado_em", nullable = false) private LocalDateTime criadoEm = LocalDateTime.now();
     public Long getTenantId() { return tenantId; }

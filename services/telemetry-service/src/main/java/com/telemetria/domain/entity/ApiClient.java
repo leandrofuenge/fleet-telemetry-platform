@@ -23,16 +23,16 @@ public class ApiClient {
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
 
-    @Column(name = "client_id", nullable = false, unique = true)
+    @Column(name = "client_id", nullable = false, unique = true, length = 100)
     private String clientId;
 
-    @Column(name = "secret_hash", nullable = false)
+    @Column(name = "secret_hash", nullable = false, length = 64)
     private String secretHash;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String plano = "STARTER";
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String scopes;
 
     @Column(nullable = false)

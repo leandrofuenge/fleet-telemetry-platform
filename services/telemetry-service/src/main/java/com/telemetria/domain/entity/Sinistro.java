@@ -28,8 +28,8 @@ public class Sinistro {
     @Column(name = "veiculo_id", nullable = false) private Long veiculoId;
     @Column(name = "viagem_id") private Long viagemId;
     @Column(name = "motorista_id") private Long motoristaId;
-    @Column(nullable = false) private String tipo;
-    @Column(nullable = false) private String status = "ABERTO";
+    @Column(nullable = false, length = 30) private String tipo;
+    @Column(nullable = false, length = 30) private String status = "ABERTO";
     @Column(name = "data_hora_ocorrencia", nullable = false) private LocalDateTime dataHoraOcorrencia;
     private Double latitude;
     private Double longitude;

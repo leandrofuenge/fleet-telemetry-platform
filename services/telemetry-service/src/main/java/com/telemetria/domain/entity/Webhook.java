@@ -18,13 +18,13 @@ public class Webhook {
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 80)
     private String evento;
 
     @Column(nullable = false, length = 500)
     private String url;
 
-    @Column(name = "secret_hash", nullable = false)
+    @Column(name = "secret_hash", nullable = false, length = 64)
     private String secretHash;
 
     @Column(nullable = false)

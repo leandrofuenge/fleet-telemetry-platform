@@ -24,7 +24,7 @@ public class Multa {
     @Column(name = "tenant_id", nullable = false) private Long tenantId;
     @Column(name = "veiculo_id", nullable = false) private Long veiculoId;
     @Column(name = "motorista_imputado_id") private Long motoristaImputadoId;
-    @Column(name = "auto_infracao", nullable = false, unique = true) private String autoInfracao;
+    @Column(name = "auto_infracao", nullable = false, unique = true, length = 80) private String autoInfracao;
     @Column(name = "data_infracao", nullable = false) private LocalDateTime dataInfracao;
     private Double latitude;
     private Double longitude;
@@ -33,7 +33,7 @@ public class Multa {
     @Column(name = "imputacao_confirmada") private Boolean imputacaoConfirmada = false;
     @Column(name = "valor_original") private Double valorOriginal;
     @Column(name = "vencimento_normal") private LocalDate vencimentoNormal;
-    @Column(nullable = false) private String status = "PENDENTE";
+    @Column(nullable = false, length = 30) private String status = "PENDENTE";
     @Column(name = "contestacao_motivo", columnDefinition = "TEXT") private String contestacaoMotivo;
     public Long getTenantId() { return tenantId; }
     public void setTenantId(Long value) { tenantId = value; }

@@ -36,7 +36,7 @@ public class Geofence {
     @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(name = "tipo", nullable = false, length = 20)
+    @Column(name = "tipo", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private TipoGeofence tipo;
 
@@ -53,7 +53,7 @@ public class Geofence {
     @Column(name = "vertices", columnDefinition = "json")
     private List<CoordenadasDto> vertices;
 
-    @Column(name = "tipo_alerta", nullable = false, length = 10)
+    @Column(name = "tipo_alerta", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private TipoAlertaGeofence tipoAlerta;
 

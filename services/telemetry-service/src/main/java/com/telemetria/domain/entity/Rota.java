@@ -77,7 +77,7 @@ public class Rota {
     private Double thresholdAlertaM = 50.0;
 
     // ── Controle ──────────────────────────────────────────────
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private String status = "PLANEJADA"; // PLANEJADA, EM_ANDAMENTO, FINALIZADA, CANCELADA
 
     @Column(name = "ativa", nullable = false)
