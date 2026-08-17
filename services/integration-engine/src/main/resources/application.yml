@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:9060}
+
+spring:
+  application:
+    name: integration-engine
+
+sefaz:
+  cte:
+    ambiente: ${SEFAZ_CTE_AMBIENTE:homologacao}
+    versao: "4.00"
+    status-servico:
+      url: ${SEFAZ_CTE_STATUS_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
+  certificado:
+    arquivo: ${SEFAZ_CERT_PATH:}
+    senha: ${SEFAZ_CERT_PASSWORD:}
+
+camel:
+  springboot:
+    name: IntegrationEngineCamelContext
+    main-run-controller: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+  endpoint:
+    health:
+      show-details: always

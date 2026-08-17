@@ -122,6 +122,20 @@ services:
         condition: service_healthy
     networks: [fleet-network]
 
+  integration-engine:
+    build:
+      context: ./services/integration-engine
+    environment:
+      SERVER_PORT: 9060
+      SPRING_PROFILES_ACTIVE: docker
+      SEFAZ_CTE_AMBIENTE: ${SEFAZ_CTE_AMBIENTE:-homologacao}
+      SEFAZ_CTE_STATUS_URL: ${SEFAZ_CTE_STATUS_URL:-https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
+      SEFAZ_CERT_PATH: ${SEFAZ_CERT_PATH:-}
+      SEFAZ_CERT_PASSWORD: ${SEFAZ_CERT_PASSWORD:-}
+    ports:
+      - "${INTEGRATION_PORT:-9060}:9060"
+    networks: [fleet-network]
+
 networks:
   fleet-network:
     driver: bridge
