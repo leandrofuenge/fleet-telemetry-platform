@@ -1,6 +1,6 @@
 # 🚛 Frota Telemetria — Microserviços: Bancos + Entidades Java
 
-**Sistema de Telemetria para Frotas v3.0 — Stack: Java 17 · Spring Boot 3.x · MySQL · Kafka**
+**Sistema de Telemetria para Frotas v3.0 — Stack: Java 17 · Spring Boot 3.x · PostgreSQL · Kafka**
 
 ---
 
@@ -121,10 +121,10 @@ RelatorioViagem           → relatorio_viagem
     <artifactId>spring-boot-starter-data-jpa</artifactId>
 </dependency>
 
-<!-- MySQL Driver -->
+<!-- PostgreSQL Driver -->
 <dependency>
-    <groupId>com.mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
     <scope>runtime</scope>
 </dependency>
 
@@ -150,8 +150,8 @@ RelatorioViagem           → relatorio_viagem
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/telemetry_db?useUnicode=true&characterEncoding=utf8&serverTimezone=America/Sao_Paulo
-    username: ${DB_USER:root}
+    url: jdbc:postgresql://localhost:5432/telemetria
+    username: ${DB_USER:postgres}
     password: ${DB_PASS:secret}
     hikari:
       maximum-pool-size: 50
@@ -163,7 +163,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_batch_fetch_size: 50
 
@@ -262,7 +262,7 @@ Sistema de monitoramento em tempo real para frotas de caminhões e carretas com 
         │                   │
         ▼                   │
 Banco Relacional       Resposta Rápida
- (MySQL)                    │
+ (PostgreSQL)               │
         │                   ▼
         └──────► TimescaleDB (Séries Temporais)
                            │
@@ -279,7 +279,7 @@ WebSocket/STOMP
 Quartz Scheduler
 Rate Limiting
 Banco de Dados
-MySQL (dados relacionais)
+PostgreSQL (dados relacionais)
 TimescaleDB (séries temporais)
 Redis (cache + pub/sub)
 Mensageria

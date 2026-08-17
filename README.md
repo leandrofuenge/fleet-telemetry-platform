@@ -26,7 +26,7 @@ var/            Estado local, logs e metadados de IDE — não versionados
    docker compose --env-file deploy/compose/.env -f deploy/compose/docker-compose.yml up --build
    ```
 
-O Compose central inicia MySQL, Redis, Kafka, Mosquitto e os dois serviços. Os logs locais ficam em `var/logs/`.
+O Compose central inicia PostgreSQL, Redis, Kafka, Mosquitto e os dois serviços. Os logs locais ficam em `var/logs/`.
 
 ## Convenções
 

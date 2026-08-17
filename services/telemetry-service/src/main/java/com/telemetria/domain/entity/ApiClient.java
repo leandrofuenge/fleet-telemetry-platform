@@ -9,15 +9,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@Table(name = "api_clients", indexes = @Index(name = "idx_api_client_key", columnList = "client_id", unique = true))
+@Table(
+        name = "api_clients",
+        indexes = @Index(name = "idx_api_client_key", columnList = "client_id", unique = true)
+)
 public class ApiClient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,4 +40,71 @@ public class ApiClient {
 
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime criadoEm = LocalDateTime.now();
+
+    public ApiClient() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getSecretHash() {
+        return secretHash;
+    }
+
+    public void setSecretHash(String secretHash) {
+        this.secretHash = secretHash;
+    }
+
+    public String getPlano() {
+        return plano;
+    }
+
+    public void setPlano(String plano) {
+        this.plano = plano;
+    }
+
+    public String getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
 }

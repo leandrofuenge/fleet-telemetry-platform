@@ -7,14 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
 @Table(name = "webhooks", indexes = @Index(name = "idx_webhook_tenant", columnList = "tenant_id"))
 public class Webhook {
     @Id
@@ -38,4 +32,63 @@ public class Webhook {
 
     @Column(name = "falhas_consecutivas", nullable = false)
     private Integer falhasConsecutivas = 0;
+
+    public Webhook() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getEvento() {
+        return evento;
+    }
+
+    public void setEvento(String evento) {
+        this.evento = evento;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getSecretHash() {
+        return secretHash;
+    }
+
+    public void setSecretHash(String secretHash) {
+        this.secretHash = secretHash;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public Integer getFalhasConsecutivas() {
+        return falhasConsecutivas;
+    }
+
+    public void setFalhasConsecutivas(Integer falhasConsecutivas) {
+        this.falhasConsecutivas = falhasConsecutivas;
+    }
 }

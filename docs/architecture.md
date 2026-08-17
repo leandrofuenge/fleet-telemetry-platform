@@ -22,6 +22,6 @@ A direção de dependência deve apontar para o domínio. Interfaces de reposit�
 
 ## Desenvolvimento local
 
-O ambiente compartilhado está em `deploy/compose/`. Os serviços não possuem Compose próprio para evitar instâncias duplicadas de MySQL, Redis, Kafka e Mosquitto.
+O ambiente compartilhado está em `deploy/compose/`. Os serviços não possuem Compose próprio para evitar instâncias duplicadas de PostgreSQL, Redis, Kafka e Mosquitto.
 
 `database/reference-schemas/` contém esquemas históricos e de referência. Antes de usar qualquer um em produção, converta-o em uma migration versionada no serviço responsável.

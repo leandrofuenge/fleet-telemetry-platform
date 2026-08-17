@@ -31,7 +31,7 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
     // O Spring Data JPA resolve automaticamente a partir do nome do método.
     boolean existsByPlaca(String placa);
 
-    @Query(value = "SELECT * FROM veiculos WHERE modelo LIKE CONCAT('%', :modelo, '%')",
+    @Query(value = "SELECT * FROM veiculos WHERE modelo ILIKE CONCAT('%', :modelo, '%')",
            nativeQuery = true)
     List<Veiculo> findByModeloContainingIgnoreCase(@Param("modelo") String modelo);
 

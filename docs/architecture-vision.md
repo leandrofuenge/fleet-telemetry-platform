@@ -11,7 +11,7 @@
 ![Kafka](https://img.shields.io/badge/Kafka-Streaming-black?style=for-the-badge&logo=apachekafka)
 ![Redis](https://img.shields.io/badge/Redis-Cache-red?style=for-the-badge&logo=redis)
 ![Docker](https://img.shields.io/badge/Docker-Container-blue?style=for-the-badge&logo=docker)
-![MySQL](https://img.shields.io/badge/MySQL-Database-orange?style=for-the-badge&logo=mysql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge&logo=postgresql)
 ![Status](https://img.shields.io/badge/Status-MVP_Robusto-success?style=for-the-badge)
 
 **Plataforma de telemetria e rastreamento em tempo real para frotas de caminhões e carretas, com foco no mercado brasileiro e LATAM.**
@@ -74,7 +74,7 @@ Sistema de monitoramento em tempo real projetado para empresas de transporte rod
         │                     │
         ▼                     ▼
 ┌────────────────┐  ┌───────────────────┐
-│  MySQL (OLTP)  │  │  TimescaleDB      │
+│ PostgreSQL     │  │  TimescaleDB      │
 │  Dados         │  │  Séries Temporais │
 │  Relacionais   │  │  (Telemetria)     │
 └────────────────┘  └───────────────────┘
@@ -103,7 +103,7 @@ Sistema de monitoramento em tempo real projetado para empresas de transporte rod
 
 ### Banco de Dados
 
-- **MySQL 8** — dados relacionais e transacionais
+- **PostgreSQL 16** — dados relacionais e transacionais
 - **TimescaleDB** — séries temporais de telemetria (alta performance)
 - **Redis** — cache em memória + pub/sub + sessões
 
@@ -253,8 +253,8 @@ public void onVehicleEvent(VehicleEvent event) {
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/telemetry_db?useUnicode=true&characterEncoding=utf8&serverTimezone=America/Sao_Paulo
-    username: ${DB_USER:root}
+    url: jdbc:postgresql://localhost:5432/telemetria
+    username: ${DB_USER:postgres}
     password: ${DB_PASS:secret}
     hikari:
       maximum-pool-size: 50
@@ -266,7 +266,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         default_batch_fetch_size: 50
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
@@ -284,10 +284,10 @@ spring:
     <artifactId>spring-boot-starter-data-jpa</artifactId>
 </dependency>
 
-<!-- MySQL Driver -->
+<!-- PostgreSQL Driver -->
 <dependency>
-    <groupId>com.mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
     <scope>runtime</scope>
 </dependency>
 
@@ -376,6 +376,6 @@ O sistema inclui um simulador completo para desenvolvimento e QA:
 <div align="center">
 
 **Sistema de Telemetria para Frotas v3.0**
-Java 17 · Spring Boot 3.x · MySQL · Kafka · Redis · OSRM
+Java 17 · Spring Boot 3.x · PostgreSQL · Kafka · Redis · OSRM
 
 </div>

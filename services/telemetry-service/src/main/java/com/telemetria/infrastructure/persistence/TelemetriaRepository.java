@@ -360,7 +360,7 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
         SELECT DISTINCT t.veiculo_id 
         FROM telemetria t 
         JOIN posicao_atual pa ON t.veiculo_id = pa.veiculo_id 
-        WHERE TIMESTAMPDIFF(MINUTE, t.data_hora, NOW()) > :minutosSemSinal
+        WHERE t.data_hora < CURRENT_TIMESTAMP - (:minutosSemSinal * INTERVAL '1 minute')
           AND pa.ignicao = :ignicaoOn
           AND pa.status_veiculo != 'DESCONHECIDO'
         """, nativeQuery = true)
@@ -376,7 +376,7 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
     @Query(value = """
         UPDATE posicao_atual 
         SET status_veiculo = 'DESCONHECIDO' 
-        WHERE TIMESTAMPDIFF(MINUTE, ultima_telemetria, NOW()) > 5
+        WHERE ultima_telemetria < CURRENT_TIMESTAMP - INTERVAL '5 minutes'
         """, nativeQuery = true)
     int atualizarStatusDesconhecido();
 
@@ -390,7 +390,7 @@ public interface TelemetriaRepository extends JpaRepository<Telemetria, Long> {
     @Query(value = """
         UPDATE posicao_atual 
         SET status_veiculo = 'DESCONHECIDO' 
-        WHERE TIMESTAMPDIFF(MINUTE, ultima_telemetria, NOW()) > :minutos
+        WHERE ultima_telemetria < CURRENT_TIMESTAMP - (:minutos * INTERVAL '1 minute')
         """, nativeQuery = true)
     int atualizarStatusDesconhecido(@Param("minutos") int minutos);
 

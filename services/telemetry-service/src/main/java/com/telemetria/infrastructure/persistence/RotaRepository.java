@@ -56,13 +56,13 @@ public interface RotaRepository extends JpaRepository<Rota, Long> {
     Long countByNomeAndIdNot(@Param("nome") String nome, @Param("id") Long id);
     // =======================================
 
-    @Query(value = "SELECT * FROM rotas WHERE nome LIKE CONCAT('%', :nome, '%')",
+    @Query(value = "SELECT * FROM rotas WHERE nome ILIKE CONCAT('%', :nome, '%')",
            nativeQuery = true)
     List<Rota> findByNomeContainingIgnoreCase(@Param("nome") String nome);
 
     @Query(value = "SELECT * FROM rotas " +
-                   "WHERE origem LIKE CONCAT('%', :origem, '%') " +
-                   "AND destino LIKE CONCAT('%', :destino, '%')",
+                   "WHERE origem ILIKE CONCAT('%', :origem, '%') " +
+                   "AND destino ILIKE CONCAT('%', :destino, '%')",
            nativeQuery = true)
     List<Rota> findByOrigemContainingIgnoreCaseAndDestinoContainingIgnoreCase(
             @Param("origem") String origem,

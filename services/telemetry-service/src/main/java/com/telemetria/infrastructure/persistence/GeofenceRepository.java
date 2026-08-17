@@ -16,6 +16,18 @@ public interface GeofenceRepository extends JpaRepository<Geofence, Long> {
 
     List<Geofence> findByAtivoTrueAndTenantId(Long tenantId);
 
-    @Query(value = "SELECT * FROM geofences g WHERE g.ativo = 1 AND g.tenant_id = :tenantId AND (g.aplica_todos = 1 OR JSON_CONTAINS(g.veiculos_uuid, JSON_QUOTE(:veiculoUuid)))", nativeQuery = true)
+    @Query(value = """
+            SELECT *
+            FROM geofences g
+            WHERE g.ativo = TRUE
+              AND g.tenant_id = :tenantId
+              AND (
+                  g.aplica_todos = TRUE
+                  OR jsonb_exists(
+                      COALESCE(CAST(g.veiculos_uuid AS jsonb), CAST('[]' AS jsonb)),
+                      CAST(:veiculoUuid AS text)
+                  )
+              )
+            """, nativeQuery = true)
     List<Geofence> findAtivasPorVeiculo(@Param("tenantId") Long tenantId, @Param("veiculoUuid") String veiculoUuid);
 }

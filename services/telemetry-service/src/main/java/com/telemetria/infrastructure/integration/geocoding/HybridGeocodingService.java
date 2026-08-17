@@ -146,7 +146,7 @@ public class HybridGeocodingService {
             log.warn("Falha ao acessar chave exata no Redis: {}", e.getMessage());
         }
 
-        // 3. CAMADA L3: BANCO DE DADOS RELACIONAL (Postgres/MySQL)
+        // 3. CAMADA L3: BANCO DE DADOS RELACIONAL (PostgreSQL)
         Optional<GeocodingCache> cacheDB = cacheRepository.findByLatArredAndLngArred(latArred, lngArred);
         if (cacheDB.isPresent()) {
             boolean resultado = cacheDB.get().getIsUrbano() != null && cacheDB.get().getIsUrbano();

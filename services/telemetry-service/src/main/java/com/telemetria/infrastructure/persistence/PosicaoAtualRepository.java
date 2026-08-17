@@ -28,7 +28,7 @@ public interface PosicaoAtualRepository extends JpaRepository<PosicaoAtual, Long
     @Query("UPDATE PosicaoAtual p SET p.zonaAtual = :zona WHERE p.veiculoId = :veiculoId")
     int atualizarZonaAtual(@Param("veiculoId") Long veiculoId, @Param("zona") String zona);
 
-    // RF06 RN-POS-001: UPSERT nativo MySQL (mais rápido que save())
+    // RF06 RN-POS-001: UPSERT nativo PostgreSQL (mais rápido que save())
     @Modifying
     @Transactional
     @Query(value = """
@@ -38,14 +38,16 @@ public interface PosicaoAtualRepository extends JpaRepository<PosicaoAtual, Long
         VALUES 
         (:veiculoId, :tenantId, :veiculoUuid, :latitude, :longitude, :velocidade, :direcao, 
          :ignicao, :statusVeiculo, :ultimaTelemetria, NOW())
-        ON DUPLICATE KEY UPDATE
-            latitude = VALUES(latitude),
-            longitude = VALUES(longitude),
-            velocidade = VALUES(velocidade),
-            direcao = VALUES(direcao),
-            ignicao = VALUES(ignicao),
-            status_veiculo = VALUES(status_veiculo),
-            ultima_telemetria = VALUES(ultima_telemetria),
+        ON CONFLICT (veiculo_id) DO UPDATE SET
+            tenant_id = EXCLUDED.tenant_id,
+            veiculo_uuid = EXCLUDED.veiculo_uuid,
+            latitude = EXCLUDED.latitude,
+            longitude = EXCLUDED.longitude,
+            velocidade = EXCLUDED.velocidade,
+            direcao = EXCLUDED.direcao,
+            ignicao = EXCLUDED.ignicao,
+            status_veiculo = EXCLUDED.status_veiculo,
+            ultima_telemetria = EXCLUDED.ultima_telemetria,
             ultima_atualizacao = NOW()
         """, nativeQuery = true)
     void upsertPosicaoAtual(@Param("veiculoId") Long veiculoId,

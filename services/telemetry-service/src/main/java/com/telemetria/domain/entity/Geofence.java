@@ -16,18 +16,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-
 @Entity
 @Table(name = "geofences", indexes = {
         @Index(name = "idx_gf_tenant", columnList = "tenant_id"),
         @Index(name = "idx_gf_ativo", columnList = "ativo")
 })
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Geofence {
 
     @Id
@@ -35,7 +28,6 @@ public class Geofence {
     private Long id;
 
     @Column(name = "uuid", nullable = false, unique = true, length = 36)
-    @Builder.Default
     private String uuid = java.util.UUID.randomUUID().toString();
 
     @Column(name = "tenant_id", nullable = false)
@@ -66,7 +58,6 @@ public class Geofence {
     private TipoAlertaGeofence tipoAlerta;
 
     @Column(name = "aplica_todos", nullable = false)
-    @Builder.Default
     private Boolean aplicaTodos = true;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -74,12 +65,18 @@ public class Geofence {
     private List<String> veiculosUuid;
 
     @Column(name = "ativo", nullable = false)
-    @Builder.Default
     private Boolean ativo = true;
 
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
+
+    public Geofence() {
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     // ========== GETTERS E SETTERS MANUAIS ==========
     public Long getId() {
@@ -194,6 +191,127 @@ public class Geofence {
         this.criadoEm = criadoEm;
     }
 
+    public static final class Builder {
+        private Long id;
+        private String uuid;
+        private boolean uuidInformado;
+        private Long tenantId;
+        private String nome;
+        private TipoGeofence tipo;
+        private Double latitudeCentro;
+        private Double longitudeCentro;
+        private Double raio;
+        private List<CoordenadasDto> vertices;
+        private TipoAlertaGeofence tipoAlerta;
+        private Boolean aplicaTodos;
+        private boolean aplicaTodosInformado;
+        private List<String> veiculosUuid;
+        private Boolean ativo;
+        private boolean ativoInformado;
+        private LocalDateTime criadoEm;
+
+        private Builder() {
+        }
+
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder uuid(String uuid) {
+            this.uuid = uuid;
+            this.uuidInformado = true;
+            return this;
+        }
+
+        public Builder tenantId(Long tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+
+        public Builder nome(String nome) {
+            this.nome = nome;
+            return this;
+        }
+
+        public Builder tipo(TipoGeofence tipo) {
+            this.tipo = tipo;
+            return this;
+        }
+
+        public Builder latitudeCentro(Double latitudeCentro) {
+            this.latitudeCentro = latitudeCentro;
+            return this;
+        }
+
+        public Builder longitudeCentro(Double longitudeCentro) {
+            this.longitudeCentro = longitudeCentro;
+            return this;
+        }
+
+        public Builder raio(Double raio) {
+            this.raio = raio;
+            return this;
+        }
+
+        public Builder vertices(List<CoordenadasDto> vertices) {
+            this.vertices = vertices;
+            return this;
+        }
+
+        public Builder tipoAlerta(TipoAlertaGeofence tipoAlerta) {
+            this.tipoAlerta = tipoAlerta;
+            return this;
+        }
+
+        public Builder aplicaTodos(Boolean aplicaTodos) {
+            this.aplicaTodos = aplicaTodos;
+            this.aplicaTodosInformado = true;
+            return this;
+        }
+
+        public Builder veiculosUuid(List<String> veiculosUuid) {
+            this.veiculosUuid = veiculosUuid;
+            return this;
+        }
+
+        public Builder ativo(Boolean ativo) {
+            this.ativo = ativo;
+            this.ativoInformado = true;
+            return this;
+        }
+
+        public Builder criadoEm(LocalDateTime criadoEm) {
+            this.criadoEm = criadoEm;
+            return this;
+        }
+
+        public Geofence build() {
+            Geofence geofence = new Geofence();
+            geofence.id = id;
+            if (uuidInformado) {
+                geofence.uuid = uuid;
+            }
+            geofence.tenantId = tenantId;
+            geofence.nome = nome;
+            geofence.tipo = tipo;
+            geofence.latitudeCentro = latitudeCentro;
+            geofence.longitudeCentro = longitudeCentro;
+            geofence.raio = raio;
+            geofence.vertices = vertices;
+            geofence.tipoAlerta = tipoAlerta;
+            if (aplicaTodosInformado) {
+                geofence.aplicaTodos = aplicaTodos;
+            }
+            geofence.veiculosUuid = veiculosUuid;
+            if (ativoInformado) {
+                geofence.ativo = ativo;
+            }
+            geofence.criadoEm = criadoEm;
+            return geofence;
+        }
+    }
+
     // ========== ENUMS INTERNOS ==========
     public enum TipoGeofence {
         CIRCULO, POLIGONO
@@ -204,11 +322,17 @@ public class Geofence {
     }
 
     // ========== DTO PARA VÉRTICES (com getters e setters) ==========
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
     public static class CoordenadasDto {
         private Double lat;
         private Double lng;
+
+        public CoordenadasDto() {
+        }
+
+        public CoordenadasDto(Double lat, Double lng) {
+            this.lat = lat;
+            this.lng = lng;
+        }
 
         public Double getLat() {
             return lat;
