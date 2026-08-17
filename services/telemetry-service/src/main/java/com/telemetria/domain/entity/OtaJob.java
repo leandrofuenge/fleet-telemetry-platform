@@ -1,0 +1,13 @@
+package com.telemetria.domain.entity;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+@Entity @Table(name="ota_jobs", indexes={@Index(name="idx_ota_tenant_status",columnList="tenant_id,status"),@Index(name="idx_ota_device",columnList="device_id")})
+public class OtaJob { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @Column(name="tenant_id",nullable=false) private Long tenantId; @Column(name="device_id",nullable=false,length=64) private String deviceId; @Column(name="versao_alvo",nullable=false,length=30) private String versaoAlvo; @Column(name="sha256",nullable=false,length=64) private String sha256; @Column(name="assinatura_hsm",nullable=false,columnDefinition="TEXT") private String assinaturaHsm; @Column(nullable=false,length=30) private String fase="CANARY_1PCT"; @Column(nullable=false,length=30) private String status="PENDENTE"; @Column(name="token_hash",nullable=false,length=64) private String tokenHash; @Column(name="token_consumido",nullable=false) private Boolean tokenConsumido=false; @Column(name="erro",columnDefinition="TEXT") private String erro; @Column(name="criado_em",nullable=false) private LocalDateTime criadoEm=LocalDateTime.now(); @Column(name="atualizado_em") private LocalDateTime atualizadoEm;
+ public Long getId(){return id;}public void setId(Long v){id=v;}public Long getTenantId(){return tenantId;}public void setTenantId(Long v){tenantId=v;}public String getDeviceId(){return deviceId;}public void setDeviceId(String v){deviceId=v;}public String getVersaoAlvo(){return versaoAlvo;}public void setVersaoAlvo(String v){versaoAlvo=v;}public String getSha256(){return sha256;}public void setSha256(String v){sha256=v;}public String getAssinaturaHsm(){return assinaturaHsm;}public void setAssinaturaHsm(String v){assinaturaHsm=v;}public String getFase(){return fase;}public void setFase(String v){fase=v;}public String getStatus(){return status;}public void setStatus(String v){status=v;}public String getTokenHash(){return tokenHash;}public void setTokenHash(String v){tokenHash=v;}public Boolean getTokenConsumido(){return tokenConsumido;}public void setTokenConsumido(Boolean v){tokenConsumido=v;}public String getErro(){return erro;}public void setErro(String v){erro=v;}public LocalDateTime getCriadoEm(){return criadoEm;}public LocalDateTime getAtualizadoEm(){return atualizadoEm;}public void setAtualizadoEm(LocalDateTime v){atualizadoEm=v;}}
