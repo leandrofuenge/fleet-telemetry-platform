@@ -1,9 +1,11 @@
 package com.telemetria.integration.antt.rntrc;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "integration.experimental-routes.enabled", havingValue = "true")
 public class RntrcRouteBuilder extends RouteBuilder {
 
     @Override

@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.senatran.renach;
+package com.telemetria.integration.senatran.renach;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: SENATRAN - RENACH (dados do motorista)
  */
 public interface RenachClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

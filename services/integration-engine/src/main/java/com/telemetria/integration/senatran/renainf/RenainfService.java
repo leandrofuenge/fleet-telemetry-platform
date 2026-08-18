@@ -1,8 +1,14 @@
-﻿package com.telemetria.integration.senatran.renainf;
+package com.telemetria.integration.senatran.renainf;
+
+import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Servico de orquestracao: SENATRAN - RENAINF (infracoes / multas)
  */
+@Service
 public class RenainfService {
 
     private final RenainfClient client;
@@ -11,5 +17,5 @@ public class RenainfService {
         this.client = client;
     }
 
-    // TODO: implementar regras de negocio / validacoes / mapeamento de DTOs
+    public IntegrationResponse consultar(IntegrationRequest request) { return client.execute(request); }
 }

@@ -1,8 +1,14 @@
-﻿package com.telemetria.integration.senatran.renavam;
+package com.telemetria.integration.senatran.renavam;
+
+import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Servico de orquestracao: SENATRAN - RENAVAM (dados do veiculo)
  */
+@Service
 public class RenavamService {
 
     private final RenavamClient client;
@@ -11,5 +17,5 @@ public class RenavamService {
         this.client = client;
     }
 
-    // TODO: implementar regras de negocio / validacoes / mapeamento de DTOs
+    public IntegrationResponse consultar(IntegrationRequest request) { return client.execute(request); }
 }

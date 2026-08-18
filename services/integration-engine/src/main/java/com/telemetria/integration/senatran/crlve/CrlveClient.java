@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.senatran.crlve;
+package com.telemetria.integration.senatran.crlve;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: SENATRAN - CRLV-e (documento do veiculo)
  */
 public interface CrlveClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ANTT - Vale-Pedagio Obrigatorio
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento

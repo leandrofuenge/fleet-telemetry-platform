@@ -1,8 +1,14 @@
-﻿package com.telemetria.integration.sefaz.nfce;
+package com.telemetria.integration.sefaz.nfce;
+
+import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Servico de orquestracao: SEFAZ - NFC-e
  */
+@Service
 public class NfceService {
 
     private final NfceClient client;
@@ -11,5 +17,5 @@ public class NfceService {
         this.client = client;
     }
 
-    // TODO: implementar regras de negocio / validacoes / mapeamento de DTOs
+    public IntegrationResponse executar(IntegrationRequest request) { return client.execute(request); }
 }

@@ -5,10 +5,17 @@ spring:
   application:
     name: integration-engine
 
+integration:
+  simulation:
+    enabled: ${INTEGRATION_SIMULATION_ENABLED:false}
+  experimental-routes:
+    enabled: ${INTEGRATION_EXPERIMENTAL_ROUTES_ENABLED:false}
+
 sefaz:
   cte:
     ambiente: ${SEFAZ_CTE_AMBIENTE:homologacao}
     versao: "4.00"
+    url-webservice: ${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}
     status-servico:
       url: ${SEFAZ_CTE_STATUS_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
   certificado:
@@ -30,3 +37,26 @@ management:
   endpoint:
     health:
       show-details: always
+
+infosimples:
+  url-base: ${INFOSIMPLES_CTE_URL:https://api.infosimples.com/v2/consultas/receita-federal/cte}
+  url-serpro-radar: ${INFOSIMPLES_SERPRO_RADAR_URL:https://api.infosimples.com/v2/consultas/serpro/radar/veiculo}
+  token: ${INFOSIMPLES_TOKEN:}
+
+external-integrations:
+  antt:
+    vale-pedagio-url: ${ANTT_VALE_PEDAGIO_URL:}
+    seguro-url: ${ANTT_SEGURO_URL:}
+    token: ${ANTT_TOKEN:}
+  senatran:
+    renavam-url: ${SENATRAN_RENAVAM_URL:}
+    renainf-url: ${SENATRAN_RENAINF_URL:}
+    crlve-url: ${SENATRAN_CRLVE_URL:}
+    renach-url: ${SENATRAN_RENACH_URL:}
+    token: ${SENATRAN_TOKEN:}
+  sefaz:
+    evento-url: ${SEFAZ_EVENTO_URL:}
+    nfce-url: ${SEFAZ_NFCE_URL:}
+    portal-mdfe-url: ${PORTAL_MDFE_URL:}
+    portal-cte-url: ${PORTAL_CTE_URL:}
+    token: ${SEFAZ_PORTAIS_TOKEN:}

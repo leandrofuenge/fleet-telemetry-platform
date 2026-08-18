@@ -3,39 +3,45 @@ package com.telemetria.integration.sefaz.cte;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteClient;
+import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteRequest;
+import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteResponse;
+
 @Service
 public class CteConsultaService {
 
     private final CteConsultaBuilder consultaBuilder;
     private final CteClient cteClient;
+    private final InfosimplesCteClient infosimplesClient;
 
     @Value("${sefaz.ambiente:2}") // 1=Produção, 2=Homologação
     private String tpAmb;
 
-    public CteConsultaService(CteConsultaBuilder consultaBuilder, CteClient cteClient) {
+    public CteConsultaService(CteConsultaBuilder consultaBuilder, 
+                              CteClient cteClient, 
+                              InfosimplesCteClient infosimplesClient) {
         this.consultaBuilder = consultaBuilder;
         this.cteClient = cteClient;
+        this.infosimplesClient = infosimplesClient;
     }
 
     /**
-     * Realiza a consulta da situação de um CT-e na SEFAZ.
-     *
-     * @param chaveCte Chave de acesso de 44 dígitos
-     * @return XML contendo a resposta da SEFAZ (<retConsSitCTe>)
+     * Consulta SOAP leve diretamente na SEFAZ (Verifica apenas cStat/Situação).
      */
-    public String consultarCte(String chaveCte) {
-        // 1. Monta o XML da consulta
+    public String consultarSituacaoSefaz(String chaveCte) {
         String xmlConsulta = consultaBuilder.buildXmlConsulta(chaveCte, tpAmb);
-
-        // 2. Envia para o WebService via CteClient (sem necessidade de assinatura digital)
         return cteClient.consultarCte(xmlConsulta);
     }
-    
- // Rota para consulta de CT-e via Chave de Acesso
-    from("direct:consultarCte")
-        .routeId("rota-consulta-cte")
-        .log("Consultando situação do CT-e chave: ${body}")
-        .bean("cteConsultaService", "consultarCte")
-        .process("cteResponseParserProcessor") // Trata o XML de retorno para objeto Java (CteResultadoParse)
-        .to("log:resultadoConsultaCte?level=INFO");
+
+    /**
+     * Consulta REST enriquecida via Infosimples (Retorna XML completo, CIOT, RNTRC e motoristas).
+     */
+    public InfosimplesCteResponse consultarDadosCompletosInfosimples(String chaveCte, String certBase64, String senhaCert) {
+        if (chaveCte == null || !chaveCte.matches("\\d{44}")) {
+            throw new CteException("Chave de acesso do CT-e inválida para consulta.");
+        }
+        
+        InfosimplesCteRequest request = new InfosimplesCteRequest(chaveCte, certBase64, senhaCert);
+        return infosimplesClient.consultarCteCompleto(request);
+    }
 }

@@ -42,6 +42,6 @@ public class CteEventoService {
         String xmlEventoAssinado = xmlSigner.assinarXml(xmlEventoBruto, "infEvento");
 
         // 3. Transmite o envelope SOAP para a SEFAZ
-        return cteClient.cancelarCte(xmlEventoAssinado);
+        return cteClient.enviarEvento(xmlEventoAssinado);
     }
 }

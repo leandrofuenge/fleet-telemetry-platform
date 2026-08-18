@@ -1,9 +1,15 @@
-﻿package com.telemetria.integration.antt.pisominimo;
+package com.telemetria.integration.antt.pisominimo;
 
 /**
- * Contrato de integracao: ANTT - Piso Minimo de Frete
+ * Contrato de integração: ANTT - Piso Mínimo de Frete
  */
 public interface PisoMinimoClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    /**
+     * Realiza o cálculo do valor mínimo de frete obrigatório para a operação.
+     *
+     * @param request Parâmetros da viagem (distância, eixos, tipo de carga, retorno)
+     * @return Resposta contendo o valor mínimo em R$ ou erro
+     */
+    PisoMinimoResponse calcularPisoMinimo(PisoMinimoRequest request);
 }

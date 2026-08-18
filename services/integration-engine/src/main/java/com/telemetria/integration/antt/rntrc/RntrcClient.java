@@ -1,4 +1,4 @@
-﻿package com.telemetria.integration.antt.rntrc;
+package com.telemetria.integration.antt.rntrc;
 
 /**
  * Contrato de integração: ANTT - RNTRC (Reenvio Sob Demanda / SEFAZ)

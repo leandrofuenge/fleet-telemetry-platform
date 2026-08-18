@@ -1,8 +1,14 @@
-﻿package com.telemetria.integration.senatran.renach;
+package com.telemetria.integration.senatran.renach;
+
+import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Servico de orquestracao: SENATRAN - RENACH (dados do motorista)
  */
+@Service
 public class RenachService {
 
     private final RenachClient client;
@@ -11,5 +17,5 @@ public class RenachService {
         this.client = client;
     }
 
-    // TODO: implementar regras de negocio / validacoes / mapeamento de DTOs
+    public IntegrationResponse consultar(IntegrationRequest request) { return client.execute(request); }
 }

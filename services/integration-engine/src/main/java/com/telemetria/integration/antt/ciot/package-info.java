@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ANTT - CIOT (documento obrigatorio da viagem)
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento

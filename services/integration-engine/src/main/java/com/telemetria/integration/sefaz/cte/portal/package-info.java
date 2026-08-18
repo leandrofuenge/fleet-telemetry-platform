@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Portal Nacional do CT-e
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento

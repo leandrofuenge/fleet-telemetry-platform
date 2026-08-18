@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.antt.seguro;
+package com.telemetria.integration.antt.seguro;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: ANTT - Seguros obrigatorios do transporte de carga
  */
 public interface SeguroClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

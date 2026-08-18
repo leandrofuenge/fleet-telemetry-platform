@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.senatran.renavam;
+package com.telemetria.integration.senatran.renavam;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: SENATRAN - RENAVAM (dados do veiculo)
  */
 public interface RenavamClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

@@ -1,8 +1,14 @@
-﻿package com.telemetria.integration.sefaz.mdfe.portal;
+package com.telemetria.integration.sefaz.mdfe.portal;
+
+import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Servico de orquestracao: Portal Nacional do MDF-e
  */
+@Service
 public class PortalMdfeService {
 
     private final PortalMdfeClient client;
@@ -11,5 +17,5 @@ public class PortalMdfeService {
         this.client = client;
     }
 
-    // TODO: implementar regras de negocio / validacoes / mapeamento de DTOs
+    public IntegrationResponse consultar(IntegrationRequest request) { return client.execute(request); }
 }

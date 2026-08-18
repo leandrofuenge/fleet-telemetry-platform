@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.antt.valepedagio;
+package com.telemetria.integration.antt.valepedagio;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: ANTT - Vale-Pedagio Obrigatorio
  */
 public interface ValePedagioClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

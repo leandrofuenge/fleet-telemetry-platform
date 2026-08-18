@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Portal Nacional do MDF-e
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento

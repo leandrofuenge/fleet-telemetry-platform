@@ -1,9 +1,12 @@
-﻿package com.telemetria.integration.sefaz.cte.portal;
+package com.telemetria.integration.sefaz.cte.portal;
+
+import com.telemetria.integration.support.IntegrationRequest;
+import com.telemetria.integration.support.IntegrationResponse;
 
 /**
  * Contrato de integracao: Portal Nacional do CT-e
  */
 public interface PortalCteClient {
 
-    // TODO: definir metodos de consulta/envio conforme especificacao oficial
+    IntegrationResponse execute(IntegrationRequest request);
 }

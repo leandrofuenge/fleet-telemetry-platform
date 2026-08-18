@@ -32,13 +32,13 @@ import org.w3c.dom.NodeList;
 public class CteClient {
 
     // Atributos injetados via application.properties / application.yml
-    @Value("${sefaz.cte.url-webservice}")
+    @Value("${sefaz.cte.url-webservice:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}}")
     private String urlWebservice;
 
-    @Value("${sefaz.cte.certificado.path}")
+    @Value("${sefaz.certificado.arquivo:}")
     private String certificadoPath;
 
-    @Value("${sefaz.cte.certificado.senha}")
+    @Value("${sefaz.certificado.senha:}")
     private String certificadoSenha;
 
     @Value("${sefaz.cte.timeout:30000}")
@@ -246,6 +246,30 @@ public class CteClient {
                     "Erro ao solicitar cancelamento do CT-e na SEFAZ.",
                     e
             );
+        }
+    }
+
+    /**
+     * Transmite um evento CT-e que já foi montado e assinado digitalmente.
+     *
+     * @param xmlEventoAssinado XML do evento contendo a assinatura XMLDSig
+     * @return retorno bruto da SEFAZ
+     */
+    public String enviarEvento(String xmlEventoAssinado) {
+        if (xmlEventoAssinado == null || xmlEventoAssinado.isBlank()) {
+            throw new IllegalArgumentException("XML do evento assinado não pode ser vazio.");
+        }
+        if (!xmlEventoAssinado.contains("<ds:Signature") && !xmlEventoAssinado.contains("<Signature")) {
+            throw new IllegalArgumentException("XML do evento não contém assinatura digital.");
+        }
+
+        try {
+            parseXml(xmlEventoAssinado);
+            return enviarParaSefaz(montarRequisicaoSoap(xmlEventoAssinado));
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CteException("Erro ao transmitir evento do CT-e para a SEFAZ.", e);
         }
     }
 

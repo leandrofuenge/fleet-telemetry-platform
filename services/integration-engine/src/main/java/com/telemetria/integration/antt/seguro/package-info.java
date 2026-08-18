@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ANTT - Seguros obrigatorios do transporte de carga
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento

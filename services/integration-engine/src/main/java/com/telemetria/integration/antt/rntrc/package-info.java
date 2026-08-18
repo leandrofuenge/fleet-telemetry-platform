@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ANTT - RNTRC (situacao do transportador)
  *
  * TODO: detalhar regras de integracao, endpoints, contratos e tratamento
