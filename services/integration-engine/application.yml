@@ -1,0 +1,35 @@
+sefaz:
+  cte:
+    url-webservice: https://cte-homologacao.svrs.rs.gov.br/ws/cteRecepcaoEventoV4/cteRecepcaoEventoV4.asmx
+    certificado:
+      path: /opt/certificados/empresa_a1.pfx
+      senha: ${SENHA_CERTIFICADO:123456}
+    timeout: 30000
+
+camel:
+  springboot:
+    name: TelemetriaSefazIntegration
+    main-run-controller: true
+	
+	sefaz:
+	  estado: MT
+	  ambiente: 2 # 1=Produção, 2=Homologação
+
+	  # CT-e v4.00 (Mato Grosso utiliza SVRS para CT-e)
+	  cte:
+	    url-autorizacao: https://cte-homologacao.svrs.rs.gov.br/ws/cteRecepcaoEventoV4/cteRecepcaoEventoV4.asmx
+	    url-consulta: https://cte-homologacao.svrs.rs.gov.br/ws/cteConsultaV4/cteConsultaV4.asmx
+	    url-evento: https://cte-homologacao.svrs.rs.gov.br/ws/cteRecepcaoEventoV4/cteRecepcaoEventoV4.asmx
+
+	  # NF-e / NFC-e v4.00 (SEFAZ MT Homologação)
+	  nfe:
+	    url-autorizacao: https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeAutorizacao4
+	    url-ret-autorizacao: https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeRetAutorizacao4
+	    url-consulta: https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeConsulta4
+	    url-evento: https://homologacao.sefaz.mt.gov.br/nfcews/services/RecepcaoEvento4
+	    url-inutilizacao: https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeInutilizacao4
+	    url-status-servico: https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeStatusServico4
+
+	  certificado:
+	    path: /opt/certificados/empresa_a1.pfx
+	    senha: ${SENHA_CERTIFICADO:123456}

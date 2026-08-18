@@ -1,16 +1,17 @@
 package com.telemetria.integration.processor;
 
-import com.telemetria.integration.config.SefazProperties;
-import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
-import com.telemetria.integration.util.Base64Utils;
-import com.telemetria.integration.util.SoapEnvelopeHelper;
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import com.telemetria.integration.config.SefazProperties;
+import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
+import com.telemetria.integration.util.Base64Utils;
+import com.telemetria.integration.util.SoapEnvelopeHelper;
 
 @Component("sefazSoapEnvelopeProcessor")
 public class SefazSoapEnvelopeProcessor implements Processor {

@@ -1,5 +1,13 @@
 package com.telemetria.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.apache.camel.ProducerTemplate;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import com.telemetria.integration.model.Base64TransferRequest;
 import com.telemetria.integration.model.Base64TransferResponse;
 import com.telemetria.integration.model.ViagemWorkflowRequest;
@@ -11,13 +19,6 @@ import com.telemetria.integration.sefaz.cte.status.CteStatusResponse;
 import com.telemetria.integration.util.Base64Utils;
 import com.telemetria.integration.util.SoapEnvelopeHelper;
 import com.telemetria.integration.workflow.InicioViagemWorkflowRoute;
-import org.apache.camel.ProducerTemplate;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 class IntegrationEngineApplicationTests {
