@@ -3,6 +3,8 @@ package com.telemetria.integration.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.telemetria.integration.sefaz.cte.CteSoapService;
+
 /**
  * Utilitário para encapsulamento e extração de documentos XML dentro de envelopes SOAP 1.2 para a SEFAZ.
  */
@@ -30,6 +32,16 @@ public final class SoapEnvelopeHelper {
      */
     public static String wrapCteSoap12(String innerXml) {
         return wrapInSoap12(innerXml, "cteDadosMsg", DEFAULT_CTE_NAMESPACE);
+    }
+
+    /**
+     * Envelopa uma mensagem CT-e 4.00 com o namespace WSDL específico do serviço.
+     */
+    public static String wrapCteSoap12(String innerXml, CteSoapService service) {
+        if (service == null) {
+            throw new IllegalArgumentException("O serviço SOAP do CT-e deve ser informado.");
+        }
+        return wrapInSoap12(innerXml, "cteDadosMsg", service.namespace());
     }
 
     /**

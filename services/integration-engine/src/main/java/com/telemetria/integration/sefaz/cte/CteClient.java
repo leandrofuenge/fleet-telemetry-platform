@@ -1,25 +1,21 @@
 package com.telemetria.integration.sefaz.cte;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import com.telemetria.integration.config.SefazProperties;
+import com.telemetria.integration.security.XmlSignatureValidator;
+import com.telemetria.integration.sefaz.cte.retorno.CteAutorizacaoResultado;
+import com.telemetria.integration.sefaz.cte.retorno.CteConsultaResultado;
+import com.telemetria.integration.sefaz.cte.retorno.CteEventoResultado;
+import com.telemetria.integration.util.SoapEnvelopeHelper;
 
 /**
  * Cliente centralizador de comunicação com SEFAZ CT-e.
@@ -31,18 +27,26 @@ import org.w3c.dom.NodeList;
 @Component
 public class CteClient {
 
-    // Atributos injetados via application.properties / application.yml
-    @Value("${sefaz.cte.url-webservice:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}}")
-    private String urlWebservice;
-
-    @Value("${sefaz.certificado.arquivo:}")
-    private String certificadoPath;
-
-    @Value("${sefaz.certificado.senha:}")
-    private String certificadoSenha;
+    private final SefazProperties sefazProperties;
+    private final XmlSignatureValidator xmlSignatureValidator;
+    private final CteXmlValidator cteXmlValidator;
+    private final CteSoapTransport soapTransport;
+    private final CteResponseParser responseParser;
+    private final CteFiscalOperationGuard operationGuard;
 
     @Value("${sefaz.cte.timeout:30000}")
     private int timeout; // Padrão: 30 segundos
+
+    public CteClient(SefazProperties sefazProperties, XmlSignatureValidator xmlSignatureValidator,
+            CteXmlValidator cteXmlValidator, CteSoapTransport soapTransport,
+            CteResponseParser responseParser, CteFiscalOperationGuard operationGuard) {
+        this.sefazProperties = sefazProperties;
+        this.xmlSignatureValidator = xmlSignatureValidator;
+        this.cteXmlValidator = cteXmlValidator;
+        this.soapTransport = soapTransport;
+        this.responseParser = responseParser;
+        this.operationGuard = operationGuard;
+    }
 
     /**
      * Envia um CT-e para autorização junto à SEFAZ.
@@ -51,6 +55,8 @@ public class CteClient {
      * @return retorno bruto da SEFAZ com o resultado do processamento
      */
     public String autorizarCte(String xmlCte) {
+
+        operationGuard.exigirAutorizacaoPermitida();
 
         if (xmlCte == null || xmlCte.isBlank()) {
             throw new IllegalArgumentException(
@@ -75,15 +81,21 @@ public class CteClient {
                 );
             }
 
+            // Valida o leiaute oficial e a assinatura antes da transmissão.
+            cteXmlValidator.validarCte(xmlCte);
+            xmlSignatureValidator.validar(xmlCte, "infCte");
+
             /*
              * 3. Monta o envelope SOAP contendo o XML do CT-e
              */
-            String soapRequest = montarRequisicaoSoap(xmlCte);
+            String soapRequest = SoapEnvelopeHelper.wrapCteSoap12(xmlCte, CteSoapService.AUTORIZACAO);
 
             /*
              * 4. Envia a requisição via HTTPS para o WebService de Recepção da SEFAZ
              */
-            String resposta = enviarParaSefaz(soapRequest);
+            String resposta = soapTransport.enviar(
+                    soapRequest, sefazProperties.getCte().getEndpoints().getAutorizacao(),
+                    CteSoapService.AUTORIZACAO, timeout);
 
             /*
              * 5. Retorna a resposta bruta (XML de retorno da SEFAZ)
@@ -119,13 +131,8 @@ public class CteClient {
         }
 
         try {
-            /*
-             * 2. Extrai o tipo de ambiente (tpAmb) direto da chave de acesso.
-             * O 35º dígito da chave indica o ambiente:
-             * '1' = Produção
-             * '2' = Homologação
-             */
-            String tpAmb = String.valueOf(chaveAcesso.charAt(34));
+            // tpAmb pertence ao contexto da operação, não faz parte da chave de acesso.
+            String tpAmb = sefazProperties.getCte().ambienteCte().codigo();
 
             /*
              * 3. Monta o XML de consulta (consSitCTe v4.00)
@@ -138,15 +145,19 @@ public class CteClient {
                     </consSitCTe>
                     """.formatted(tpAmb, chaveAcesso).trim();
 
+            cteXmlValidator.validarConsulta(xmlConsulta);
+
             /*
              * 4. Envelopa o XML da consulta dentro da estrutura SOAP 1.2
              */
-            String soapRequest = montarRequisicaoSoap(xmlConsulta);
+            String soapRequest = SoapEnvelopeHelper.wrapCteSoap12(xmlConsulta, CteSoapService.CONSULTA);
 
             /*
              * 5. Transmite para o WebService de Consulta da SEFAZ
              */
-            return enviarParaSefaz(soapRequest);
+            return soapTransport.enviar(
+                    soapRequest, sefazProperties.getCte().getEndpoints().getConsulta(),
+                    CteSoapService.CONSULTA, timeout);
 
         } catch (IllegalArgumentException e) {
             throw e;
@@ -159,118 +170,41 @@ public class CteClient {
     }
 
     /**
-     * Solicita o cancelamento de um CT-e já autorizado.
-     *
-     * @param chaveAcesso chave de acesso do CT-e (44 dígitos)
-     * @param justificativa motivo do cancelamento (mínimo 15 caracteres)
-     * @return retorno bruto da SEFAZ com o resultado do cancelamento
-     */
-    public String cancelarCte(String chaveAcesso, String justificativa) {
-
-        // 1. Validação da Chave de Acesso
-        if (chaveAcesso == null || !chaveAcesso.matches("\\d{44}")) {
-            throw new IllegalArgumentException(
-                    "A chave de acesso deve conter exatamente 44 dígitos numéricos."
-            );
-        }
-
-        // 2. Validação da Justificativa (Mínimo de 15 caracteres exigido pela SEFAZ)
-        if (justificativa == null || justificativa.trim().length() < 15) {
-            throw new IllegalArgumentException(
-                    "A justificativa de cancelamento deve conter no mínimo 15 caracteres."
-            );
-        }
-
-        try {
-            // 3. Extrai o tipo de ambiente (tpAmb) do 35º dígito da chave (índice 34)
-            String tpAmb = String.valueOf(chaveAcesso.charAt(34));
-            
-            // O CNPJ do emitente pode ser extraído diretamente da chave (posições 6 a 19 - índices 6 a 20)
-            String cnpjEmitente = chaveAcesso.substring(6, 20);
-
-            // Identificador do evento segue o padrão: ID + tipo_evento (110111 = Cancelamento) + chave + lote (ex: 01)
-            String idEvento = "ID110111" + chaveAcesso + "01";
-            
-            // Data e hora atual no formato padrão exigido pela SEFAZ (AAAA-MM-DDThh:mm:ssTZD)
-            String dhEvento = java.time.OffsetDateTime.now().format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-
-            // 4. Monta o XML do Evento de Cancelamento (Layout v4.00)
-            String xmlEvento = """
-                    <envEvento versao="4.00" xmlns="http://www.portalfiscal.inf.br/cte">
-                        <idLote>1</idLote>
-                        <evento versao="4.00">
-                            <infEvento Id="%s">
-                                <tpAmb>%s</tpAmb>
-                                <cOrgao>%s</cOrgao>
-                                <CNPJ>%s</CNPJ>
-                                <chCTe>%s</chCTe>
-                                <dhEvento>%s</dhEvento>
-                                <tpEvento>110111</tpEvento>
-                                <nSeqEvento>1</nSeqEvento>
-                                <detEvento versao="4.00">
-                                    <evCancCTe versao="4.00">
-                                        <descEvento>Cancelamento</descEvento>
-                                        <nProt>NUMERO_DO_PROTOCOLO_DE_AUTORIZACAO</nProt>
-                                        <xJust>%s</xJust>
-                                    </evCancCTe>
-                                </detEvento>
-                            </infEvento>
-                        </evento>
-                    </envEvento>
-                    """.formatted(
-                            idEvento,
-                            tpAmb,
-                            chaveAcesso.substring(0, 2), // cOrgao (2 primeiros dígitos da chave)
-                            cnpjEmitente,
-                            chaveAcesso,
-                            dhEvento,
-                            justificativa.trim()
-                    ).trim();
-
-            /*
-             * Nota importante: Na prática, a tag <infEvento> e o <evento> precisam ser assinados
-             * digitalmente com o Certificado A1 antes de serem enviados à SEFAZ. 
-             * Se o xmlEvento for enviado puro, a SEFAZ rejeitará por falta de assinatura.
-             */
-
-            // 5. Encapsula o XML do evento no Envelope SOAP 1.2
-            String soapRequest = montarRequisicaoSoap(xmlEvento);
-
-            // 6. Transmite para o WebService de Recepção de Eventos da SEFAZ
-            return enviarParaSefaz(soapRequest);
-
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CteException(
-                    "Erro ao solicitar cancelamento do CT-e na SEFAZ.",
-                    e
-            );
-        }
-    }
-
-    /**
      * Transmite um evento CT-e que já foi montado e assinado digitalmente.
      *
      * @param xmlEventoAssinado XML do evento contendo a assinatura XMLDSig
      * @return retorno bruto da SEFAZ
      */
     public String enviarEvento(String xmlEventoAssinado) {
+        operationGuard.exigirCancelamentoPermitido();
         if (xmlEventoAssinado == null || xmlEventoAssinado.isBlank()) {
             throw new IllegalArgumentException("XML do evento assinado não pode ser vazio.");
         }
-        if (!xmlEventoAssinado.contains("<ds:Signature") && !xmlEventoAssinado.contains("<Signature")) {
-            throw new IllegalArgumentException("XML do evento não contém assinatura digital.");
-        }
-
         try {
             parseXml(xmlEventoAssinado);
-            return enviarParaSefaz(montarRequisicaoSoap(xmlEventoAssinado));
+            cteXmlValidator.validarEvento(xmlEventoAssinado);
+            xmlSignatureValidator.validar(xmlEventoAssinado, "infEvento");
+            return soapTransport.enviar(
+                    SoapEnvelopeHelper.wrapCteSoap12(xmlEventoAssinado, CteSoapService.EVENTO),
+                    sefazProperties.getCte().getEndpoints().getEvento(),
+                    CteSoapService.EVENTO, timeout);
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
             throw new CteException("Erro ao transmitir evento do CT-e para a SEFAZ.", e);
         }
+    }
+
+    public CteAutorizacaoResultado autorizarCteComResultado(String xmlCte) {
+        return responseParser.parseAutorizacao(autorizarCte(xmlCte));
+    }
+
+    public CteConsultaResultado consultarCteComResultado(String chaveAcesso) {
+        return responseParser.parseConsulta(consultarCte(chaveAcesso));
+    }
+
+    public CteEventoResultado enviarEventoComResultado(String xmlEventoAssinado) {
+        return responseParser.parseEvento(enviarEvento(xmlEventoAssinado));
     }
 
     /**
@@ -360,118 +294,4 @@ public class CteClient {
                 );
     }
 
-    /**
-     * Monta a requisição SOAP.
-     *
-     * IMPORTANTE:
-     * A estrutura abaixo é uma base.
-     * O namespace e a operação precisam ser ajustados
-     * conforme o WebService da SEFAZ utilizado.
-     */
-    private String montarRequisicaoSoap(String xmlCte) {
-
-        return """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <soap12:Envelope
-                    xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-
-                    <soap12:Header/>
-
-                    <soap12:Body>
-
-                        <cteDadosMsg>
-
-                            %s
-
-                        </cteDadosMsg>
-
-                    </soap12:Body>
-
-                </soap12:Envelope>
-                """.formatted(xmlCte);
-    }
-
-    /**
-     * Executa a chamada HTTP/SOAP para a SEFAZ.
-     *
-     * @param soapRequest envelope SOAP montado no formato XML
-     * @return retorno bruto em XML vindo da SEFAZ
-     */
-    private String enviarParaSefaz(String soapRequest) {
-        if (soapRequest == null || soapRequest.isBlank()) {
-            throw new IllegalArgumentException("O payload SOAP não pode ser nulo ou vazio.");
-        }
-
-        try {
-            // 1. Configura o contexto SSL com o Certificado Digital A1 (.pfx / .p12)
-            SSLContext sslContext = criarSSLContext();
-
-            // 2. Abre a conexão HTTPS com a URL do WebService da SEFAZ
-            URL url = new URL(this.urlWebservice);
-            HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-
-            conn.setSSLSocketFactory(sslContext.getSocketFactory());
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setConnectTimeout(this.timeout);
-            conn.setReadTimeout(this.timeout);
-
-            // 3. Define os cabeçalhos do SOAP 1.2
-            conn.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8");
-
-            // 4. Envia o envelope SOAP
-            byte[] postData = soapRequest.getBytes(StandardCharsets.UTF_8);
-            conn.setRequestProperty("Content-Length", String.valueOf(postData.length));
-
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(postData, 0, postData.length);
-                os.flush();
-            }
-
-            // 5. Captura o status da resposta HTTP (200 = OK)
-            int responseCode = conn.getResponseCode();
-            InputStream is = (responseCode >= 200 && responseCode < 300)
-                    ? conn.getInputStream()
-                    : conn.getErrorStream();
-
-            // 6. Lê e retorna a resposta XML da SEFAZ
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                StringBuilder resposta = new StringBuilder();
-                String linha;
-                while ((linha = br.readLine()) != null) {
-                    resposta.append(linha);
-                }
-                return resposta.toString();
-            }
-
-        } catch (Exception e) {
-            throw new CteException("Falha na comunicação HTTPS/SOAP com a SEFAZ: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Cria e inicializa o SSLContext (TLSv1.2) utilizando o arquivo do certificado digital A1.
-     */
-    private SSLContext criarSSLContext() throws Exception {
-        // Carrega o repositório PKCS12 (.pfx / .p12)
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        try (InputStream ksStream = new FileInputStream(this.certificadoPath)) {
-            keyStore.load(ksStream, this.certificadoSenha.toCharArray());
-        }
-
-        // Inicializa o KeyManager responsável por apresentar o certificado do cliente à SEFAZ
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(keyStore, this.certificadoSenha.toCharArray());
-
-        // Inicializa o TrustManager nativo do Java para validação da cadeia de certificação
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init((KeyStore) null);
-
-        // Força a utilização do protocolo TLSv1.2 exigido pela SEFAZ
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-
-        return sslContext;
-    }
 }

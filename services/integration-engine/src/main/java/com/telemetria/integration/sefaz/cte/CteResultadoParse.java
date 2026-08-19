@@ -38,7 +38,9 @@ public class CteResultadoParse {
      * </ul>
      */
     public boolean isSucesso() {
-        return "100".equals(cStat) || "101".equals(cStat) || "103".equals(cStat);
+        return "100".equals(cStat) || "101".equals(cStat) || "104".equals(cStat)
+                || "107".equals(cStat) || "113".equals(cStat)
+                || "135".equals(cStat) || "136".equals(cStat) || "155".equals(cStat);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.telemetria.integration.sefaz.cte;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.telemetria.integration.config.SefazProperties;
 import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteClient;
 import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteRequest;
 import com.telemetria.integration.sefaz.cte.infosimples.InfosimplesCteResponse;
@@ -13,23 +13,24 @@ public class CteConsultaService {
     private final CteConsultaBuilder consultaBuilder;
     private final CteClient cteClient;
     private final InfosimplesCteClient infosimplesClient;
-
-    @Value("${sefaz.ambiente:2}") // 1=Produção, 2=Homologação
-    private String tpAmb;
+    private final SefazProperties sefazProperties;
 
     public CteConsultaService(CteConsultaBuilder consultaBuilder, 
                               CteClient cteClient, 
-                              InfosimplesCteClient infosimplesClient) {
+                              InfosimplesCteClient infosimplesClient,
+                              SefazProperties sefazProperties) {
         this.consultaBuilder = consultaBuilder;
         this.cteClient = cteClient;
         this.infosimplesClient = infosimplesClient;
+        this.sefazProperties = sefazProperties;
     }
 
     /**
      * Consulta SOAP leve diretamente na SEFAZ (Verifica apenas cStat/Situação).
      */
     public String consultarSituacaoSefaz(String chaveCte) {
-        String xmlConsulta = consultaBuilder.buildXmlConsulta(chaveCte, tpAmb);
+        String xmlConsulta = consultaBuilder.buildXmlConsulta(
+                chaveCte, sefazProperties.getCte().ambienteCte().codigo());
         return cteClient.consultarCte(xmlConsulta);
     }
 

@@ -108,8 +108,12 @@ public class XmlSigner {
     private KeyStore.PrivateKeyEntry carregarCertificado() throws Exception {
         String arquivo = sefazProperties.getCertificado().getArquivo();
         String senha = sefazProperties.getCertificado().getSenha();
-        KeyStore keyStore = certificadoLoader.carregarKeyStore(arquivo, senha);
-        char[] password = senha != null ? senha.toCharArray() : new char[0];
+        KeyStore keyStore = certificadoLoader.carregarKeyStore(
+                arquivo, senha, sefazProperties.getCertificado().getTipo());
+        String senhaChave = sefazProperties.getCertificado().getSenhaChave();
+        char[] password = (senhaChave == null || senhaChave.isBlank() ? senha : senhaChave) != null
+                ? (senhaChave == null || senhaChave.isBlank() ? senha : senhaChave).toCharArray()
+                : new char[0];
 
         Enumeration<String> aliases = keyStore.aliases();
         while (aliases.hasMoreElements()) {

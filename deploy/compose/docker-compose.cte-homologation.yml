@@ -1,0 +1,18 @@
+services:
+  integration-engine:
+    environment:
+      SPRING_PROFILES_ACTIVE: ${INTEGRATION_PROFILES:-docker,cte-homologation}
+      INTEGRATION_SIMULATION_ENABLED: "false"
+      SEFAZ_CERT_PATH: /run/secrets/sefaz-a1.p12
+      SEFAZ_TRUSTSTORE_PATH: /run/secrets/sefaz-truststore.p12
+    volumes:
+      - type: bind
+        source: ${SEFAZ_CERT_HOST_PATH:?Defina SEFAZ_CERT_HOST_PATH com caminho absoluto}
+        target: /run/secrets/sefaz-a1.p12
+        read_only: true
+      - type: bind
+        source: ${SEFAZ_TRUSTSTORE_HOST_PATH:?Defina SEFAZ_TRUSTSTORE_HOST_PATH com caminho absoluto}
+        target: /run/secrets/sefaz-truststore.p12
+        read_only: true
+    security_opt:
+      - no-new-privileges:true

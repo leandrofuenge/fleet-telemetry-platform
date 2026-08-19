@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 public class CertificadoLoader {
 
     public KeyStore carregarKeyStore(String caminhoCertificado, String senha) throws Exception {
+        return carregarKeyStore(caminhoCertificado, senha, "PKCS12");
+    }
+
+    public KeyStore carregarKeyStore(String caminhoCertificado, String senha, String tipo) throws Exception {
         if (caminhoCertificado == null || caminhoCertificado.isBlank()) {
             throw new IllegalArgumentException("Caminho do certificado digital não configurado.");
         }
@@ -19,7 +23,7 @@ public class CertificadoLoader {
             throw new IllegalArgumentException("Arquivo de certificado não encontrado: " + caminhoCertificado);
         }
 
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        KeyStore keyStore = KeyStore.getInstance(tipo == null || tipo.isBlank() ? "PKCS12" : tipo);
         char[] password = (senha != null) ? senha.toCharArray() : new char[0];
         try (InputStream in = new FileInputStream(file)) {
             keyStore.load(in, password);

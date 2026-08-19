@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: Integração SENATRAN/SERPRO
+  version: 1.0.0
+paths:
+  /api/integracoes/senatran/serpro/veiculos/consulta:
+    post:
+      summary: Consulta um veículo por placa e RENAVAM
+      security:
+        - internalApiKey: []
+      parameters:
+        - in: header
+          name: X-Correlation-ID
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VehicleQuery' }
+      responses:
+        '200': { description: Consulta concluída }
+        '400': { description: Placa ou RENAVAM inválido }
+        '401': { description: API key ausente ou inválida }
+        '503': { description: Integração indisponível ou não configurada }
+components:
+  securitySchemes:
+    internalApiKey:
+      type: apiKey
+      in: header
+      name: X-Integration-API-Key
+  schemas:
+    VehicleQuery:
+      type: object
+      required: [placa, renavam]
+      properties:
+        placa: { type: string, example: ABC1D23 }
+        renavam: { type: string, example: '12345678900' }

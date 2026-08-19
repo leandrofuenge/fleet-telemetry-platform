@@ -1,0 +1,33 @@
+spring:
+  config:
+    activate:
+      on-profile: cte-homologation
+
+integration:
+  simulation:
+    enabled: false
+
+sefaz:
+  cte:
+    ambiente: homologacao
+    versao: "4.00"
+    endpoints:
+      autorizacao: ${SEFAZ_CTE_AUTORIZACAO_URL}
+      consulta: ${SEFAZ_CTE_CONSULTA_URL}
+      evento: ${SEFAZ_CTE_EVENTO_URL}
+      status: ${SEFAZ_CTE_STATUS_URL}
+    operations:
+      authorization-enabled: ${SEFAZ_CTE_AUTHORIZATION_ENABLED:false}
+      cancellation-enabled: ${SEFAZ_CTE_CANCELLATION_ENABLED:false}
+      authorized-fiscal-test-data: ${SEFAZ_CTE_AUTHORIZED_FISCAL_TEST_DATA:false}
+  certificado:
+    arquivo: ${SEFAZ_CERT_PATH}
+    senha: ${SEFAZ_CERT_PASSWORD}
+    senha-chave: ${SEFAZ_CERT_KEY_PASSWORD:${SEFAZ_CERT_PASSWORD}}
+    tipo: ${SEFAZ_CERT_TYPE:PKCS12}
+  tls:
+    protocolo: ${SEFAZ_TLS_PROTOCOL:TLSv1.2}
+    truststore:
+      arquivo: ${SEFAZ_TRUSTSTORE_PATH:}
+      senha: ${SEFAZ_TRUSTSTORE_PASSWORD:}
+      tipo: ${SEFAZ_TRUSTSTORE_TYPE:PKCS12}

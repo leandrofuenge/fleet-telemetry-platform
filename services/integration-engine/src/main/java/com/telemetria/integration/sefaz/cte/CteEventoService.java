@@ -3,6 +3,7 @@ package com.telemetria.integration.sefaz.cte;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.telemetria.integration.config.SefazProperties;
 import com.telemetria.integration.security.XmlSigner;
 import com.telemetria.integration.sefaz.cte.evento.CteEventoBuilder;
 
@@ -12,17 +13,17 @@ public class CteEventoService {
     private final CteEventoBuilder eventoBuilder;
     private final XmlSigner xmlSigner;
     private final CteClient cteClient;
-
-    @Value("${sefaz.ambiente:2}")
-    private String tpAmb;
+    private final SefazProperties sefazProperties;
 
     @Value("${sefaz.uf-codigo:51}") // 51 = MT
     private String cUF;
 
-    public CteEventoService(CteEventoBuilder eventoBuilder, XmlSigner xmlSigner, CteClient cteClient) {
+    public CteEventoService(CteEventoBuilder eventoBuilder, XmlSigner xmlSigner, CteClient cteClient,
+            SefazProperties sefazProperties) {
         this.eventoBuilder = eventoBuilder;
         this.xmlSigner = xmlSigner;
         this.cteClient = cteClient;
+        this.sefazProperties = sefazProperties;
     }
 
     /**
@@ -36,7 +37,8 @@ public class CteEventoService {
      */
     public String cancelarCte(String chaveCte, String nProt, String xJust, String cnpjEmissor) {
         // 1. Constrói o XML do evento
-        String xmlEventoBruto = eventoBuilder.buildXmlCancelamento(chaveCte, nProt, xJust, cnpjEmissor, tpAmb, cUF);
+        String xmlEventoBruto = eventoBuilder.buildXmlCancelamento(chaveCte, nProt, xJust, cnpjEmissor,
+                sefazProperties.getCte().ambienteCte().codigo(), cUF);
 
         // 2. Assina digitalmente o nó <infEvento> com a chave privada do certificado A1
         String xmlEventoAssinado = xmlSigner.assinarXml(xmlEventoBruto, "infEvento");

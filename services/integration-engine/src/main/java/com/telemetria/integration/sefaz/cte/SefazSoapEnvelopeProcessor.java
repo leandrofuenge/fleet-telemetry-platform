@@ -18,6 +18,7 @@ public class SefazSoapEnvelopeProcessor implements Processor {
 
     private static final Logger log = LoggerFactory.getLogger(SefazSoapEnvelopeProcessor.class);
     private final SefazProperties sefazProperties;
+    private final CteXmlValidator cteXmlValidator;
 
     private static final Map<String, String> UF_IBGE_MAP = Map.ofEntries(
             Map.entry("RO", "11"), Map.entry("AC", "12"), Map.entry("AM", "13"), Map.entry("RR", "14"),
@@ -29,8 +30,9 @@ public class SefazSoapEnvelopeProcessor implements Processor {
             Map.entry("MT", "51"), Map.entry("GO", "52"), Map.entry("DF", "53")
     );
 
-    public SefazSoapEnvelopeProcessor(SefazProperties sefazProperties) {
+    public SefazSoapEnvelopeProcessor(SefazProperties sefazProperties, CteXmlValidator cteXmlValidator) {
         this.sefazProperties = sefazProperties;
+        this.cteXmlValidator = cteXmlValidator;
     }
 
     @Override
@@ -46,7 +48,8 @@ public class SefazSoapEnvelopeProcessor implements Processor {
         String ambienteCfg = (request.getAmbiente() != null) 
                 ? request.getAmbiente() 
                 : sefazProperties.getCte().getAmbiente();
-        String tpAmb = ("producao".equalsIgnoreCase(ambienteCfg) || "1".equals(ambienteCfg)) ? "1" : "2";
+        CteAmbiente ambiente = CteAmbiente.from(ambienteCfg);
+        String tpAmb = ambiente.codigo();
 
         String versao = sefazProperties.getCte().getVersao();
 
@@ -54,7 +57,7 @@ public class SefazSoapEnvelopeProcessor implements Processor {
         exchange.setProperty("SEFAZ_UF", uf);
         exchange.setProperty("SEFAZ_CUF", cUF);
         exchange.setProperty("SEFAZ_TP_AMB", tpAmb);
-        exchange.setProperty("SEFAZ_AMBIENTE_NOME", "1".equals(tpAmb) ? "PRODUCAO" : "HOMOLOGACAO");
+        exchange.setProperty("SEFAZ_AMBIENTE_NOME", ambiente.name());
 
         // Constrói XML do pedido interno de status do CT-e
         String innerXml = """
@@ -65,18 +68,21 @@ public class SefazSoapEnvelopeProcessor implements Processor {
                 </consStatServCTe>
                 """.formatted(versao, tpAmb, cUF).trim();
 
+        cteXmlValidator.validarStatus(innerXml);
+
         // Envelopa o XML no contexto oficial SOAP 1.2
-        String soapXml = SoapEnvelopeHelper.wrapCteSoap12(innerXml);
+        String soapXml = SoapEnvelopeHelper.wrapCteSoap12(innerXml, CteSoapService.STATUS);
         String soapXmlBase64 = Base64Utils.encode(soapXml);
 
         exchange.setProperty("SEFAZ_XML_ENVIO_SOAP", soapXml);
         exchange.setProperty("SEFAZ_XML_ENVIO_SOAP_BASE64", soapXmlBase64);
 
-        exchange.getIn().setHeader(Exchange.CONTENT_TYPE, "application/soap+xml; charset=utf-8");
+        exchange.getIn().setHeader(Exchange.CONTENT_TYPE,
+                "application/soap+xml; charset=utf-8; action=\"" + CteSoapService.STATUS.soapAction() + "\"");
         exchange.getIn().setHeader(Exchange.HTTP_METHOD, "POST");
         exchange.getIn().setBody(soapXml);
 
         log.info("[Camel SefazProcessor] Contexto SOAP 1.2 CT-e gerado para UF: {} (IBGE: {}), Ambiente: {} (Base64 length: {})",
-                uf, cUF, "1".equals(tpAmb) ? "PRODUCAO" : "HOMOLOGACAO", soapXmlBase64.length());
+                uf, cUF, ambiente.name(), soapXmlBase64.length());
     }
 }

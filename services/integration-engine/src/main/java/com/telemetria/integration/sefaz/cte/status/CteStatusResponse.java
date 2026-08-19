@@ -10,6 +10,7 @@ public class CteStatusResponse {
     private String codigo;
     private String mensagem;
     private Long tempoRespostaMs;
+    private boolean simulado;
     private String xmlEnvioSoap;
     private String xmlEnvioSoapBase64;
     private String xmlRetornoSoap;
@@ -91,6 +92,14 @@ public class CteStatusResponse {
 
     public void setTempoRespostaMs(Long tempoRespostaMs) {
         this.tempoRespostaMs = tempoRespostaMs;
+    }
+
+    public boolean isSimulado() {
+        return simulado;
+    }
+
+    public void setSimulado(boolean simulado) {
+        this.simulado = simulado;
     }
 
     public String getXmlEnvioSoap() {

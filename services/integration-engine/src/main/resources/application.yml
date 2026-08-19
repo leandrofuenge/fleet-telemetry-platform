@@ -15,12 +15,22 @@ sefaz:
   cte:
     ambiente: ${SEFAZ_CTE_AMBIENTE:homologacao}
     versao: "4.00"
-    url-webservice: ${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}
-    status-servico:
-      url: ${SEFAZ_CTE_STATUS_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
+    endpoints:
+      autorizacao: ${SEFAZ_CTE_AUTORIZACAO_URL:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoSincV4}}
+      consulta: ${SEFAZ_CTE_CONSULTA_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeConsultaV4}
+      evento: ${SEFAZ_CTE_EVENTO_URL:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}}
+      status: ${SEFAZ_CTE_STATUS_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
   certificado:
     arquivo: ${SEFAZ_CERT_PATH:}
     senha: ${SEFAZ_CERT_PASSWORD:}
+    senha-chave: ${SEFAZ_CERT_KEY_PASSWORD:${SEFAZ_CERT_PASSWORD:}}
+    tipo: ${SEFAZ_CERT_TYPE:PKCS12}
+  tls:
+    protocolo: ${SEFAZ_TLS_PROTOCOL:TLSv1.2}
+    truststore:
+      arquivo: ${SEFAZ_TRUSTSTORE_PATH:}
+      senha: ${SEFAZ_TRUSTSTORE_PASSWORD:}
+      tipo: ${SEFAZ_TRUSTSTORE_TYPE:PKCS12}
 
 camel:
   springboot:
@@ -34,6 +44,7 @@ management:
         include:
           - health
           - info
+          - prometheus
   endpoint:
     health:
       show-details: always
@@ -42,6 +53,19 @@ infosimples:
   url-base: ${INFOSIMPLES_CTE_URL:https://api.infosimples.com/v2/consultas/receita-federal/cte}
   url-serpro-radar: ${INFOSIMPLES_SERPRO_RADAR_URL:https://api.infosimples.com/v2/consultas/serpro/radar/veiculo}
   token: ${INFOSIMPLES_TOKEN:}
+  serpro:
+    connect-timeout: ${INFOSIMPLES_SERPRO_CONNECT_TIMEOUT:3s}
+    read-timeout: ${INFOSIMPLES_SERPRO_READ_TIMEOUT:10s}
+    max-attempts: ${INFOSIMPLES_SERPRO_MAX_ATTEMPTS:3}
+    retry-delay: ${INFOSIMPLES_SERPRO_RETRY_DELAY:200ms}
+    unknown-status-blocks: ${INFOSIMPLES_SERPRO_UNKNOWN_STATUS_BLOCKS:true}
+    blocking-statuses: ${INFOSIMPLES_SERPRO_BLOCKING_STATUSES:AUTUADO,PENDENTE}
+    circuit-failure-threshold: ${INFOSIMPLES_SERPRO_CIRCUIT_FAILURE_THRESHOLD:5}
+    circuit-open-duration: ${INFOSIMPLES_SERPRO_CIRCUIT_OPEN_DURATION:30s}
+    requests-per-minute: ${INFOSIMPLES_SERPRO_REQUESTS_PER_MINUTE:60}
+    cache-ttl: ${INFOSIMPLES_SERPRO_CACHE_TTL:5m}
+    cache-max-entries: ${INFOSIMPLES_SERPRO_CACHE_MAX_ENTRIES:1000}
+    api-key: ${INFOSIMPLES_SERPRO_INTERNAL_API_KEY:}
 
 external-integrations:
   antt:

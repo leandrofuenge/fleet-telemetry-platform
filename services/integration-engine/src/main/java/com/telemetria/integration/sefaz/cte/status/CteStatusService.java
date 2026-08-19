@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.telemetria.integration.config.SefazProperties;
+import com.telemetria.integration.sefaz.cte.CteAmbiente;
 
 @Service("cteStatusService")
 public class CteStatusService {
@@ -23,17 +24,18 @@ public class CteStatusService {
     public CteStatusResponse consultar(CteStatusRequest request) {
         long inicio = System.currentTimeMillis();
         String uf = (request != null && request.getUf() != null) ? request.getUf() : "MT";
-        String ambiente = (request != null && request.getAmbiente() != null) 
+        String ambienteInformado = (request != null && request.getAmbiente() != null)
                 ? request.getAmbiente() 
                 : sefazProperties.getCte().getAmbiente();
+        CteAmbiente ambiente = CteAmbiente.from(ambienteInformado);
 
         log.info("Consultando status SEFAZ CT-e para UF: {} no ambiente: {} via endpoint: {}", 
-                uf, ambiente, sefazProperties.getCte().getStatusServico().getUrl());
+                uf, ambiente.nomeConfiguracao(), sefazProperties.getCte().getEndpoints().getStatus());
 
         long tempoResposta = System.currentTimeMillis() - inicio;
 
-        return new CteStatusResponse(
-                ambiente,
+        CteStatusResponse response = new CteStatusResponse(
+                ambiente.nomeConfiguracao(),
                 uf,
                 simulationEnabled,
                 simulationEnabled ? "107" : "000",
@@ -42,5 +44,7 @@ public class CteStatusService {
                         : "Status não consultado: integração externa deve ser executada pela rota SEFAZ",
                 tempoResposta
         );
+        response.setSimulado(simulationEnabled);
+        return response;
     }
 }

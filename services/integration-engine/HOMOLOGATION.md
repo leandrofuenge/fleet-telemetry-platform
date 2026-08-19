@@ -27,16 +27,64 @@ de cada órgão. O adaptador não fabrica respostas quando o serviço não está
 ### SEFAZ CT-e
 
 - Certificado A1 de homologação e respectiva cadeia de confiança.
-- URLs por UF, ambiente e operação.
-- Schemas XSD oficiais versionados.
 - Massa de testes para autorização, consulta e eventos.
-- Validação da assinatura XMLDSig contra o autorizador.
+- Credenciamento e liberação de rede perante o autorizador da UF.
+
+#### Pacote pré-pronto para homologação CT-e
+
+O perfil `cte-homologation` valida no início os endpoints HTTPS por operação, o
+ambiente, certificado A1, truststore, senhas, XMLDSig e XSD oficiais. Para executar
+sem gravar certificados na imagem ou no repositório:
+
+1. Copie `services/integration-engine/cte-homologation.env.example` para
+   `.env.cte-homologation` (arquivo não versionado).
+2. Informe caminhos absolutos do host em `SEFAZ_CERT_HOST_PATH` e
+   `SEFAZ_TRUSTSTORE_HOST_PATH`, além das senhas e URLs reais de homologação.
+3. Valide o Compose com
+   `docker compose --env-file .env.cte-homologation -f docker-compose.yml -f docker-compose.cte-homologation.yml config`.
+4. Suba o serviço usando os mesmos argumentos e acrescente
+   `up --build integration-engine`.
+5. Execute
+   `powershell -ExecutionPolicy Bypass -File services/integration-engine/scripts/smoke-cte-homologation.ps1`.
+
+O override monta certificado e truststore separadamente em `/run/secrets`, somente
+para leitura, e habilita `no-new-privileges`. O smoke test consulta somente health e
+status do serviço; ele falha se detectar simulação e não transmite CT-e ou evento.
+Em servidores Linux, os arquivos também precisam ter proprietário/permissões que
+permitam leitura pelo usuário não-root do contêiner. Senhas devem vir do cofre de
+segredos da plataforma, nunca do arquivo versionado.
+
+Emissão/autorização e cancelamento permanecem bloqueados por padrão, inclusive com
+o perfil ativo. A liberação exige simultaneamente certificado A1 válido, confirmação
+da massa fiscal autorizada (`SEFAZ_CTE_AUTHORIZED_FISCAL_TEST_DATA=true`) e a flag da
+operação (`SEFAZ_CTE_AUTHORIZATION_ENABLED=true` ou
+`SEFAZ_CTE_CANCELLATION_ENABLED=true`). Consulta e status não dependem dessas flags.
 
 ### SENATRAN/SERPRO
 
 - Decisão formal entre API oficial SERPRO e fornecedor InfoSimples.
 - Credenciamento, contrato, token/certificado e catálogo autorizado.
 - Exemplos oficiais de request, response e códigos de erro.
+
+#### Pacote pré-pronto para homologação
+
+O pacote `com.telemetria.integration.senatran.serpro` possui perfil fail-fast,
+endpoint protegido, health indicator, métricas, cache anonimizado, retry, circuit
+breaker, rate limit e contrato OpenAPI. Para ativar:
+
+1. Copie `serpro-homologation.env.example` para um arquivo `.env` não versionado ou
+   cadastre as mesmas chaves no cofre de segredos.
+2. Substitua apenas `INFOSIMPLES_SERPRO_RADAR_URL`, `INFOSIMPLES_TOKEN` e
+   `INFOSIMPLES_SERPRO_INTERNAL_API_KEY`.
+3. Ative `SPRING_PROFILES_ACTIVE=docker,homologation` (ou
+   `INTEGRATION_PROFILES=docker,homologation` no Compose).
+4. Suba com `docker compose up --build integration-engine`.
+5. Verifique `/actuator/health`, `/actuator/prometheus` e `/openapi-serpro.yaml`.
+6. Execute `scripts/smoke-serpro-homologation.ps1` com uma massa autorizada.
+
+O perfil `homologation` recusa inicialização quando uma variável obrigatória está
+ausente, contém placeholder, possui menos de 16 caracteres, quando os dois segredos
+são iguais ou quando o endpoint externo não é uma URL HTTPS absoluta.
 
 ### ANTT
 

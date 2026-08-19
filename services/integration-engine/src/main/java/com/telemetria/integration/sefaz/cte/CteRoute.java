@@ -68,9 +68,11 @@ public class CteRoute extends RouteBuilder {
         // Sub-rota para chamada HTTP / SOAP com mTLS
         from(ROUTE_CTE_HTTP_CALL)
             .routeId("sefaz-cte-http-call-route")
-            .setHeader(Exchange.HTTP_URI, simple(sefazProperties.getCte().getStatusServico().getUrl()))
+            .setHeader(Exchange.HTTP_URI, constant(sefazProperties.getCte().getEndpoints().getStatus().toString()))
             .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-            .setHeader(Exchange.CONTENT_TYPE, constant("application/soap+xml; charset=utf-8"))
+            .setHeader(Exchange.CONTENT_TYPE, constant(
+                    "application/soap+xml; charset=utf-8; action=\""
+                            + CteSoapService.STATUS.soapAction() + "\""))
             // Configura timeouts e conexao HTTP
             .setHeader("CamelHttpCharacterEncoding", constant("UTF-8"))
             .doTry()
