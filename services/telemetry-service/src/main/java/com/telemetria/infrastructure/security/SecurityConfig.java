@@ -52,6 +52,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v1/motoristas/**").hasAnyRole("OPERADOR", "GESTOR", "ADMIN", "SUPER_ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/motoristas/**").hasAnyRole("GESTOR", "ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/v1/usuarios/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/v1/integracoes/senatran/serpro/**")
+                    .hasAnyRole("OPERADOR", "GESTOR", "ADMIN", "SUPER_ADMIN")
 
                 // ===== ACTUATOR =====
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()

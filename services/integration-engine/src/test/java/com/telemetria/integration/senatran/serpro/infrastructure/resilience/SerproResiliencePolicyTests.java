@@ -1,9 +1,9 @@
 package com.telemetria.integration.senatran.serpro.infrastructure.resilience;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 class SerproResiliencePolicyTests {
     @Test

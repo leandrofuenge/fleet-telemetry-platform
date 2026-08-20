@@ -1,9 +1,4 @@
 package com.telemetria.integration.senatran.serpro.infrastructure.client;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-import com.telemetria.integration.senatran.serpro.infrastructure.resilience.SerproResiliencePolicy;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -19,6 +14,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
+import com.telemetria.integration.senatran.serpro.infrastructure.resilience.SerproResiliencePolicy;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 

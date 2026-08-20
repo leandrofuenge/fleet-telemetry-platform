@@ -1,0 +1,39 @@
+# Perfil NF-e: exige todos os endpoints e segredos do ambiente de homologação.
+spring:
+  config:
+    activate:
+      on-profile: nfe-homologation
+
+integration:
+  simulation:
+    enabled: false
+
+sefaz:
+  nfe:
+    ambiente: "2"
+    codigo-uf: ${SEFAZ_NFE_CODIGO_UF:51}
+    timeout-millis: ${SEFAZ_NFE_TIMEOUT_MILLIS:30000}
+    endpoints:
+      autorizacao: ${SEFAZ_NFE_AUTORIZACAO_URL}
+      ret-autorizacao: ${SEFAZ_NFE_RET_AUTORIZACAO_URL}
+      consulta: ${SEFAZ_NFE_CONSULTA_URL}
+      evento: ${SEFAZ_NFE_EVENTO_URL}
+      inutilizacao: ${SEFAZ_NFE_INUTILIZACAO_URL}
+      status-servico: ${SEFAZ_NFE_STATUS_SERVICO_URL}
+      distribuicao-dfe: ${SEFAZ_NFE_DISTRIBUICAO_DFE_URL}
+    operations:
+      authorization-enabled: ${SEFAZ_NFE_AUTHORIZATION_ENABLED:false}
+      event-enabled: ${SEFAZ_NFE_EVENT_ENABLED:false}
+      inutilization-enabled: ${SEFAZ_NFE_INUTILIZATION_ENABLED:false}
+      authorized-fiscal-test-data: ${SEFAZ_NFE_AUTHORIZED_FISCAL_TEST_DATA:false}
+  certificado:
+    arquivo: ${SEFAZ_CERT_PATH}
+    senha: ${SEFAZ_CERT_PASSWORD}
+    senha-chave: ${SEFAZ_CERT_KEY_PASSWORD:${SEFAZ_CERT_PASSWORD}}
+    tipo: ${SEFAZ_CERT_TYPE:PKCS12}
+  tls:
+    protocolo: ${SEFAZ_TLS_PROTOCOL:TLSv1.2}
+    truststore:
+      arquivo: ${SEFAZ_TRUSTSTORE_PATH:}
+      senha: ${SEFAZ_TRUSTSTORE_PASSWORD:}
+      tipo: ${SEFAZ_TRUSTSTORE_TYPE:PKCS12}

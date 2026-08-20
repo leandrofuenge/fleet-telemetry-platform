@@ -1,10 +1,10 @@
 package com.telemetria.integration.senatran.serpro.infrastructure.resilience;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-
 import java.time.Clock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 /** Circuit breaker e limitador de taxa locais, sem dependência do fornecedor. */
 @Component

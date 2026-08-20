@@ -1,7 +1,4 @@
 package com.telemetria.integration.senatran.serpro.api;
-import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
-import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
-
 import java.time.Instant;
 
 import org.slf4j.MDC;
@@ -9,6 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
 
 @RestControllerAdvice(assignableTypes = SerproConsultaController.class)
 public class SerproExceptionHandler {

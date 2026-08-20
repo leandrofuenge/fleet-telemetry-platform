@@ -1,11 +1,4 @@
 package com.telemetria.integration.senatran.serpro.application;
-import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
-import com.telemetria.integration.senatran.serpro.infrastructure.cache.SerproConsultaCache;
-import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -17,6 +10,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
+import com.telemetria.integration.senatran.serpro.infrastructure.cache.SerproConsultaCache;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 class SerproConsultaServiceTests {
     private SerproConsultaClient client;

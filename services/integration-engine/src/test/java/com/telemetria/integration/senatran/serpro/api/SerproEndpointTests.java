@@ -1,10 +1,4 @@
 package com.telemetria.integration.senatran.serpro.api;
-import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
-import com.telemetria.integration.senatran.serpro.application.SerproConsultaService;
-import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.telemetria.integration.senatran.serpro.application.SerproConsultaService;
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 class SerproEndpointTests {
     private SerproConsultaService service;

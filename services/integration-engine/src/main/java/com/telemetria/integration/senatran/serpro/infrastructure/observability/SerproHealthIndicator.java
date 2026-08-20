@@ -1,9 +1,9 @@
 package com.telemetria.integration.senatran.serpro.infrastructure.observability;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 @Component("serproRadar")
 public class SerproHealthIndicator implements HealthIndicator {

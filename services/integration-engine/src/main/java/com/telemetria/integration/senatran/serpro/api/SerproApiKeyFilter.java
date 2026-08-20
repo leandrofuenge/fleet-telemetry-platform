@@ -1,6 +1,4 @@
 package com.telemetria.integration.senatran.serpro.api;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -9,6 +7,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

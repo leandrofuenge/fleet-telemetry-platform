@@ -1,17 +1,17 @@
 package com.telemetria.integration.senatran.serpro.application;
-import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
-import com.telemetria.integration.senatran.serpro.infrastructure.cache.SerproConsultaCache;
-import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
-
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
+
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
+import com.telemetria.integration.senatran.serpro.infrastructure.cache.SerproConsultaCache;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 @Service
 public class SerproConsultaService {

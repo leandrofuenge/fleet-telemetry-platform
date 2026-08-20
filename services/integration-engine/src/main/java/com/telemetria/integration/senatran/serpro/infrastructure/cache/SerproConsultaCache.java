@@ -1,7 +1,4 @@
 package com.telemetria.integration.senatran.serpro.infrastructure.cache;
-import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
-import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 /** Cache em memória com chave irreversível para evitar placa/RENAVAM em dumps e métricas. */
 @Component
