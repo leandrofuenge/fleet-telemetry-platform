@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 @Service
 public class PisoMinimoService {

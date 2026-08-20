@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 import org.springframework.stereotype.Component;
 
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 /**
  * Construtor do XML para Eventos do CT-e v4.00 (Cancelamento, CC-e, etc.).

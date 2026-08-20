@@ -5,7 +5,7 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 /**
  * Serviço de orquestração do CIOT (Código Identificador da Operação de Transportes).

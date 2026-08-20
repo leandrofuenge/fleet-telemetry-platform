@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.telemetria.integration.config.SefazProperties;
-import com.telemetria.integration.sefaz.cte.CteAmbiente;
+import com.telemetria.integration.sefaz.cte.domain.CteAmbiente;
 
 @Service("cteStatusService")
 public class CteStatusService {

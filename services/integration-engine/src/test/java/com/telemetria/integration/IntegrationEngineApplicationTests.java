@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.telemetria.integration.datatransfer.Base64TransferRequest;
 import com.telemetria.integration.datatransfer.Base64TransferResponse;
 import com.telemetria.integration.datatransfer.DataTransferRoute;
-import com.telemetria.integration.sefaz.cte.CteRoute;
+import com.telemetria.integration.sefaz.cte.route.CteRoute;
 import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
 import com.telemetria.integration.sefaz.cte.status.CteStatusResponse;
 import com.telemetria.integration.util.Base64Utils;

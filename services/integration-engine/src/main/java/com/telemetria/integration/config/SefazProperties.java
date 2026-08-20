@@ -5,7 +5,7 @@ import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import com.telemetria.integration.sefaz.cte.CteAmbiente;
+import com.telemetria.integration.sefaz.cte.domain.CteAmbiente;
 
 @Component
 @ConfigurationProperties(prefix = "sefaz")

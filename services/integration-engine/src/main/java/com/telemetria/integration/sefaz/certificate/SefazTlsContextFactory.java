@@ -10,7 +10,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.config.SefazProperties;
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 /** Cria o contexto mTLS usando stores independentes para identidade e confiança. */
 @Component

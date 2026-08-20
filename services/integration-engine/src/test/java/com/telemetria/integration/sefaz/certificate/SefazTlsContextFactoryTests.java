@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.telemetria.integration.config.SefazProperties;
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 class SefazTlsContextFactoryTests {
 
