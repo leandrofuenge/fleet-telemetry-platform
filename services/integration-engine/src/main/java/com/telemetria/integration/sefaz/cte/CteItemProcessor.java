@@ -9,6 +9,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
+import com.telemetria.integration.sefaz.cte.util.HashUtils;
+
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -107,6 +109,23 @@ public class CteItemProcessor implements Processor {
             CteMetadata metadata =
                     extrairMetadata(document, root);
 
+            
+            CteContext context =
+                    new CteContext(xmlItem);
+
+            context.setXmlNormalizado(xmlProcessado);
+            context.setMetadata(metadata);
+            context.setHashXml(
+                    HashUtils.sha256(xmlProcessado)
+            );
+
+            exchange.setProperty(
+                    CteExchangeProperties.CTE_CONTEXT,
+                    context
+            );
+            
+            
+            
             /*
              * ==========================================================
              * 6. Guardar informações no Exchange

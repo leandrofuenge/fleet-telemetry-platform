@@ -1,11 +1,9 @@
 package com.telemetria.integration.sefaz.cte;
 
 /**
- * Exceção personalizada para capturar e tratar falhas de integração com a SEFAZ (CT-e).
+ * Exceção de domínio utilizada durante o processamento do CT-e.
  */
 public class CteException extends RuntimeException {
-
-    private static final long serialVersionUID = 1L;
 
     public CteException(String message) {
         super(message);
