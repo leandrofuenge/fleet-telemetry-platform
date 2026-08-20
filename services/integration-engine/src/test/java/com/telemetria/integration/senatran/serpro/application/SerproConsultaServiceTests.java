@@ -1,4 +1,10 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.application;
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.infrastructure.cache.SerproConsultaCache;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

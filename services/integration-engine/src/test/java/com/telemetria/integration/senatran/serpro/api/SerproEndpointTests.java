@@ -1,4 +1,9 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.api;
+import com.telemetria.integration.senatran.serpro.domain.InvalidVehicleQueryException;
+import com.telemetria.integration.senatran.serpro.application.SerproConsultaService;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

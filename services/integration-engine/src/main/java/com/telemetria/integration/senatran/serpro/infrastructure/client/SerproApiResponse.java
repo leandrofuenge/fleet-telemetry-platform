@@ -1,4 +1,4 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.infrastructure.client;
 
 import java.util.List;
 

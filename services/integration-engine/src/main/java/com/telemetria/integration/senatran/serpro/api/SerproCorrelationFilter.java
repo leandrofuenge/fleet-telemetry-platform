@@ -1,4 +1,4 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.api;
 
 import java.io.IOException;
 import java.util.UUID;

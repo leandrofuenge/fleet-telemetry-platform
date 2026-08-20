@@ -1,4 +1,5 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.infrastructure.resilience;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

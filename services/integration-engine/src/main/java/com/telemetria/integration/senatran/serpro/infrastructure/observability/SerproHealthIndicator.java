@@ -1,4 +1,5 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.infrastructure.observability;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;

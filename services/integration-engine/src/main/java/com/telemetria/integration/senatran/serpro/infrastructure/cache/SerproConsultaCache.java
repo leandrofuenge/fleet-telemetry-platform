@@ -1,4 +1,6 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.infrastructure.cache;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

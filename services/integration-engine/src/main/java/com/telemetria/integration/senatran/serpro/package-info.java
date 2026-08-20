@@ -1,6 +1,10 @@
 /**
  * Integração de consulta veicular SENATRAN/SERPRO via API RADAR da InfoSimples.
  *
+ * <p>Os tipos são organizados por responsabilidade: {@code api} expõe o endpoint,
+ * {@code application} coordena o caso de uso, {@code domain} contém os contratos e
+ * regras compartilhadas, e {@code infrastructure} concentra os adaptadores técnicos.
+ *
  * <p>Contrato de entrada: placa brasileira e RENAVAM com dígito verificador válido.
  * O token é exigido pelo fornecedor na query string e, por isso, a URI nunca deve ser
  * registrada em logs. O cliente aplica timeout, repetição apenas em HTTP 429, HTTP 5xx

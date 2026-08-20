@@ -1,4 +1,5 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.api;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

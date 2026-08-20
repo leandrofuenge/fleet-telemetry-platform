@@ -1,4 +1,10 @@
-package com.telemetria.integration.senatran.serpro;
+package com.telemetria.integration.senatran.serpro.infrastructure.client;
+import com.telemetria.integration.senatran.serpro.application.SerproConsultaClient;
+import com.telemetria.integration.senatran.serpro.domain.SerproIntegrationException;
+import com.telemetria.integration.senatran.serpro.infrastructure.config.SerproProperties;
+import com.telemetria.integration.senatran.serpro.infrastructure.resilience.SerproResiliencePolicy;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoRequest;
+import com.telemetria.integration.senatran.serpro.domain.SerproVeiculoResponse;
 
 import java.net.URI;
 import java.time.Duration;

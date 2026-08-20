@@ -6,7 +6,7 @@ import com.telemetria.integration.antt.rntrc.RntrcService;
 import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
 import com.telemetria.integration.sefaz.cte.status.CteStatusResponse;
 import com.telemetria.integration.sefaz.cte.status.CteStatusService;
-import com.telemetria.integration.senatran.serpro.SerproConsultaService;
+import com.telemetria.integration.senatran.serpro.application.SerproConsultaService;
 import com.telemetria.integration.workflow.domain.ViagemWorkflowRequest;
 import com.telemetria.integration.workflow.domain.ViagemWorkflowResponse;
 
