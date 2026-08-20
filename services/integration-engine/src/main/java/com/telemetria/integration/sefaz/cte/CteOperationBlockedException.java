@@ -1,7 +1,16 @@
 package com.telemetria.integration.sefaz.cte;
 
-/** Falha segura para operação fiscal ainda não autorizada operacionalmente. */
+import java.io.Serial;
+
+/**
+ * Exceção de regra de negócio disparada quando uma operação fiscal com alteração de estado no CT-e
+ * é bloqueada por travas de segurança (ex: flags de operação desativadas, massa de teste
+ * não autorizada ou certificado digital A1 expirado/inválido).
+ */
 public class CteOperationBlockedException extends CteException {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public CteOperationBlockedException(String message) {
         super(message);
@@ -9,5 +18,9 @@ public class CteOperationBlockedException extends CteException {
 
     public CteOperationBlockedException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public CteOperationBlockedException(Throwable cause) {
+        super(cause != null ? cause.getMessage() : null, cause);
     }
 }

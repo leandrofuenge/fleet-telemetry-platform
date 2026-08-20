@@ -1,11 +1,14 @@
 package com.telemetria.integration.sefaz.cte;
 
+import java.util.Map;
+
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Orquestrador completo para o ciclo de vida do CT-e (v4.00):
+ * Orquestrador para o ciclo de vida do CT-e (v4.00):
  * Emissão (Individual e Lote), Consultas (SEFAZ e Infosimples),
  * Eventos (Cancelamento) e Tratamento Global de Exceções.
  */
@@ -21,14 +24,24 @@ public class CteRouteBuilder extends RouteBuilder {
         // =========================================================================
         onException(Exception.class)
             .handled(true)
-            .to("log:erroCte?level=ERROR")
+            .to("log:erroCte?level=ERROR&showCaughtException=true")
             .to("direct:tratarErroCte");
 
         from("direct:tratarErroCte")
             .routeId("rota-tratamento-erro")
             .log("Tratando falha no processamento do CT-e: ${exception.message}")
-            .setHeader("Content-Type", constant("application/json"))
-            .setBody(simple("{\"status\": \"ERRO\", \"etapa\": \"INTEGRACAO_CTE\", \"mensagem\": \"${exception.message}\"}"));
+            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+            .process(exchange -> {
+                Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+                String msg = (cause != null && cause.getMessage() != null) ? cause.getMessage() : "Erro interno de integração";
+
+                // Retorna estrutura Map para o Jackson serializar em JSON seguro (evita erros com aspas e caracteres especiais no XML)
+                exchange.getIn().setBody(Map.of(
+                    "status", "ERRO",
+                    "etapa", "INTEGRACAO_CTE",
+                    "mensagem", msg
+                ));
+            });
 
         // =========================================================================
         // 2. EMISSÃO DE CT-E (INDIVIDUAL E EM LOTE)
@@ -42,11 +55,12 @@ public class CteRouteBuilder extends RouteBuilder {
             .bean("cteClient", "autorizarCte")
             .to("log:cteEnviado?level=INFO");
 
-        // Rota 2: Processamento em Lote (Arquivos XML no diretório de entrada)
-        from("file:data/cte/entrada?move=.processados&moveFailed=.erros")
+        // Rota 2: Processamento em Lote (Lê apenas XMLs no diretório de entrada)
+        from("file:data/cte/entrada?include=.*\\.xml$&move=.processados&moveFailed=.erros")
             .routeId("rota-lote-cte")
             .log("Arquivo em lote detectado: ${file:name}")
-            .split(xpath("//CTe")).streaming()
+            // Utiliza local-name() no XPath para garantir compatibilidade com o Namespace oficial CT-e (v4.00)
+            .split(xpath("//*[local-name()='CTe']")).streaming()
                 .bean("cteXmlValidator", "validarEstrutura")
                 .bean("cteClient", "autorizarCte")
                 .to("direct:salvarResultadoBanco")

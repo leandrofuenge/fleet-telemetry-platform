@@ -3,7 +3,9 @@ package com.telemetria.integration.sefaz.cte;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -19,9 +21,25 @@ import com.telemetria.integration.sefaz.cte.retorno.CteOperacao;
 import com.telemetria.integration.sefaz.cte.retorno.CteSoapFaultException;
 import com.telemetria.integration.sefaz.cte.retorno.CteStatusResultado;
 
-/** Parser seguro e específico para cada retorno SOAP CT-e 4.00. */
+/**
+ * Parser seguro e específico para cada retorno SOAP CT-e 4.00.
+ *
+ * <p><b>Observação:</b> {@link #primeiro(Node, String)} retorna apenas a
+ * primeira ocorrência de um elemento por nome na subárvore. Em fluxos com
+ * lote contendo múltiplos CT-e autorizados de uma vez, apenas o primeiro
+ * resultado seria considerado — este parser assume autorização/consulta de
+ * documento único.</p>
+ */
 @Component
 public class CteResponseParser {
+
+    /**
+     * Factory JAXP configurada uma única vez (features XXE não mudam entre chamadas)
+     * e reutilizada para criar um {@code DocumentBuilder} novo a cada parse — prática
+     * recomendada pelo próprio JAXP: a factory é segura para uso concorrente na criação
+     * de builders, desde que não seja reconfigurada depois da inicialização.
+     */
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = criarFactorySegura();
 
     public CteAutorizacaoResultado parseAutorizacao(String xml) {
         Document document = parse(xml);
@@ -120,20 +138,29 @@ public class CteResponseParser {
         return new CteResultadoParse(String.valueOf(result.codigo()), result.motivo(), result.protocolo());
     }
 
-    private Document parse(String xml) {
-        if (xml == null || xml.isBlank()) {
-            throw new CteException("Resposta XML da SEFAZ não pode ser vazia.");
-        }
+    private static DocumentBuilderFactory criarFactorySegura() {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
             factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             factory.setXIncludeAware(false);
             factory.setExpandEntityReferences(false);
-            Document document = factory.newDocumentBuilder().parse(
+            return factory;
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException("Não foi possível configurar o parser XML seguro do CT-e.", e);
+        }
+    }
+
+    private Document parse(String xml) {
+        if (xml == null || xml.isBlank()) {
+            throw new CteException("Resposta XML da SEFAZ não pode ser vazia.");
+        }
+        try {
+            Document document = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().parse(
                     new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
             Element fault = primeiro(document, "Fault");
             if (fault != null) {
@@ -172,18 +199,36 @@ public class CteResponseParser {
     }
 
     private int inteiro(Node contexto, String nome, int padrao) {
-        String value = texto(contexto, nome);
-        return value == null || value.isBlank() ? padrao : Integer.parseInt(value);
+        return converterInteiro(texto(contexto, nome), nome, padrao);
     }
 
     private int inteiroDireto(Element contexto, String nome, int padrao) {
-        String value = textoDireto(contexto, nome);
-        return value == null || value.isBlank() ? padrao : Integer.parseInt(value);
+        return converterInteiro(textoDireto(contexto, nome), nome, padrao);
     }
 
     private Integer inteiroOpcional(Node contexto, String nome) {
         String value = texto(contexto, nome);
-        return value == null || value.isBlank() ? null : Integer.valueOf(value);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new CteException("Campo '" + nome + "' com valor numérico inválido na resposta da SEFAZ: '"
+                    + value + "'.", e);
+        }
+    }
+
+    private int converterInteiro(String value, String nome, int padrao) {
+        if (value == null || value.isBlank()) {
+            return padrao;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new CteException("Campo '" + nome + "' com valor numérico inválido na resposta da SEFAZ: '"
+                    + value + "'.", e);
+        }
     }
 
     private String primeiroNaoVazio(String... values) {

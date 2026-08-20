@@ -1,5 +1,8 @@
 package com.telemetria.integration.sefaz.cte;
 
+import java.net.URI;
+import java.util.Optional;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,22 +28,23 @@ public class CteRoute extends RouteBuilder {
     @Override
     public void configure() {
 
-        // Tratamento global de exceções na rota
+        // 1. Tratamento Global de Exceções na Rota
         onException(Exception.class)
             .handled(true)
             .log("Erro capturado na rota Camel CT-e: ${exception.message}")
             .process("errorHandlingProcessor");
 
-        // Rota Principal de Consulta de Status do CT-e
+        // 2. Rota Principal de Consulta de Status do CT-e
         from(ROUTE_CTE_STATUS)
             .routeId("sefaz-cte-status-route")
             .process("auditLogProcessor")
-            .log("Iniciando orquestracao de status SEFAZ CT-e 4.00...")
+            .log("Iniciando orquestração de status SEFAZ CT-e 4.00...")
             .process("sefazSoapEnvelopeProcessor")
             .setProperty("SEFAZ_SKIP_HTTP", constant(simulationEnabled))
-            // Roteia para chamada externa ou bean de servico conforme configuracao
+            
+            // Roteamento condicional (Simulação vs Chamada Real SEFAZ)
             .choice()
-                .when(exchangeProperty("SEFAZ_SKIP_HTTP").isEqualTo("true"))
+                .when(exchangeProperty("SEFAZ_SKIP_HTTP").isEqualTo(true))
                     .log("Modo simulado ativo para SEFAZ CT-e")
                     .setBody(constant("""
                         <?xml version="1.0" encoding="utf-8"?>
@@ -52,7 +56,7 @@ public class CteRoute extends RouteBuilder {
                               <cStat>107</cStat>
                               <xMotivo>Servico em Operacao</xMotivo>
                               <cUF>51</cUF>
-                              <dhRecbto>2026-08-17T17:15:00-04:00</dhRecbto>
+                              <dhRecbto>2026-08-20T10:00:00-04:00</dhRecbto>
                               <tMed>1</tMed>
                             </retConsStatServCTe>
                           </soap12:Body>
@@ -65,23 +69,37 @@ public class CteRoute extends RouteBuilder {
             .process("auditLogProcessor")
             .log("Consulta de status CT-e finalizada com status: ${body.codigo} - ${body.mensagem}");
 
-        // Sub-rota para chamada HTTP / SOAP com mTLS
+        // 3. Sub-rota para Chamada HTTP / SOAP Externa
         from(ROUTE_CTE_HTTP_CALL)
             .routeId("sefaz-cte-http-call-route")
-            .setHeader(Exchange.HTTP_URI, constant(sefazProperties.getCte().getEndpoints().getStatus().toString()))
+            .process(this::prepararEndpointSefaz)
             .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-            .setHeader(Exchange.CONTENT_TYPE, constant(
-                    "application/soap+xml; charset=utf-8; action=\""
-                            + CteSoapService.STATUS.soapAction() + "\""))
-            // Configura timeouts e conexao HTTP
             .setHeader("CamelHttpCharacterEncoding", constant("UTF-8"))
             .doTry()
-                .toD("${header.CamelHttpUri}?sslContextParameters=#sefazSslContextParameters&connectTimeout=5000&socketTimeout=5000&throwExceptionOnFailure=false")
+                // bridgeEndpoint=true garante que o Camel preserve a URI definida no header Exchange.HTTP_URI
+                .toD("${header.SEFAZ_ENDPOINT_URL}?sslContextParameters=#sefazSslContextParameters&connectTimeout=5000&socketTimeout=5000&throwExceptionOnFailure=false&bridgeEndpoint=true")
             .doCatch(Exception.class)
                 .process(exchange -> {
                     Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-                    throw new CteException("Falha real na comunicação com o WebService SEFAZ.", cause);
+                    throw new CteException("Falha na comunicação HTTPS/SOAP com a SEFAZ: " + cause.getMessage(), cause);
                 })
             .end();
+    }
+
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+
+    private void prepararEndpointSefaz(Exchange exchange) {
+        URI endpointUri = Optional.ofNullable(sefazProperties.getCte())
+                .map(SefazProperties.Cte::getEndpoints)
+                .map(SefazProperties.Endpoints::getStatus)
+                .orElseThrow(() -> new CteException("Endpoint da SEFAZ para consulta de Status do CT-e não foi configurado em 'sefaz.cte.endpoints.status'."));
+
+        String endpointStr = endpointUri.toString();
+        exchange.getIn().setHeader("SEFAZ_ENDPOINT_URL", endpointStr);
+        exchange.getIn().setHeader(Exchange.HTTP_URI, endpointStr);
+        exchange.getIn().setHeader(Exchange.CONTENT_TYPE, 
+                "application/soap+xml; charset=utf-8; action=\"" + CteSoapService.STATUS.soapAction() + "\"");
     }
 }

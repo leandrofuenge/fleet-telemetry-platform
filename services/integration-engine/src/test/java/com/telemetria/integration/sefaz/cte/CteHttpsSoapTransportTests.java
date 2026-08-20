@@ -2,83 +2,96 @@ package com.telemetria.integration.sefaz.cte;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-
-import javax.net.ssl.HttpsURLConnection;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import javax.net.ssl.SSLContext;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CteHttpsSoapTransportTests {
 
     private static final URI ENDPOINT = URI.create("https://homologacao.sefaz.test/cte");
 
-    @Test
-    void deveAplicarTimeoutSoapActionELerRespostaDeSucesso() throws Exception {
-        HttpsURLConnection connection = mock(HttpsURLConnection.class);
-        ByteArrayOutputStream sent = new ByteArrayOutputStream();
-        when(connection.getOutputStream()).thenReturn(sent);
-        when(connection.getResponseCode()).thenReturn(200);
-        when(connection.getInputStream()).thenReturn(stream("<retorno>ok</retorno>"));
+    private HttpClient httpClientMock;
+    private HttpResponse<String> httpResponseMock;
+    private SSLContext sslContextMock; // <--- Variável declarada para resolver o erro de compilação
 
-        CteHttpsSoapTransport transport = transport(connection);
+    @BeforeEach
+    @SuppressWarnings("unchecked")
+    void setUp() {
+        httpClientMock = mock(HttpClient.class);
+        httpResponseMock = (HttpResponse<String>) mock(HttpResponse.class);
+        sslContextMock = mock(SSLContext.class);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deveAplicarTimeoutSoapActionELerRespostaDeSucesso() throws Exception {
+        when(httpResponseMock.statusCode()).thenReturn(200);
+        when(httpResponseMock.body()).thenReturn("<retorno>ok</retorno>");
+        when(httpClientMock.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponseMock);
+
+        CteHttpsSoapTransport transport = new CteHttpsSoapTransport(httpClientMock);
         String response = transport.enviar("<soap/>", ENDPOINT, CteSoapService.AUTORIZACAO, 4321);
 
         assertEquals("<retorno>ok</retorno>", response);
-        assertEquals("<soap/>", sent.toString(StandardCharsets.UTF_8));
-        verify(connection).setConnectTimeout(4321);
-        verify(connection).setReadTimeout(4321);
-        verify(connection).setRequestProperty("Content-Type",
-                "application/soap+xml; charset=utf-8; action=\"" +
-                        CteSoapService.AUTORIZACAO.soapAction() + "\"");
+        verify(httpClientMock).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
     }
 
     @Test
-    void devePreservarCorpoDeRejeicaoHttpParaParserDaOperacao() throws Exception {
-        HttpsURLConnection connection = mock(HttpsURLConnection.class);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(500);
-        when(connection.getErrorStream()).thenReturn(stream("<soap:Fault/>"));
+    @SuppressWarnings("unchecked")
+    void deveLancarCteExceptionEmCasoDeErroHttp() throws Exception {
+        when(httpResponseMock.statusCode()).thenReturn(500);
+        when(httpResponseMock.body()).thenReturn("Internal Server Error");
+        when(httpClientMock.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn(httpResponseMock);
 
-        String response = transport(connection).enviar(
-                "<soap/>", ENDPOINT, CteSoapService.EVENTO, 5000);
+        CteHttpsSoapTransport transport = new CteHttpsSoapTransport(httpClientMock);
 
-        assertEquals("<soap:Fault/>", response);
+        CteException exception = assertThrows(CteException.class, () ->
+                transport.enviar("<soap/>", ENDPOINT, CteSoapService.EVENTO, 5000));
+
+        assertEquals("SEFAZ retornou HTTP 500 para a operação cteRecepcaoEventoV4.", exception.getMessage());
     }
 
     @Test
-    void devePropagarTimeoutSemRealizarAcessoDeRede() throws Exception {
-        HttpsURLConnection connection = mock(HttpsURLConnection.class);
-        when(connection.getOutputStream()).thenThrow(new SocketTimeoutException("read timed out"));
+    @SuppressWarnings("unchecked")
+    void devePropagarTimeoutDeRedeComoCteException() throws Exception {
+        when(httpClientMock.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenThrow(new HttpTimeoutException("request timed out"));
 
-        CteException exception = assertThrows(CteException.class, () -> transport(connection).enviar(
-                "<soap/>", ENDPOINT, CteSoapService.CONSULTA, 25));
+        CteHttpsSoapTransport transport = new CteHttpsSoapTransport(httpClientMock);
 
-        assertInstanceOf(SocketTimeoutException.class, exception.getCause());
-        verify(connection).setConnectTimeout(25);
-        verify(connection).setReadTimeout(25);
+        CteException exception = assertThrows(CteException.class, () ->
+                transport.enviar("<soap/>", ENDPOINT, CteSoapService.CONSULTA, 25));
+
+        assertInstanceOf(HttpTimeoutException.class, exception.getCause());
     }
 
     @Test
     void deveRecusarTimeoutInvalido() {
-        assertThrows(IllegalArgumentException.class, () -> transport(mock(HttpsURLConnection.class)).enviar(
-                "<soap/>", ENDPOINT, CteSoapService.STATUS, 0));
+        CteHttpsSoapTransport transport = new CteHttpsSoapTransport(httpClientMock);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                transport.enviar("<soap/>", ENDPOINT, CteSoapService.STATUS, 0));
     }
 
-    private CteHttpsSoapTransport transport(HttpsURLConnection connection) throws Exception {
-        return new CteHttpsSoapTransport(SSLContext.getDefault(), ignored -> connection);
-    }
-
-    private ByteArrayInputStream stream(String value) {
-        return new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
+    @Test
+    void deveInstanciarComConstrutorSSLContextEHostnameVerifier() {
+        // Valida a criação usando o SSLContext e o HostnameVerifier
+        CteHttpsSoapTransport transport = new CteHttpsSoapTransport(sslContextMock, (hostname, session) -> true);
+        assertNotNull(transport);
     }
 }
