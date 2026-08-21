@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,12 +27,36 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
 
+    @org.springframework.beans.factory.annotation.Value("${security.transport.require-https:false}")
+    private boolean requireHttps;
+
+    @org.springframework.beans.factory.annotation.Value("${security.transport.hsts-enabled:true}")
+    private boolean hstsEnabled;
+
+    @org.springframework.beans.factory.annotation.Value("${security.transport.hsts-max-age-seconds:31536000}")
+    private long hstsMaxAgeSeconds;
+
+    @org.springframework.beans.factory.annotation.Value("${security.transport.hsts-include-subdomains:true}")
+    private boolean hstsIncludeSubdomains;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers
+                .contentTypeOptions(org.springframework.security.config.Customizer.withDefaults())
+                .frameOptions(frame -> frame.deny())
+                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                .httpStrictTransportSecurity(hsts -> {
+                    if (hstsEnabled) {
+                        hsts.includeSubDomains(hstsIncludeSubdomains)
+                            .maxAgeInSeconds(hstsMaxAgeSeconds);
+                    } else {
+                        hsts.disable();
+                    }
+                }))
             .authorizeHttpRequests(auth -> auth
                 // ========================================================
                 // ENDPOINTS PÚBLICOS (SEM AUTENTICAÇÃO)
@@ -93,6 +118,10 @@ public class SecurityConfig {
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
+        if (requireHttps) {
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        }
+
         return http.build();
     }
 
@@ -105,7 +134,9 @@ public class SecurityConfig {
             "http://localhost:8080",
             "http://localhost:8081",
             "http://127.0.0.1:8080",
-            "http://127.0.0.1:5173"
+            "http://127.0.0.1:5173",
+            "https://localhost:5173",
+            "https://localhost:8080"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));

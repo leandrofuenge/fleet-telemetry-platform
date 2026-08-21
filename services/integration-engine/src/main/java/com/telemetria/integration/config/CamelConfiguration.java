@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+import com.telemetria.integration.support.observability.CamelFlowLoggingNotifier;
+
 @Configuration
 public class CamelConfiguration {
 
@@ -20,7 +22,12 @@ public class CamelConfiguration {
     }
 
     @Bean
-    public CamelContextConfiguration contextConfiguration() {
+    public CamelFlowLoggingNotifier camelFlowLoggingNotifier() {
+        return new CamelFlowLoggingNotifier();
+    }
+
+    @Bean
+    public CamelContextConfiguration contextConfiguration(CamelFlowLoggingNotifier flowLoggingNotifier) {
         return new CamelContextConfiguration() {
             @Override
             public void beforeApplicationStart(CamelContext camelContext) {
@@ -34,6 +41,9 @@ public class CamelConfiguration {
 
                 // Ativa rastreamento de historico de mensagens
                 camelContext.setMessageHistory(true);
+
+                // Registra início, término, duração e falha de todas as rotas sem expor payloads.
+                camelContext.getManagementStrategy().addEventNotifier(flowLoggingNotifier);
             }
 
             @Override
