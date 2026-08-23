@@ -1,0 +1,101 @@
+package com.telemetria.integration.nfe;
+
+import java.rmi.RemoteException;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
+
+import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.util.AXIOMUtil;
+import org.apache.axis2.transport.http.HTTPConstants;
+
+import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
+import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.schemas.TInutNFe;
+import com.telemetria.integration.nfe.schemas.TRetInutNFe;
+import com.telemetria.integration.nfe.util.ObjetoUtil;
+import com.telemetria.integration.nfe.util.StubUtil;
+import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.XmlNfeUtil;
+import com.telemetria.integration.nfe.wsdl.NFeInutilizacao.NFeInutilizacao4Stub;
+
+import br.com.swconsultoria.certificado.exception.CertificadoException;
+import java.util.logging.Logger;
+
+/**
+ * Classe Responsavel por inutilizar uma Faixa de numeracao da Nfe.
+ *
+ * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
+ */
+class Inutilizar {
+
+    private static final Logger log = Logger.getLogger(Inutilizar.class.getName());
+
+    private Inutilizar() {
+    }
+
+    static TRetInutNFe inutiliza(ConfiguracoesNfe config, TInutNFe inutNFe, DocumentoEnum tipoDocumento, boolean validar)
+            throws NfeException {
+
+        try {
+
+            String xml = XmlNfeUtil.objectToXml(inutNFe, config.getEncode());
+            xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
+            xml = Assinar.assinaNfe(config, xml, AssinaturaEnum.INUTILIZACAO);
+
+            log.info("[XML-ENVIO]: " + xml);
+
+            if (validar) {
+                new Validar().validaXml(config, xml, ServicosEnum.INUTILIZACAO);
+            }
+
+            OMElement ome = AXIOMUtil.stringToOM(xml);
+
+            String url = WebServiceUtil.getUrl(config, tipoDocumento, ServicosEnum.INUTILIZACAO);
+            if (EstadosEnum.CE.equals(config.getEstado()) ) {
+                com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub.NfeDadosMsg dadosMsgCe =
+                        new  com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub.NfeDadosMsg();
+                dadosMsgCe.setExtraElement(ome);
+                com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub stubCe = new com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub(
+                        url);
+                StubUtil.configuraHttpClient(stubCe, config, url);
+
+                // Timeout
+                if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
+                    stubCe._getServiceClient().getOptions().setProperty(HTTPConstants.SO_TIMEOUT, config.getTimeout());
+                    stubCe._getServiceClient().getOptions().setProperty(HTTPConstants.CONNECTION_TIMEOUT, config.getTimeout());
+                }
+                com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub.NfeResultMsg resultCe = stubCe.nfeInutilizacaoNF(dadosMsgCe);
+
+                log.info("[XML-RETORNO]: " + resultCe.getExtraElement().toString());
+                return XmlNfeUtil.xmlToObject(resultCe.getExtraElement().toString(), TRetInutNFe.class);
+            } else{
+                NFeInutilizacao4Stub.NfeDadosMsg dadosMsg = new NFeInutilizacao4Stub.NfeDadosMsg();
+                dadosMsg.setExtraElement(ome);
+                NFeInutilizacao4Stub stub = new NFeInutilizacao4Stub(
+                        url);
+
+                StubUtil.configuraHttpClient(stub, config, url);
+
+                // Timeout
+                if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
+                    stub._getServiceClient().getOptions().setProperty(HTTPConstants.SO_TIMEOUT, config.getTimeout());
+                    stub._getServiceClient().getOptions().setProperty(HTTPConstants.CONNECTION_TIMEOUT, config.getTimeout());
+                }
+                NFeInutilizacao4Stub.NfeResultMsg result = stub.nfeInutilizacaoNF(dadosMsg);
+
+                log.info("[XML-RETORNO]: " + result.getExtraElement().toString());
+                return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetInutNFe.class);
+            }
+
+        } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
+            throw new NfeException(e.getMessage(),e);
+        }
+
+    }
+
+}

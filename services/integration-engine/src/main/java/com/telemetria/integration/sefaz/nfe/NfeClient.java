@@ -6,6 +6,9 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
+import com.telemetria.integration.nfe.schemas.TConsReciNFe;
+import com.telemetria.integration.nfe.schemas.TConsSitNFe;
+import com.telemetria.integration.nfe.schemas.TConsStatServ;
 import com.telemetria.integration.security.XmlSignatureValidator;
 import com.telemetria.integration.sefaz.nfe.soap.NfeSoapGateway;
 import com.telemetria.integration.sefaz.nfe.soap.NfeSoapService;
@@ -28,15 +31,18 @@ public class NfeClient {
     private final NfeFiscalOperationGuard operationGuard;
     private final NfeXmlPayloadValidator xmlPayloadValidator;
     private final NfeSoapGateway soapGateway;
+    private final NfeSchemaXmlSerializer schemaXmlSerializer;
 
     public NfeClient(NfeProperties properties,
             XmlSignatureValidator signatureValidator, NfeFiscalOperationGuard operationGuard,
-            NfeXmlPayloadValidator xmlPayloadValidator, NfeSoapGateway soapGateway) {
+            NfeXmlPayloadValidator xmlPayloadValidator, NfeSoapGateway soapGateway,
+            NfeSchemaXmlSerializer schemaXmlSerializer) {
         this.properties = properties;
         this.signatureValidator = signatureValidator;
         this.operationGuard = operationGuard;
         this.xmlPayloadValidator = xmlPayloadValidator;
         this.soapGateway = soapGateway;
+        this.schemaXmlSerializer = schemaXmlSerializer;
     }
 
     public String autorizarNfe(String xmlNfeAssinado) {
@@ -48,23 +54,32 @@ public class NfeClient {
 
     public String consultarReciboAutorizacao(String nRec) {
         exigirPadrao(nRec, N_REC_PATTERN, "nRec deve possuir 15 dígitos.");
-        String xml = "<consReciNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
-                + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><nRec>" + nRec + "</nRec></consReciNFe>";
+        TConsReciNFe consulta = new TConsReciNFe();
+        consulta.setVersao("4.00");
+        consulta.setTpAmb(properties.getAmbiente());
+        consulta.setNRec(nRec);
+        String xml = schemaXmlSerializer.serializar(consulta);
         return enviar(NfeSoapService.RET_AUTORIZACAO, properties.getEndpoints().getRetAutorizacao(), xml);
     }
 
     public String consultarNfe(String chaveAcesso) {
         exigirPadrao(chaveAcesso, CHAVE_ACESSO_PATTERN, "A chave de acesso NF-e deve possuir 44 dígitos.");
-        String xml = "<consSitNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
-                + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><xServ>CONSULTAR</xServ><chNFe>"
-                + chaveAcesso + "</chNFe></consSitNFe>";
+        TConsSitNFe consulta = new TConsSitNFe();
+        consulta.setVersao("4.00");
+        consulta.setTpAmb(properties.getAmbiente());
+        consulta.setXServ("CONSULTAR");
+        consulta.setChNFe(chaveAcesso);
+        String xml = schemaXmlSerializer.serializar(consulta);
         return enviar(NfeSoapService.CONSULTA, properties.getEndpoints().getConsulta(), xml);
     }
 
     public String consultarStatusServico() {
-        String xml = "<consStatServ xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
-                + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><cUF>" + properties.getCodigoUf()
-                + "</cUF><xServ>STATUS</xServ></consStatServ>";
+        TConsStatServ consulta = new TConsStatServ();
+        consulta.setVersao("4.00");
+        consulta.setTpAmb(properties.getAmbiente());
+        consulta.setCUF(properties.getCodigoUf());
+        consulta.setXServ("STATUS");
+        String xml = schemaXmlSerializer.serializar(consulta);
         return enviar(NfeSoapService.STATUS, properties.getEndpoints().getStatusServico(), xml);
     }
 

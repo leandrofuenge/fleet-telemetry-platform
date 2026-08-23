@@ -1,0 +1,134 @@
+package com.telemetria.integration.nfe.util;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import javax.xml.bind.JAXBException;
+
+import com.telemetria.integration.nfe.Assinar;
+import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
+import com.telemetria.integration.nfe.dom.Evento;
+import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enuns.ManifestacaoEnum;
+import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoManifestacao;
+import com.telemetria.integration.nfe.schemas_eventos.TEventoManifestacao;
+import com.telemetria.integration.nfe.schemas_eventos.TProcEventoManifestacao;
+import com.telemetria.integration.nfe.schemas_eventos.TRetEventoManifestacao;
+
+/**
+ * @author Samuel Oliveira - samuk.exe@hotmail.com
+ * Data: 02/03/2019 - 22:51
+ */
+public class ManifestacaoUtil {
+
+    private ManifestacaoUtil() {}
+
+    /**
+     * MOnta o Evento de Manifestacao Unico
+     *
+     * @param manifesta
+     * @param configuracao
+     * @return
+     * @throws NfeException
+     */
+    public static TEnvEventoManifestacao montaManifestacao(Evento manifesta, ConfiguracoesNfe configuracao) throws NfeException {
+        return montaManifestacao(Collections.singletonList(manifesta), configuracao);
+    }
+
+    /**
+     * MOnta o Evento de Manifestacao Lote
+     *
+     * @param listaManifestacao
+     * @param configuracao
+     * @return
+     * @throws NfeException
+     */
+    public static TEnvEventoManifestacao montaManifestacao(List<Evento> listaManifestacao, ConfiguracoesNfe configuracao) throws NfeException {
+
+        if (listaManifestacao.size() > 20) {
+            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+        }
+
+        TEnvEventoManifestacao enviEvento = new TEnvEventoManifestacao();
+        enviEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_MANIFESTAR);
+        enviEvento.setIdLote("1");
+
+        listaManifestacao.forEach(manifestacao -> {
+
+            if (manifestacao.getSequencia() == 0) {
+                manifestacao.setSequencia(1);
+            }
+
+            String id =
+                    "ID" + manifestacao.getTipoManifestacao().getCodigo() + manifestacao.getChave() + ChaveUtil.completarComZerosAEsquerda(String.valueOf(manifestacao.getSequencia()), 2);
+
+            TEventoManifestacao evento = new TEventoManifestacao();
+            evento.setVersao(ConstantesUtil.VERSAO.EVENTO_MANIFESTAR);
+
+            TEventoManifestacao.InfEvento infEvento = new TEventoManifestacao.InfEvento();
+            infEvento.setId(id);
+            infEvento.setCOrgao("91");
+            infEvento.setTpAmb(configuracao.getAmbiente().getCodigo());
+
+            infEvento.setCPF(manifestacao.getCpf());
+            infEvento.setCNPJ(manifestacao.getCnpj());
+
+            infEvento.setChNFe(manifestacao.getChave());
+            infEvento.setDhEvento(XmlNfeUtil.dataNfe(manifestacao.getDataEvento(), configuracao.getZoneId()));
+            infEvento.setTpEvento(manifestacao.getTipoManifestacao().getCodigo());
+            infEvento.setNSeqEvento(String.valueOf(manifestacao.getSequencia()));
+            infEvento.setVerEvento(ConstantesUtil.VERSAO.EVENTO_MANIFESTAR);
+
+            TEventoManifestacao.InfEvento.DetEventoManifestacao detEvento = new TEventoManifestacao.InfEvento.DetEventoManifestacao();
+            detEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_MANIFESTAR);
+            detEvento.setDescEvento(manifestacao.getTipoManifestacao().getValor());
+            if (ManifestacaoEnum.OPERACAO_NAO_REALIZADA.equals(manifestacao.getTipoManifestacao())) {
+                detEvento.setXJust(manifestacao.getMotivo());
+            }
+            infEvento.setDetEvento(detEvento);
+            evento.setInfEvento(infEvento);
+            enviEvento.getEvento().add(evento);
+        });
+
+        return enviEvento;
+    }
+
+    /**
+     * Cria e assina o tag procEventoNFe
+     *
+     * @param config     Um {@link ConfiguracoesNfe}, interface de configuração da NF-e ou NFC-e.
+     * @param enviEvento Um {@link TEnvEventoManifestacao} com a estrutura com a mensagem enviada para o sistema de distribuição.
+     * @param retorno    Um {@link TRetEventoManifestacao} com os dados do resultado do Envio do Evento.
+     * @return Uma {@link String} retornando um XML de evento assinado.
+     * @throws JAXBException
+     * @throws NfeException
+     */
+    public static String criaProcEventoManifestacao(ConfiguracoesNfe config, TEnvEventoManifestacao enviEvento, TRetEventoManifestacao retorno) throws JAXBException, NfeException {
+
+        String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
+        xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
+        xml = xml.replace("<evento v", "<evento xmlns=\"http://www.portalfiscal.inf.br/nfe\" v");
+
+        String assinado = Assinar.assinaNfe(ConfiguracoesUtil.iniciaConfiguracoes(config), xml, AssinaturaEnum.EVENTO);
+
+        TProcEventoManifestacao procEvento = new TProcEventoManifestacao();
+        procEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_MANIFESTAR);
+
+        Optional<TEventoManifestacao> optEvento = XmlNfeUtil.xmlToObject(assinado, TEnvEventoManifestacao.class)
+                .getEvento()
+                .stream()
+                .filter(e -> e.getInfEvento().getChNFe().equalsIgnoreCase(retorno.getInfEvento().getChNFe()))
+                .findFirst();
+
+        if (optEvento.isPresent()) {
+            procEvento.setEvento(optEvento.get());
+        }
+
+        procEvento.setRetEvento(retorno);
+
+        return XmlNfeUtil.objectToXml(procEvento, config.getEncode());
+    }
+
+}

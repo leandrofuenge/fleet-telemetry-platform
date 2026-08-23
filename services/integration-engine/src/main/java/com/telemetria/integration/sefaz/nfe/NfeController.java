@@ -1,5 +1,7 @@
 package com.telemetria.integration.sefaz.nfe;
 
+import java.util.function.Function;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,20 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.function.Function;
-
 /** API interna da NF-e. Operações mutáveis permanecem bloqueadas por padrão. */
 @RestController
 @RequestMapping("/api/integracoes/sefaz/nfe")
 public class NfeController {
     private final NfeClient client;
     private final NfeBase64Codec base64Codec;
-    private final NfeBase32Codec base32Codec;
 
-    public NfeController(NfeClient client, NfeBase64Codec base64Codec, NfeBase32Codec base32Codec) {
+    public NfeController(NfeClient client, NfeBase64Codec base64Codec) {
         this.client = client;
         this.base64Codec = base64Codec;
-        this.base32Codec = base32Codec;
     }
 
     @GetMapping(value = "/status", produces = MediaType.APPLICATION_XML_VALUE)
@@ -51,12 +49,6 @@ public class NfeController {
         return processarBase64(request, client::autorizarNfe);
     }
 
-    @PostMapping(value = "/autorizacoes/base32", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<NfeBase32Response> autorizarBase32(@RequestBody NfeBase32Request request) {
-        return processarBase32(request, client::autorizarNfe);
-    }
-
     @PostMapping(value = "/eventos", consumes = MediaType.APPLICATION_XML_VALUE,
             produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> enviarEvento(@RequestBody String xmlEventoAssinado) {
@@ -69,12 +61,6 @@ public class NfeController {
         return processarBase64(request, client::enviarEvento);
     }
 
-    @PostMapping(value = "/eventos/base32", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<NfeBase32Response> enviarEventoBase32(@RequestBody NfeBase32Request request) {
-        return processarBase32(request, client::enviarEvento);
-    }
-
     @PostMapping(value = "/inutilizacoes", consumes = MediaType.APPLICATION_XML_VALUE,
             produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> inutilizar(@RequestBody String xmlInutAssinado) {
@@ -85,12 +71,6 @@ public class NfeController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NfeBase64Response> inutilizarBase64(@RequestBody NfeBase64Request request) {
         return processarBase64(request, client::inutilizarNumeracao);
-    }
-
-    @PostMapping(value = "/inutilizacoes/base32", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<NfeBase32Response> inutilizarBase32(@RequestBody NfeBase32Request request) {
-        return processarBase32(request, client::inutilizarNumeracao);
     }
 
     @PostMapping(value = "/distribuicao-dfe", consumes = MediaType.APPLICATION_XML_VALUE,
@@ -111,25 +91,10 @@ public class NfeController {
         return processarBase64(request, client::consultarDistribuicaoDfe);
     }
 
-    @PostMapping(value = "/distribuicao-dfe/base32", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<NfeBase32Response> distribuirBase32(@RequestBody NfeBase32Request request,
-            @RequestParam(defaultValue = "false") boolean confirmarConsulta) {
-        if (!confirmarConsulta) {
-            return ResponseEntity.badRequest().build();
-        }
-        return processarBase32(request, client::consultarDistribuicaoDfe);
-    }
-
     private ResponseEntity<NfeBase64Response> processarBase64(
             NfeBase64Request request, Function<String, String> operacao) {
         String xmlResposta = operacao.apply(base64Codec.decodificarXml(request));
         return ResponseEntity.ok(base64Codec.codificarResposta(xmlResposta));
     }
 
-    private ResponseEntity<NfeBase32Response> processarBase32(
-            NfeBase32Request request, Function<String, String> operacao) {
-        String xmlResposta = operacao.apply(base32Codec.decodificarXml(request));
-        return ResponseEntity.ok(base32Codec.codificarResposta(xmlResposta));
-    }
 }

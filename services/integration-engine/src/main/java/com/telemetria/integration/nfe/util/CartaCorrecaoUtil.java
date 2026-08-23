@@ -1,0 +1,119 @@
+package com.telemetria.integration.nfe.util;
+
+import java.util.Collections;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+
+import com.telemetria.integration.nfe.Assinar;
+import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
+import com.telemetria.integration.nfe.dom.Evento;
+import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enuns.EventosEnum;
+import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCartaCorrecao;
+import com.telemetria.integration.nfe.schemas_eventos.TEventoCartaCorrecao;
+import com.telemetria.integration.nfe.schemas_eventos.TProcEventoCartaCorrecao;
+import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao;
+
+/**
+ * @author Samuel Oliveira - samuk.exe@hotmail.com
+ * Data: 02/03/2019 - 22:51
+ */
+public class CartaCorrecaoUtil {
+
+    private CartaCorrecaoUtil() {}
+
+    /**
+     * MOnta o Evento de CCe unico
+     *
+     * @param cce
+     * @param configuracao
+     * @return
+     * @throws NfeException
+     */
+    public static TEnvEventoCartaCorrecao montaCCe(Evento cce, ConfiguracoesNfe configuracao) throws NfeException {
+        return montaCCe(Collections.singletonList(cce), configuracao);
+    }
+
+    /**
+     * MOnta o Evento de CCe em Lote
+     *
+     * @param listaCCe
+     * @param configuracao
+     * @return
+     * @throws NfeException
+     */
+    public static TEnvEventoCartaCorrecao montaCCe(List<Evento> listaCCe, ConfiguracoesNfe configuracao) throws NfeException {
+
+        if (listaCCe.size() > 20) {
+            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+        }
+
+        TEnvEventoCartaCorrecao envEvento = new TEnvEventoCartaCorrecao();
+        envEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_CCE);
+        envEvento.setIdLote("1");
+
+        listaCCe.forEach(cce -> {
+            String id = "ID" + EventosEnum.CCE.getCodigo() + cce.getChave() + ChaveUtil.completarComZerosAEsquerda(String.valueOf(cce.getSequencia()), 2);
+
+            TEventoCartaCorrecao evento = new TEventoCartaCorrecao();
+            evento.setVersao(ConstantesUtil.VERSAO.EVENTO_CCE);
+
+            TEventoCartaCorrecao.InfEvento infEvento = new TEventoCartaCorrecao.InfEvento();
+            infEvento.setId(id);
+            infEvento.setCOrgao(configuracao.getEstado().getCodigoUF());
+            infEvento.setTpAmb(configuracao.getAmbiente().getCodigo());
+
+            infEvento.setCPF(cce.getCpf());
+            infEvento.setCNPJ(cce.getCnpj());
+
+            infEvento.setChNFe(cce.getChave());
+
+            // Altere a Data
+            infEvento.setDhEvento(XmlNfeUtil.dataNfe(cce.getDataEvento(), configuracao.getZoneId()));
+            infEvento.setTpEvento(EventosEnum.CCE.getCodigo());
+            infEvento.setNSeqEvento(String.valueOf(cce.getSequencia()));
+            infEvento.setVerEvento(ConstantesUtil.VERSAO.EVENTO_CCE);
+
+            TEventoCartaCorrecao.InfEvento.DetEventoCartaCorrecao detEvento = new TEventoCartaCorrecao.InfEvento.DetEventoCartaCorrecao();
+            detEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_CCE);
+            detEvento.setDescEvento("Carta de Correcao");
+
+            // Informe a Correção
+            detEvento.setXCorrecao(cce.getMotivo());
+            detEvento.setXCondUso("A Carta de Correcao e disciplinada pelo paragrafo 1o-A do art. 7o do Convenio S/N, de 15 de dezembro de 1970 e pode ser utilizada para regularizacao de erro ocorrido na emissao de documento fiscal, desde que o erro nao esteja relacionado com: I - as variaveis que determinam o valor do imposto tais como: base de calculo, aliquota, diferenca de preco, quantidade, valor da operacao ou da prestacao; II - a correcao de dados cadastrais que implique mudanca do remetente ou do destinatario; III - a data de emissao ou de saida.");
+            infEvento.setDetEvento(detEvento);
+            evento.setInfEvento(infEvento);
+            envEvento.getEvento().add(evento);
+        });
+
+        return envEvento;
+    }
+
+    /**
+     * Cria o ProcEvento de CCe
+     *
+     * @param configuracoesNfe
+     * @param enviEvento
+     * @param retorno
+     * @return
+     * @throws JAXBException
+     * @throws NfeException
+     */
+    public static String criaProcEventoCCe(ConfiguracoesNfe config, TEnvEventoCartaCorrecao enviEvento, TRetEnvEventoCartaCorrecao retorno) throws JAXBException, NfeException {
+
+        String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
+        xml = xml.replace(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "")
+                .replace("<evento v", "<evento xmlns=\"http://www.portalfiscal.inf.br/nfe\" v");
+
+        String assinado = Assinar.assinaNfe(ConfiguracoesUtil.iniciaConfiguracoes(config), xml, AssinaturaEnum.EVENTO);
+
+        TProcEventoCartaCorrecao procEvento = new TProcEventoCartaCorrecao();
+        procEvento.setEvento(XmlNfeUtil.xmlToObject(assinado, TEnvEventoCartaCorrecao.class).getEvento().get(0));
+        procEvento.setRetEvento(retorno.getRetEvento().get(0));
+        procEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_CCE);
+
+        return XmlNfeUtil.objectToXml(procEvento, config.getEncode());
+    }
+}
