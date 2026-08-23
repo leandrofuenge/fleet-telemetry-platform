@@ -12,12 +12,12 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TConsStatServ;
 import com.telemetria.integration.nfe.schemas.TRetConsStatServ;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.NFeStatusServico4.NFeStatusServico4Stub;
 
@@ -58,13 +58,13 @@ class Status {
      * @param config        ConfiguracoesNfe, interface de configuração da NF-e ou NFC-e.
      * @param tipoDocumento ConstantesUtil.NFE ou ConstantesUtil.NFCE
      * @return TRetConsStatServ - objeto que contém o resultado da transmissão do XML.
-     * @throws NfeException
+     * @throws ExcecaoNfe
      * @see ConfiguracoesNfe
      * @see ConstantesUtil
-     * @see WebServiceUtil
+     * @see UtilitarioServicoWeb
      * @see XmlNfeUtil
      */
-    static TRetConsStatServ statusServico(ConfiguracoesNfe config, DocumentoEnum tipoDocumento) throws NfeException {
+    static TRetConsStatServ statusServico(ConfiguracoesNfe config, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         try {
 
@@ -79,7 +79,7 @@ class Status {
 
             OMElement ome = AXIOMUtil.stringToOM(xml);
 
-            String url = WebServiceUtil.getUrl(config, tipoDocumento, ServicosEnum.STATUS_SERVICO);
+            String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.STATUS_SERVICO);
 
             if (EstadosEnum.MS.equals(config.getEstado())) {
                 com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeDadosMsg dadosMsg =
@@ -88,7 +88,7 @@ class Status {
 
                 com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub stub =
                         new com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub(url);
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeResultMsg result = stub.nfeStatusServicoNF(dadosMsg);
 
@@ -99,7 +99,7 @@ class Status {
                 dadosMsg.setExtraElement(ome);
 
                 NFeStatusServico4Stub stub = new NFeStatusServico4Stub(url);
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 NFeStatusServico4Stub.NfeResultMsg result = stub.nfeStatusServicoNF(dadosMsg);
 
@@ -108,7 +108,7 @@ class Status {
             }
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
     }
 

@@ -14,7 +14,7 @@ import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.ObjectFactory;
 import com.telemetria.integration.nfe.schemas.TEnderEmi;
 import com.telemetria.integration.nfe.schemas.TEndereco;
@@ -193,7 +193,7 @@ public class EnvioNfeTeste {
      * @param cDv
      * @param dataEmissao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     private static InfNFe.Ide preencheIde(ConfiguracoesNfe config, String cnf, int numeroNfe, String tipoEmissao, String modelo, int serie, String cDv, LocalDateTime dataEmissao) {
         InfNFe.Ide ide = new InfNFe.Ide();

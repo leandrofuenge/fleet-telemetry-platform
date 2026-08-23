@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoConciliacaoFinanceira;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoConciliacaoFinanceira;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -19,7 +19,7 @@ class CancConciliacaoFinanceira {
     }
 
     static TRetEnvEventoCancelamentoConciliacaoFinanceira eventoEConf(ConfiguracoesNfe config, TEnvEventoCancelamentoConciliacaoFinanceira enviEvento, boolean valida)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -32,7 +32,7 @@ class CancConciliacaoFinanceira {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoCancelamentoConciliacaoFinanceira.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
 
     }

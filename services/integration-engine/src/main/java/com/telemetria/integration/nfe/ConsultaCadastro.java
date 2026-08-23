@@ -14,14 +14,14 @@ import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.PessoaEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TConsCad;
 import com.telemetria.integration.nfe.schemas.TRetConsCad;
 import com.telemetria.integration.nfe.schemas.TUfCons;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.CadConsultaCadastro4Stub;
 
@@ -44,7 +44,7 @@ class ConsultaCadastro {
      */
 
     static TRetConsCad consultaCadastro(ConfiguracoesNfe config, PessoaEnum tipoPessoa, String cnpjCpf, EstadosEnum estado)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -73,7 +73,7 @@ class ConsultaCadastro {
             configConsulta.setEstado(estado);
             configConsulta.setAmbiente(config.getAmbiente());
 
-            String url = WebServiceUtil.getUrl(configConsulta, DocumentoEnum.NFE, ServicosEnum.CONSULTA_CADASTRO);
+            String url = UtilitarioServicoWeb.getUrl(configConsulta, DocumentoEnum.NFE, ServicosEnum.CONSULTA_CADASTRO);
             if (EstadosEnum.MS.equals(estado)) {
                 com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg dadosMsg =
                         new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg();
@@ -82,7 +82,7 @@ class ConsultaCadastro {
                 com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub stub =
                         new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub(url);
 
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 // Timeout
                 if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -105,7 +105,7 @@ class ConsultaCadastro {
                 com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub stub =
                         new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub(url);
 
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 // Timeout
                 if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -124,7 +124,7 @@ class ConsultaCadastro {
 
                 CadConsultaCadastro4Stub stub = new CadConsultaCadastro4Stub(url);
 
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 // Timeout
                 if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -140,7 +140,7 @@ class ConsultaCadastro {
             }
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }

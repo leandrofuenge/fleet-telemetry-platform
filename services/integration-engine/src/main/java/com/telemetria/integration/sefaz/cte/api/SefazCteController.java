@@ -1,17 +1,21 @@
 package com.telemetria.integration.sefaz.cte.api;
 
-import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.telemetria.integration.sefaz.cte.exception.CteException;
-import com.telemetria.integration.sefaz.cte.route.CteRoute;
-import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
+import com.telemetria.integration.sefaz.cte.application.CteApplicationService;
+import com.telemetria.integration.sefaz.cte.retorno.CteAutorizacaoResultado;
+import com.telemetria.integration.sefaz.cte.retorno.CteConsultaResultado;
+import com.telemetria.integration.sefaz.cte.retorno.CteEventoResultado;
 import com.telemetria.integration.sefaz.cte.status.CteStatusResponse;
 
 /**
@@ -23,10 +27,10 @@ public class SefazCteController {
 
     private static final Logger log = LoggerFactory.getLogger(SefazCteController.class);
 
-    private final ProducerTemplate producerTemplate;
+    private final CteApplicationService applicationService;
 
-    public SefazCteController(ProducerTemplate producerTemplate) {
-        this.producerTemplate = producerTemplate;
+    public SefazCteController(CteApplicationService applicationService) {
+        this.applicationService = applicationService;
     }
 
     /**
@@ -49,20 +53,29 @@ public class SefazCteController {
 
         log.info("Recebida requisição REST de consulta de status CT-e. UF: {}, Ambiente: {}", ufNormalizada, ambiente);
 
-        CteStatusRequest request = new CteStatusRequest(ufNormalizada, ambiente);
-
-        CteStatusResponse response = producerTemplate.requestBody(
-                CteRoute.ROUTE_CTE_STATUS,
-                request,
-                CteStatusResponse.class
-        );
+        CteStatusResponse response = applicationService.consultarStatus(ufNormalizada, ambiente);
 
         if (response == null) {
-            log.error("Retorno nulo retornado da rota Camel '{}' para a UF {}", CteRoute.ROUTE_CTE_STATUS, ufNormalizada);
+            log.error("Retorno nulo retornado da orquestração CT-e para a UF {}", ufNormalizada);
             throw new CteException("Falha ao obter resposta da integração SEFAZ. O serviço retornou uma resposta vazia.");
         }
 
         log.debug("Resposta do status CT-e recebida com sucesso para a UF: {}", ufNormalizada);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{chaveAcesso}")
+    public ResponseEntity<CteConsultaResultado> consultar(@PathVariable String chaveAcesso) {
+        return ResponseEntity.ok(applicationService.consultar(chaveAcesso));
+    }
+
+    @PostMapping(value = "/autorizacoes", consumes = "application/xml")
+    public ResponseEntity<CteAutorizacaoResultado> autorizar(@RequestBody String xmlCteAssinado) {
+        return ResponseEntity.ok(applicationService.autorizar(xmlCteAssinado));
+    }
+
+    @PostMapping(value = "/eventos", consumes = "application/xml")
+    public ResponseEntity<CteEventoResultado> enviarEvento(@RequestBody String xmlEventoAssinado) {
+        return ResponseEntity.ok(applicationService.enviarEvento(xmlEventoAssinado));
     }
 }

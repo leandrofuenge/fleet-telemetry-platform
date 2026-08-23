@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -16,7 +16,7 @@ import jakarta.xml.bind.JAXBException;
  */
 class Epec {
 
-    static TRetEnvEventoEpec eventoEpec(ConfiguracoesNfe config, TEnvEventoEpec enviEvento, boolean valida) throws NfeException {
+    static TRetEnvEventoEpec eventoEpec(ConfiguracoesNfe config, TEnvEventoEpec enviEvento, boolean valida) throws ExcecaoNfe {
 
         try {
 
@@ -29,7 +29,7 @@ class Epec {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoEpec.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
 
     }

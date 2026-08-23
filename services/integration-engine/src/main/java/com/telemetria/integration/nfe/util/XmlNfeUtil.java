@@ -43,7 +43,7 @@ import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 
 import com.telemetria.integration.nfe.dom.enuns.XsdEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TNfeProc;
 import com.telemetria.integration.nfe.schemas.TProtNFe;
@@ -82,22 +82,22 @@ public class XmlNfeUtil {
      * @param obj
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String objectToXml(Object objeto) throws JAXBException, NfeException {
+    public static String objectToXml(Object objeto) throws JAXBException, ExcecaoNfe {
         return objectToXml(objeto, null, null, StandardCharsets.UTF_8);
     }
 
-    public static String objectToXml(Object objeto, Charset encode) throws JAXBException, NfeException {
+    public static String objectToXml(Object objeto, Charset encode) throws JAXBException, ExcecaoNfe {
         return objectToXml(objeto, null, null, encode);
     }
 
-    public static <T> String objectToXml(T objeto, Class<T> clazz, String nomeElemento) throws JAXBException, NfeException {
+    public static <T> String objectToXml(T objeto, Class<T> clazz, String nomeElemento) throws JAXBException, ExcecaoNfe {
         return objectToXml(objeto, clazz, nomeElemento, StandardCharsets.UTF_8);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> String objectToXml(T objeto, Class<T> clazz, String nomeElemento, Charset encode) throws JAXBException, NfeException {
+    public static <T> String objectToXml(T objeto, Class<T> clazz, String nomeElemento, Charset encode) throws JAXBException, ExcecaoNfe {
 
         JAXBContext context = JAXBContext.newInstance(objeto.getClass());
         Marshaller marshaller = context.createMarshaller();
@@ -141,7 +141,7 @@ public class XmlNfeUtil {
         return outStr.toString();
     }
 
-    public static String criaNfeProc(TEnviNFe enviNfe, Object retorno) throws JAXBException, NfeException {
+    public static String criaNfeProc(TEnviNFe enviNfe, Object retorno) throws JAXBException, ExcecaoNfe {
 
         TNfeProc nfeProc = new TNfeProc();
         nfeProc.setVersao("4.00");
@@ -171,7 +171,7 @@ public class XmlNfeUtil {
      * Le o Arquivo XML e retona String
      *
      * @return String
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static String leXml(String arquivo) throws IOException {
 
@@ -204,9 +204,9 @@ public class XmlNfeUtil {
         return null;
     }
 
-    public static String getTag(String xml, String tag) throws NfeException {
+    public static String getTag(String xml, String tag) throws ExcecaoNfe {
         if (xml == null || xml.isEmpty()) {
-            throw new NfeException("XML de entrada está vazio.");
+            throw new ExcecaoNfe("XML de entrada está vazio.");
         }
 
         try {
@@ -224,13 +224,13 @@ public class XmlNfeUtil {
             Node node = (Node) xPath.evaluate("//*[local-name()='" + tag + "']", doc, XPathConstants.NODE);
 
             if (node == null) {
-                throw new NfeException("Tag '" + tag + "' não encontrada no XML.");
+                throw new ExcecaoNfe("Tag '" + tag + "' não encontrada no XML.");
             }
 
             return nodeToString(node);
 
         } catch (Exception e) {
-            throw new NfeException("Erro ao extrair a tag '" + tag + "' do XML.\nErro: " + e.getMessage(), e);
+            throw new ExcecaoNfe("Erro ao extrair a tag '" + tag + "' do XML.\nErro: " + e.getMessage(), e);
         }
     }
 
@@ -242,7 +242,7 @@ public class XmlNfeUtil {
         return serializer.writeToString(node);
     }
 
-    public static <T> Element objectToElement(Object objeto, Class<T> classe) throws NfeException {
+    public static <T> Element objectToElement(Object objeto, Class<T> classe) throws ExcecaoNfe {
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             JAXBContext context = JAXBContext.newInstance(classe);
@@ -252,7 +252,7 @@ public class XmlNfeUtil {
             return document.getDocumentElement();
 
         } catch (Exception e) {
-            throw new NfeException("Erro Ao Converter Objeto em Elemento: ", e);
+            throw new ExcecaoNfe("Erro Ao Converter Objeto em Elemento: ", e);
         }
     }
 }

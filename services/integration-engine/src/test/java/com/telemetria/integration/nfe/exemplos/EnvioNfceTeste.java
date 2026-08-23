@@ -19,7 +19,7 @@ import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TEnderEmi;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TNFe;
@@ -46,7 +46,7 @@ import com.telemetria.integration.nfe.util.ChaveUtil;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.NFCeUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 import jakarta.xml.bind.JAXBElement;
@@ -136,7 +136,7 @@ public class EnvioNfceTeste {
 
             TNFe.InfNFeSupl infNFeSupl = new TNFe.InfNFeSupl();
             infNFeSupl.setQrCode(qrCode);
-            infNFeSupl.setUrlChave(WebServiceUtil.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_CONSULTANFCE));
+            infNFeSupl.setUrlChave(UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_CONSULTANFCE));
             enviNFe.getNFe().get(0).setInfNFeSupl(infNFeSupl);
 
             // Envia a Nfe para a Sefaz
@@ -445,16 +445,16 @@ public class EnvioNfceTeste {
      * @param idToken
      * @param csc
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      * @throws NoSuchAlgorithmException
      */
-    private static String preencheQRCode(TEnviNFe enviNFe, ConfiguracoesNfe config) throws NfeException {
+    private static String preencheQRCode(TEnviNFe enviNFe, ConfiguracoesNfe config) throws ExcecaoNfe {
 
         //QRCODE EMISAO ONLINE
         return NFCeUtil.getCodeQRCodeV3(
                 enviNFe.getNFe().get(0).getInfNFe().getId().substring(3),
                 config.getAmbiente().getCodigo(),
-                WebServiceUtil.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
+                UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
 
         //QRCODE EMISSAO OFFLINE
 //        return NFCeUtil.getCodeQRCodeContingencia(
@@ -465,7 +465,7 @@ public class EnvioNfceTeste {
 //                Base64.getEncoder().encodeToString(enviNFe.getNFe().get(0).getSignature().getSignedInfo().getReference().getDigestValue()),
 //                idToken,
 //                csc,
-//                WebServiceUtil.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
+//                UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
     }
 
 }

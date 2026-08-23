@@ -7,7 +7,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.DetEventoConciliacaoFinanceira;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoConciliacaoFinanceira;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoConciliacaoFinanceira;
@@ -72,11 +72,11 @@ public class EConfTeste {
             TRetEnvEventoConciliacaoFinanceira retorno = Nfe.econf(config, envEvento, DocumentoEnum.NFE, false);
 
             if (!retorno.getCStat().equals("128")) {
-                throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+                throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
             }
 
             if (!retorno.getRetEvento().get(0).getInfEvento().getCStat().equals("135")) {
-                throw new NfeException(retorno.getRetEvento().get(0).getInfEvento().getCStat() + " - " + retorno.getRetEvento().get(0).getInfEvento().getXMotivo());
+                throw new ExcecaoNfe(retorno.getRetEvento().get(0).getInfEvento().getCStat() + " - " + retorno.getRetEvento().get(0).getInfEvento().getXMotivo());
             }
 
             //Resultado

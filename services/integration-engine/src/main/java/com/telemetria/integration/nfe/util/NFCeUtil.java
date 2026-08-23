@@ -10,7 +10,7 @@ import java.security.Signature;
 import java.util.Base64;
 import java.util.Optional;
 
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
@@ -110,7 +110,7 @@ public class NFCeUtil {
      */
     public static String getCodeQRCodeContingenciaV3(String chave, String ambiente, String dhEmi, String valorNF,
                                                      String tpDestinatario, String identDest, String urlConsulta,
-                                                     Certificado certificado) throws NfeException {
+                                                     Certificado certificado) throws ExcecaoNfe {
 
         String valor = String.format("%s|3|%s|%s|%s|%s|%s",
                 chave, ambiente, dhEmi.substring(8, 10), valorNF,
@@ -169,7 +169,7 @@ public class NFCeUtil {
         return s.toString();
     }
 
-    private static String assinarQrCodeV3(String dados, Certificado certificado) throws NfeException {
+    private static String assinarQrCodeV3(String dados, Certificado certificado) throws ExcecaoNfe {
         try {
             KeyStore keyStore = CertificadoService.getKeyStore(certificado);
 
@@ -183,7 +183,7 @@ public class NFCeUtil {
             byte[] signed = signature.sign();
             return Base64.getEncoder().encodeToString(signed);
         } catch (Exception e) {
-            throw new NfeException("Erro ao gerar assinatura do QRCode V3: " + e.getMessage(), e);
+            throw new ExcecaoNfe("Erro ao gerar assinatura do QRCode V3: " + e.getMessage(), e);
         }
     }
 

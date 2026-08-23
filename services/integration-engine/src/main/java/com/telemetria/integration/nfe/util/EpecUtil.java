@@ -8,7 +8,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.EventosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoEpec;
@@ -31,9 +31,9 @@ public class EpecUtil {
      * @param epec
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoEpec montaEpec(Evento epec, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoEpec montaEpec(Evento epec, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
         return montaEpec(Collections.singletonList(epec), configuracao);
     }
 
@@ -43,12 +43,12 @@ public class EpecUtil {
      * @param listaEpec
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoEpec montaEpec(List<Evento> listaEpec, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoEpec montaEpec(List<Evento> listaEpec, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
 
         if (listaEpec.size() > 20) {
-            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+            throw new ExcecaoNfe("Podem ser enviados no máximo 20 eventos no Lote.");
         }
 
         TEnvEventoEpec enviEvento = new TEnvEventoEpec();
@@ -114,9 +114,9 @@ public class EpecUtil {
      * @param retorno
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcEventoEpec(ConfiguracoesNfe config, TEnvEventoEpec enviEvento, TRetEnvEventoEpec retorno) throws JAXBException, NfeException {
+    public static String criaProcEventoEpec(ConfiguracoesNfe config, TEnvEventoEpec enviEvento, TRetEnvEventoEpec retorno) throws JAXBException, ExcecaoNfe {
 
         String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
         xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");

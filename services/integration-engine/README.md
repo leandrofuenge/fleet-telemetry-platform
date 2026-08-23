@@ -468,7 +468,7 @@ ________________________________________________________________________________
 - Issues: #10, #11 e #12.
 - Corrigido erro especifico do WebServices SVRS, referente ao nameSpace.
 - Melhorado Lógica de Replace para os "Lixos" gerados ao Converter Objeto pra Xml
-- Adicionado Proxy
+- Adicionado ConfiguracaoProxy
 
 ## v3.10.3 - 17-10-2016
 - Issues: #5, #6, #7 e #8.

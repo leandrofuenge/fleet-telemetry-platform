@@ -1,7 +1,7 @@
 package com.telemetria.integration.nfe.util;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
 import br.com.swconsultoria.certificado.CertificadoService;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
@@ -21,16 +21,16 @@ public class ConfiguracoesUtil {
      * <p>
      * Semelhante ao método iniciaConfiguracoes(), o Certificado Digital será 
      * validado e inicializado.Caso ocorrá algum prolema será disparado um 
-     * NfeException
+     * ExcecaoNfe
      * </p>
      * 
      * @param configuracoesNfe
      * @return ConfiguracoesWebNfe
-     * @throws NfeException 
+     * @throws ExcecaoNfe
      * @see CertificadoException
      * @see ConfiguracoesWebNfe
      */
-    public static ConfiguracoesNfe iniciaConfiguracoes(ConfiguracoesNfe configuracoesNfe) throws NfeException {
+    public static ConfiguracoesNfe iniciaConfiguracoes(ConfiguracoesNfe configuracoesNfe) throws ExcecaoNfe {
 
 
         return iniciaConfiguracoes(configuracoesNfe, null);
@@ -43,19 +43,19 @@ public class ConfiguracoesUtil {
      * <p>
      * Semelhante ao método iniciaConfiguracoes(), o Certificado Digital será
      * validado e inicializado.Caso ocorrá algum prolema será disparado um
-     * NfeException
+     * ExcecaoNfe
      * </p>
      *
      * @param configuracoesNfe
      * @param cpfCnpj
      * @return ConfiguracoesWebNfe
-     * @throws NfeException
+     * @throws ExcecaoNfe
      * @see CertificadoException
      * @see ConfiguracoesWebNfe
      */
-    public static ConfiguracoesNfe iniciaConfiguracoes(ConfiguracoesNfe configuracoesNfe, String cpfCnpj) throws NfeException {
+    public static ConfiguracoesNfe iniciaConfiguracoes(ConfiguracoesNfe configuracoesNfe, String cpfCnpj) throws ExcecaoNfe {
 
-        ObjetoUtil.verifica(configuracoesNfe).orElseThrow( () -> new NfeException("Configurações não foram criadas"));
+        ObjetoUtil.verifica(configuracoesNfe).orElseThrow( () -> new ExcecaoNfe("Configurações não foram criadas"));
 
         try {
             if (!configuracoesNfe.getCertificado().isValido()) {
@@ -72,7 +72,7 @@ public class ConfiguracoesUtil {
                 CertificadoService.inicializaCertificado(configuracoesNfe.getCertificado());
             }
         } catch (CertificadoException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
 
         return configuracoesNfe;

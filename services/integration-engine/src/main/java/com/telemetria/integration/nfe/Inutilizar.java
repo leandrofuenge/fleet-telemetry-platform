@@ -14,12 +14,12 @@ import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
 import com.telemetria.integration.nfe.schemas.TRetInutNFe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.NFeInutilizacao.NFeInutilizacao4Stub;
 
@@ -39,7 +39,7 @@ class Inutilizar {
     }
 
     static TRetInutNFe inutiliza(ConfiguracoesNfe config, TInutNFe inutNFe, DocumentoEnum tipoDocumento, boolean validar)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -55,14 +55,14 @@ class Inutilizar {
 
             OMElement ome = AXIOMUtil.stringToOM(xml);
 
-            String url = WebServiceUtil.getUrl(config, tipoDocumento, ServicosEnum.INUTILIZACAO);
+            String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.INUTILIZACAO);
             if (EstadosEnum.CE.equals(config.getEstado()) ) {
                 com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub.NfeDadosMsg dadosMsgCe =
                         new  com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub.NfeDadosMsg();
                 dadosMsgCe.setExtraElement(ome);
                 com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub stubCe = new com.telemetria.integration.nfe.wsdl.NFeInutilizacao.ce.NFeInutilizacao4Stub(
                         url);
-                StubUtil.configuraHttpClient(stubCe, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stubCe, config, url);
 
                 // Timeout
                 if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -79,7 +79,7 @@ class Inutilizar {
                 NFeInutilizacao4Stub stub = new NFeInutilizacao4Stub(
                         url);
 
-                StubUtil.configuraHttpClient(stub, config, url);
+                UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
                 // Timeout
                 if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -93,7 +93,7 @@ class Inutilizar {
             }
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
 
     }

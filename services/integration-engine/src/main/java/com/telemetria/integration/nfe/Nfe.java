@@ -6,7 +6,7 @@ import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.PessoaEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.RetDistDFeInt;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
@@ -59,10 +59,10 @@ public class Nfe {
      * @param tipoConsulta Informar ConsultaDFe.NSU ou ConsultaDFe.CHAVE
      * @param nsuChave
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static RetDistDFeInt distribuicaoDfe(ConfiguracoesNfe configuracoesNfe, PessoaEnum tipoPessoa, String cpfCnpj,
-                                                ConsultaDFeEnum tipoConsulta, String nsuChave) throws NfeException {
+                                                ConsultaDFeEnum tipoConsulta, String nsuChave) throws ExcecaoNfe {
 
         return DistribuicaoDFe.consultaNfe(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, cpfCnpj), tipoPessoa, cpfCnpj, tipoConsulta, nsuChave);
 
@@ -74,9 +74,9 @@ public class Nfe {
      * @param tipoDocumento informar DocumentoEnum.NFE ou DocumentoEnum.NFCE
      * @return TRetConsStatServ - objeto a mensagem de retorno da
      * transmissão.
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetConsStatServ statusServico(ConfiguracoesNfe configuracoesNfe, DocumentoEnum tipoDocumento) throws NfeException {
+    public static TRetConsStatServ statusServico(ConfiguracoesNfe configuracoesNfe, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         return Status.statusServico(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe), tipoDocumento);
 
@@ -88,9 +88,9 @@ public class Nfe {
      * @param chave
      * @param tipoDocumento USAR DocumentoEnum.NFE ou DocumentoEnum.NFCE
      * @return TRetConsSitNFe
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetConsSitNFe consultaXml(ConfiguracoesNfe configuracoesNfe, String chave, DocumentoEnum tipoDocumento) throws NfeException {
+    public static TRetConsSitNFe consultaXml(ConfiguracoesNfe configuracoesNfe, String chave, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         return ConsultaXml.consultaXml(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe), chave, tipoDocumento);
 
@@ -103,9 +103,9 @@ public class Nfe {
      * @param cnpjCpf
      * @param estado
      * @return TRetConsCad
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetConsCad consultaCadastro(ConfiguracoesNfe configuracoesNfe, PessoaEnum tipoPessoa, String cnpjCpf, EstadosEnum estado) throws NfeException {
+    public static TRetConsCad consultaCadastro(ConfiguracoesNfe configuracoesNfe, PessoaEnum tipoPessoa, String cnpjCpf, EstadosEnum estado) throws ExcecaoNfe {
 
         return ConsultaCadastro.consultaCadastro(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe), tipoPessoa, cnpjCpf, estado);
 
@@ -117,9 +117,9 @@ public class Nfe {
      * @param recibo
      * @param tipoDocumento USAR DocumentoEnum.NFE ou DocumentoEnum.NFCE
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetConsReciNFe consultaRecibo(ConfiguracoesNfe configuracoesNfe, String recibo, DocumentoEnum tipoDocumento) throws NfeException {
+    public static TRetConsReciNFe consultaRecibo(ConfiguracoesNfe configuracoesNfe, String recibo, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
         return ConsultaRecibo.reciboNfe(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe), recibo, tipoDocumento);
     }
 
@@ -129,9 +129,9 @@ public class Nfe {
      *
      * @param tipoDocumento
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetInutNFe inutilizacao(ConfiguracoesNfe configuracoesNfe, TInutNFe inutNFe, DocumentoEnum tipoDocumento, boolean validar) throws NfeException {
+    public static TRetInutNFe inutilizacao(ConfiguracoesNfe configuracoesNfe, TInutNFe inutNFe, DocumentoEnum tipoDocumento, boolean validar) throws ExcecaoNfe {
         return Inutilizar.inutiliza(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, inutNFe.getInfInut().getCNPJ()), inutNFe, tipoDocumento, validar);
     }
 
@@ -141,9 +141,9 @@ public class Nfe {
      * @param enviNFe
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnviNFe montaNfe(ConfiguracoesNfe configuracoesNfe, TEnviNFe enviNFe, boolean valida) throws NfeException {
+    public static TEnviNFe montaNfe(ConfiguracoesNfe configuracoesNfe, TEnviNFe enviNFe, boolean valida) throws ExcecaoNfe {
 
         return Enviar.montaNfe(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, enviNFe.getNFe().get(0).getInfNFe().getEmit().getCNPJ()), enviNFe, valida);
 
@@ -155,9 +155,9 @@ public class Nfe {
      * @param enviNFe
      * @param tipoDocumento No tipo Informar DocumentoEnum.NFE ou DocumentoEnum.NFCE
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnviNFe enviarNfe(ConfiguracoesNfe configuracoesNfe, TEnviNFe enviNFe, DocumentoEnum tipoDocumento) throws NfeException {
+    public static TRetEnviNFe enviarNfe(ConfiguracoesNfe configuracoesNfe, TEnviNFe enviNFe, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         return Enviar.enviaNfe(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, enviNFe.getNFe().get(0).getInfNFe().getEmit().getCNPJ()), enviNFe, tipoDocumento);
 
@@ -170,9 +170,9 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoCancelamento cancelarNfe(ConfiguracoesNfe configuracoesNfe, TEnvEventoCancelamento envEvento, boolean valida, DocumentoEnum tipoDocumento) throws NfeException {
+    public static TRetEnvEventoCancelamento cancelarNfe(ConfiguracoesNfe configuracoesNfe, TEnvEventoCancelamento envEvento, boolean valida, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         return Cancelar.eventoCancelamento(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()), envEvento, valida, tipoDocumento);
 
@@ -184,9 +184,9 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoAtorInteressado atorInteressadoNFe(ConfiguracoesNfe configuracoesNfe, TEnvEventoAtorInteressado envEvento, boolean valida) throws NfeException {
+    public static TRetEnvEventoAtorInteressado atorInteressadoNFe(ConfiguracoesNfe configuracoesNfe, TEnvEventoAtorInteressado envEvento, boolean valida) throws ExcecaoNfe {
 
         return AtorInteressado.eventoAtorInteressado(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()), envEvento, valida);
 
@@ -202,11 +202,11 @@ public class Nfe {
      * @param assina
      * @param tipoDocumento
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static String enviarEnventoManual(ConfiguracoesNfe configuracoesNfe, String xmlEvento, ServicosEnum tipoEvento,
                                              boolean valida, boolean assina,
-                                             DocumentoEnum tipoDocumento) throws NfeException {
+                                             DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         return Eventos.enviarEvento(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe), xmlEvento, tipoEvento, valida, assina, tipoDocumento);
 
@@ -218,9 +218,9 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoCancelamentoSubstituicao cancelarSubstituicaoNfe(ConfiguracoesNfe configuracoesNfe, TEnvEventoCancelamentoSubstituicao envEvento, boolean valida) throws NfeException {
+    public static TRetEnvEventoCancelamentoSubstituicao cancelarSubstituicaoNfe(ConfiguracoesNfe configuracoesNfe, TEnvEventoCancelamentoSubstituicao envEvento, boolean valida) throws ExcecaoNfe {
 
         return Cancelar.eventoCancelamentoSubstituicao(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()), envEvento, valida);
 
@@ -231,9 +231,9 @@ public class Nfe {
      *
      * @param envEvento
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoEpec enviarEpec(ConfiguracoesNfe configuracoesNfe, TEnvEventoEpec envEvento, boolean valida) throws NfeException {
+    public static TRetEnvEventoEpec enviarEpec(ConfiguracoesNfe configuracoesNfe, TEnvEventoEpec envEvento, boolean valida) throws ExcecaoNfe {
 
         return Epec.eventoEpec(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()), envEvento, valida);
 
@@ -245,9 +245,9 @@ public class Nfe {
      * @param evento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoCartaCorrecao cce(ConfiguracoesNfe configuracoesNfe, TEnvEventoCartaCorrecao evento, boolean valida) throws NfeException {
+    public static TRetEnvEventoCartaCorrecao cce(ConfiguracoesNfe configuracoesNfe, TEnvEventoCartaCorrecao evento, boolean valida) throws ExcecaoNfe {
         return CartaCorrecao.eventoCCe(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, evento.getEvento().get(0).getInfEvento().getCNPJ()), evento, valida);
     }
 
@@ -258,9 +258,9 @@ public class Nfe {
      * @param evento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TRetEnvEventoManifestacao manifestacao(ConfiguracoesNfe configuracoesNfe, TEnvEventoManifestacao evento, boolean valida) throws NfeException {
+    public static TRetEnvEventoManifestacao manifestacao(ConfiguracoesNfe configuracoesNfe, TEnvEventoManifestacao evento, boolean valida) throws ExcecaoNfe {
         return ManifestacaoDestinatario.eventoManifestacao(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, evento.getEvento().get(0).getInfEvento().getCNPJ()), evento, valida);
 
     }
@@ -271,11 +271,11 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TRetEnvEventoInsucessoEntrega insucessoEntrega(ConfiguracoesNfe configuracoesNfe,
                                                                  TEnvEventoInsucessoEntrega envEvento,
-                                                                 boolean valida) throws NfeException {
+                                                                 boolean valida) throws ExcecaoNfe {
 
         return InsucessoEntrega.eventoInsuccessoEntrega(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()),
                 envEvento, valida);
@@ -288,11 +288,11 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TRetEnvEventoCancelamentoInsucessoEntrega cancelamentoInsucessoEntrega(ConfiguracoesNfe configuracoesNfe,
                                                                                          TEnvEventoCancelamentoInsucessoEntrega envEvento,
-                                                                                         boolean valida) throws NfeException {
+                                                                                         boolean valida) throws ExcecaoNfe {
 
         return CancInsucessoEntrega.eventoCancInsuccessoEntrega(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe,
                         envEvento.getEvento().get(0).getInfEvento().getCNPJ()),
@@ -306,12 +306,12 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TRetEnvEventoConciliacaoFinanceira econf(ConfiguracoesNfe configuracoesNfe,
                                                            TEnvEventoConciliacaoFinanceira envEvento,
                                                            DocumentoEnum documento,
-                                                           boolean valida) throws NfeException {
+                                                           boolean valida) throws ExcecaoNfe {
 
         return ConciliacaoFinanceira.eventoEConf(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe, envEvento.getEvento().get(0).getInfEvento().getCNPJ()),
                 envEvento, documento, valida);
@@ -324,11 +324,11 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TRetEnvEventoCancelamentoConciliacaoFinanceira cancelamentoEconf(ConfiguracoesNfe configuracoesNfe,
                                                                                    TEnvEventoCancelamentoConciliacaoFinanceira envEvento,
-                                                                                   boolean valida) throws NfeException {
+                                                                                   boolean valida) throws ExcecaoNfe {
 
         return CancConciliacaoFinanceira.eventoEConf(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe,
                         envEvento.getEvento().get(0).getInfEvento().getCNPJ()),
@@ -342,11 +342,11 @@ public class Nfe {
      * @param envEvento
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TRetEnvEventoGenerico eventoGenerico(ConfiguracoesNfe configuracoesNfe,
                                                        TEnvEventoGenerico envEvento,
-                                                       boolean valida) throws NfeException {
+                                                       boolean valida) throws ExcecaoNfe {
 
         return EventoGenerico.evento(ConfiguracoesUtil.iniciaConfiguracoes(configuracoesNfe),
                 envEvento, valida);

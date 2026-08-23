@@ -7,6 +7,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -32,6 +34,8 @@ import com.telemetria.integration.util.SoapEnvelopeHelper;
  */
 @Component
 public class CteClient {
+
+    private static final Logger log = LoggerFactory.getLogger(CteClient.class);
 
     private final SefazProperties sefazProperties;
     private final XmlSignatureValidator xmlSignatureValidator;
@@ -62,6 +66,8 @@ public class CteClient {
      */
     public String autorizarCte(String xmlCte) {
 
+        log.info("CT-e: iniciando autorização fiscal");
+
         operationGuard.exigirAutorizacaoPermitida();
 
         if (xmlCte == null || xmlCte.isBlank()) {
@@ -90,6 +96,7 @@ public class CteClient {
             // Valida o leiaute oficial e a assinatura antes da transmissão.
             cteXmlValidator.validarCte(xmlCte);
             xmlSignatureValidator.validar(xmlCte, "infCte");
+            log.debug("CT-e: XML e assinatura validados para autorização");
 
             /*
              * 3. Monta o envelope SOAP contendo o XML do CT-e
@@ -99,9 +106,13 @@ public class CteClient {
             /*
              * 4. Envia a requisição via HTTPS para o WebService de Recepção da SEFAZ
              */
+            log.info("CT-e: transmitindo autorização à SEFAZ (payloadBytes={})",
+                    xmlCte.getBytes(StandardCharsets.UTF_8).length);
             String resposta = soapTransport.enviar(
                     soapRequest, sefazProperties.getCte().getEndpoints().getAutorizacao(),
                     CteSoapService.AUTORIZACAO, timeout);
+            log.info("CT-e: autorização recebeu resposta da SEFAZ (respostaBytes={})",
+                    resposta.getBytes(StandardCharsets.UTF_8).length);
 
             /*
              * 5. Retorna a resposta bruta (XML de retorno da SEFAZ)
@@ -109,9 +120,11 @@ public class CteClient {
             return resposta;
 
         } catch (IllegalArgumentException e) {
+            log.warn("CT-e: autorização rejeitada por entrada inválida: {}", e.getMessage());
             // Propaga validações de parâmetro sem envelopar na CteException
             throw e;
         } catch (Exception e) {
+            log.warn("CT-e: falha na autorização: {}", e.getMessage());
             throw new CteException(
                     "Erro ao enviar CT-e para autorização na SEFAZ.",
                     e
@@ -126,6 +139,8 @@ public class CteClient {
      * @return retorno bruto da SEFAZ com a situação do documento
      */
     public String consultarCte(String chaveAcesso) {
+
+        log.info("CT-e: iniciando consulta de documento");
 
         /*
          * 1. Valida se a chave possui exatamente 44 dígitos numéricos
@@ -152,6 +167,7 @@ public class CteClient {
                     """.formatted(tpAmb, chaveAcesso).trim();
 
             cteXmlValidator.validarConsulta(xmlConsulta);
+            log.debug("CT-e: XML de consulta validado");
 
             /*
              * 4. Envelopa o XML da consulta dentro da estrutura SOAP 1.2
@@ -161,13 +177,19 @@ public class CteClient {
             /*
              * 5. Transmite para o WebService de Consulta da SEFAZ
              */
-            return soapTransport.enviar(
+            log.info("CT-e: transmitindo consulta à SEFAZ");
+            String resposta = soapTransport.enviar(
                     soapRequest, sefazProperties.getCte().getEndpoints().getConsulta(),
                     CteSoapService.CONSULTA, timeout);
+            log.info("CT-e: consulta recebeu resposta da SEFAZ (respostaBytes={})",
+                    resposta.getBytes(StandardCharsets.UTF_8).length);
+            return resposta;
 
         } catch (IllegalArgumentException e) {
+            log.warn("CT-e: consulta rejeitada por entrada inválida: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            log.warn("CT-e: falha na consulta: {}", e.getMessage());
             throw new CteException(
                     "Erro ao consultar situação do CT-e na SEFAZ.",
                     e
@@ -182,6 +204,7 @@ public class CteClient {
      * @return retorno bruto da SEFAZ
      */
     public String enviarEvento(String xmlEventoAssinado) {
+        log.info("CT-e: iniciando transmissão de evento");
         operationGuard.exigirCancelamentoPermitido();
         if (xmlEventoAssinado == null || xmlEventoAssinado.isBlank()) {
             throw new IllegalArgumentException("XML do evento assinado não pode ser vazio.");
@@ -190,13 +213,21 @@ public class CteClient {
             parseXml(xmlEventoAssinado);
             cteXmlValidator.validarEvento(xmlEventoAssinado);
             xmlSignatureValidator.validar(xmlEventoAssinado, "infEvento");
-            return soapTransport.enviar(
+            log.debug("CT-e: XML e assinatura do evento validados");
+            log.info("CT-e: transmitindo evento à SEFAZ (payloadBytes={})",
+                    xmlEventoAssinado.getBytes(StandardCharsets.UTF_8).length);
+            String resposta = soapTransport.enviar(
                     SoapEnvelopeHelper.wrapCteSoap12(xmlEventoAssinado, CteSoapService.EVENTO),
                     sefazProperties.getCte().getEndpoints().getEvento(),
                     CteSoapService.EVENTO, timeout);
+            log.info("CT-e: evento recebeu resposta da SEFAZ (respostaBytes={})",
+                    resposta.getBytes(StandardCharsets.UTF_8).length);
+            return resposta;
         } catch (IllegalArgumentException e) {
+            log.warn("CT-e: evento rejeitado por entrada inválida: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            log.warn("CT-e: falha no envio de evento: {}", e.getMessage());
             throw new CteException("Erro ao transmitir evento do CT-e para a SEFAZ.", e);
         }
     }

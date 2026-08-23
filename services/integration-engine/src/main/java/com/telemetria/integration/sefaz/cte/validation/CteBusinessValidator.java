@@ -2,6 +2,8 @@ package com.telemetria.integration.sefaz.cte.validation;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.sefaz.cte.domain.CteContext;
@@ -13,6 +15,8 @@ import com.telemetria.integration.sefaz.cte.pipeline.CteExchangeProperties;
 @Component("cteBusinessValidator")
 public class CteBusinessValidator
         implements Processor {
+
+    private static final Logger log = LoggerFactory.getLogger(CteBusinessValidator.class);
 
     @Override
     public void process(
@@ -50,6 +54,8 @@ public class CteBusinessValidator
                 CteExchangeProperties.CTE_STATUS,
                 CteStatus.REGRAS_VALIDAS.name()
         );
+
+        log.info("CT-e: regras fiscais e de negócio validadas");
     }
 
     private void validarChave(

@@ -29,10 +29,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.util.ConfiguracoesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
@@ -110,10 +110,10 @@ public class ConsultaTributacao {
      *
      * @param config Configurações da NFe contendo certificado digital
      * @return String contendo o JSON de resposta
-     * @throws NfeException Se houver erro de configuração ou certificado
+     * @throws ExcecaoNfe Se houver erro de configuração ou certificado
      * @throws IOException  Se houver erro de comunicação HTTP
      */
-    public static String getJson(ConfiguracoesNfe config) throws NfeException, IOException {
+    public static String getJson(ConfiguracoesNfe config) throws ExcecaoNfe, IOException {
         return getJson(config, null);
     }
 
@@ -123,19 +123,19 @@ public class ConsultaTributacao {
      * @param config      Configurações da NFe contendo certificado digital
      * @param queryParams Mapa com parâmetros de query (ex: {"Cst": "00"})
      * @return String contendo o JSON de resposta
-     * @throws NfeException Se houver erro de configuração ou certificado
+     * @throws ExcecaoNfe Se houver erro de configuração ou certificado
      * @throws IOException  Se houver erro de comunicação HTTP
      */
     public static String getJson(ConfiguracoesNfe config, Map<String, String> queryParams)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         ConfiguracoesUtil.iniciaConfiguracoes(config);
 
-        String urlBase = WebServiceUtil.getCustomUrl(config, SECTION, KEY);
+        String urlBase = UtilitarioServicoWeb.getCustomUrl(config, SECTION, KEY);
         String url = buildUrlWithParams(urlBase, queryParams);
 
         Certificado certificado = config.getCertificado();
         if (certificado == null) {
-            throw new NfeException("Certificado digital não configurado");
+            throw new ExcecaoNfe("Certificado digital não configurado");
         }
 
         try {
@@ -152,7 +152,7 @@ public class ConsultaTributacao {
             return executeRequestWithSslFactory(sslFactory, url);
         }
 
-        throw new NfeException(
+        throw new ExcecaoNfe(
                 "Não foi possível configurar SSL/TLS para a requisição."
         );
     }
@@ -165,11 +165,11 @@ public class ConsultaTributacao {
      * @param config Configurações da NFe contendo certificado digital
      * @param clazz  Classe do objeto de destino
      * @return Objeto do tipo T com os dados deserializados do JSON
-     * @throws NfeException Se houver erro de configuração, certificado ou conversão
+     * @throws ExcecaoNfe Se houver erro de configuração, certificado ou conversão
      * @throws IOException  Se houver erro de comunicação HTTP
      */
     public static <T> T get(ConfiguracoesNfe config, Class<T> clazz)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config);
         return convertJsonToObject(json, clazz);
     }
@@ -182,11 +182,11 @@ public class ConsultaTributacao {
      * @param queryParams Parâmetros de query
      * @param clazz       Classe do objeto de destino
      * @return Objeto do tipo T deserializado
-     * @throws NfeException Se houver erro
+     * @throws ExcecaoNfe Se houver erro
      * @throws IOException  Se houver erro de I/O
      */
     public static <T> T get(ConfiguracoesNfe config, Map<String, String> queryParams, Class<T> clazz)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config, queryParams);
         return convertJsonToObject(json, clazz);
     }
@@ -199,11 +199,11 @@ public class ConsultaTributacao {
      * @param config  Configurações da NFe
      * @param typeRef TypeReference com o tipo genérico desejado
      * @return Objeto do tipo T deserializado
-     * @throws NfeException Se houver erro
+     * @throws ExcecaoNfe Se houver erro
      * @throws IOException  Se houver erro de I/O
      */
     public static <T> T get(ConfiguracoesNfe config, TypeReference<T> typeRef)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config);
         return convertJsonToObject(json, typeRef);
     }
@@ -216,11 +216,11 @@ public class ConsultaTributacao {
      * @param queryParams Parâmetros de query
      * @param typeRef     TypeReference com o tipo genérico
      * @return Objeto do tipo T deserializado
-     * @throws NfeException Se houver erro
+     * @throws ExcecaoNfe Se houver erro
      * @throws IOException  Se houver erro de I/O
      */
     public static <T> T get(ConfiguracoesNfe config, Map<String, String> queryParams, TypeReference<T> typeRef)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config, queryParams);
         return convertJsonToObject(json, typeRef);
     }
@@ -243,11 +243,11 @@ public class ConsultaTributacao {
      * @param config Configurações da NFe
      * @param clazz  Classe do DTO a ser validada
      * @return ValidationReport com detalhes das inconsistências
-     * @throws NfeException Se houver erro na consulta
+     * @throws ExcecaoNfe Se houver erro na consulta
      * @throws IOException  Se houver erro de I/O
      */
     public static ValidationReport validate(ConfiguracoesNfe config, Class<?> clazz)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config);
         return validateJsonStructure(json, clazz);
     }
@@ -259,11 +259,11 @@ public class ConsultaTributacao {
      * @param queryParams Parâmetros
      * @param clazz       Classe do DTO
      * @return ValidationReport
-     * @throws NfeException Se houver erro
+     * @throws ExcecaoNfe Se houver erro
      * @throws IOException  Se houver erro de I/O
      */
     public static ValidationReport validate(ConfiguracoesNfe config, Map<String, String> queryParams, Class<?> clazz)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config, queryParams);
         return validateJsonStructure(json, clazz);
     }
@@ -284,11 +284,11 @@ public class ConsultaTributacao {
      * @param typeRef    TypeReference do tipo externo (ex: List)
      * @param innerClass Classe interna para validar (ex: CstDTO dentro de List&lt;CstDTO&gt;)
      * @return ValidationReport
-     * @throws NfeException Se houver erro
+     * @throws ExcecaoNfe Se houver erro
      * @throws IOException  Se houver erro de I/O
      */
     public static ValidationReport validate(ConfiguracoesNfe config, TypeReference<?> typeRef, Class<?> innerClass)
-            throws NfeException, IOException {
+            throws ExcecaoNfe, IOException {
         String json = getJson(config);
         return validateJsonStructure(json, innerClass);
     }
@@ -316,7 +316,7 @@ public class ConsultaTributacao {
      * Valida estrutura do JSON contra uma classe DTO.
      * Identifica campos extras, faltantes e problemas de tipo.
      */
-    private static ValidationReport validateJsonStructure(String json, Class<?> clazz) throws NfeException {
+    private static ValidationReport validateJsonStructure(String json, Class<?> clazz) throws ExcecaoNfe {
         ValidationReport report = new ValidationReport();
 
         try {
@@ -377,7 +377,7 @@ public class ConsultaTributacao {
             }
 
         } catch (IOException e) {
-            throw new NfeException("Erro ao validar JSON: " + e.getMessage(), e);
+            throw new ExcecaoNfe("Erro ao validar JSON: " + e.getMessage(), e);
         }
 
         return report;
@@ -465,23 +465,23 @@ public class ConsultaTributacao {
         return "Unknown";
     }
 
-    public static <T> T convertJsonToObject(String json, Class<T> clazz) throws NfeException {
+    public static <T> T convertJsonToObject(String json, Class<T> clazz) throws ExcecaoNfe {
         try {
             log.info("[ConsultaTributacao] Convertendo JSON para " + clazz.getSimpleName());
             return MAPPER.readValue(json, clazz);
         } catch (IOException e) {
             log.severe("[ConsultaTributacao] Erro ao converter JSON: " + e.getMessage());
-            throw new NfeException("Erro ao processar resposta JSON: " + e.getMessage(), e);
+            throw new ExcecaoNfe("Erro ao processar resposta JSON: " + e.getMessage(), e);
         }
     }
 
-    public static <T> T convertJsonToObject(String json, TypeReference<T> typeRef) throws NfeException {
+    public static <T> T convertJsonToObject(String json, TypeReference<T> typeRef) throws ExcecaoNfe {
         try {
             log.info("[ConsultaTributacao] Convertendo JSON para tipo complexo");
             return MAPPER.readValue(json, typeRef);
         } catch (IOException e) {
             log.severe("[ConsultaTributacao] Erro ao converter JSON: " + e.getMessage());
-            throw new NfeException("Erro ao processar resposta JSON: " + e.getMessage(), e);
+            throw new ExcecaoNfe("Erro ao processar resposta JSON: " + e.getMessage(), e);
         }
     }
 

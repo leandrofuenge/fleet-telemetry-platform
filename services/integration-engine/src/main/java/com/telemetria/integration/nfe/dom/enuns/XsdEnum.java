@@ -1,6 +1,6 @@
 package com.telemetria.integration.nfe.dom.enuns;
 
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.DistDFeInt;
 import com.telemetria.integration.nfe.schemas.RetDistDFeInt;
 import com.telemetria.integration.nfe.schemas.TConsCad;
@@ -119,10 +119,10 @@ public enum XsdEnum {
     public Class<?> getClazz() { return clazz; }
     public String getName() { return name; }
 
-    public static XsdEnum getByClassName(String simpleClassName) throws NfeException {
+    public static XsdEnum getByClassName(String simpleClassName) throws ExcecaoNfe {
         for (XsdEnum e : values()) {
             if (e.clazz.getName().equals(simpleClassName)) return e;
         }
-        throw new NfeException("Xsd Não mapeado: " + simpleClassName);
+        throw new ExcecaoNfe("Xsd Não mapeado: " + simpleClassName);
     }
 }

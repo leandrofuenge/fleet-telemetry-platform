@@ -21,9 +21,11 @@ public class CteRoute extends RouteBuilder {
 
         from("direct:processarCteLote")
                 .routeId("cte-lote-processamento")
+                .log("CT-e: lote recebido para processamento")
 
                 .split(body())
                     .stopOnException(false)
+                    .log("CT-e: iniciando processamento de item do lote")
 
                     .process("cteItemProcessor")
 
@@ -38,6 +40,8 @@ public class CteRoute extends RouteBuilder {
                     .process("cteSefazSender")
 
                     .process("cteSefazResponseProcessor")
+
+                    .log("CT-e: item do lote processado")
 
                 .end();
 

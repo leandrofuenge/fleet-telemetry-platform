@@ -1,0 +1,223 @@
+package com.telemetria.integration.nfe.util;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
+import com.telemetria.integration.nfe.schemas.TProtNFe;
+import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
+import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
+import com.telemetria.integration.nfe.schemas.TRetInutNFe;
+import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
+import com.telemetria.integration.nfe.schemas_eventos.TRetEventoCancelamento;
+
+class RetornoUtilTeste {
+
+    // -------------------------------------------------------------------------
+    // isRetornoAssincrono
+    // -------------------------------------------------------------------------
+
+    @Test
+    void isRetornoAssincrono_loteRecebido_retornaTrue() throws ExcecaoNfe {
+        TRetEnviNFe retorno = criaRetEnviNFe(StatusEnum.LOTE_RECEBIDO.getCodigo(), "Lote recebido");
+        assertTrue(RetornoUtil.isRetornoAssincrono(retorno));
+    }
+
+    @Test
+    void isRetornoAssincrono_loteProcessado_retornaFalse() throws ExcecaoNfe {
+        TRetEnviNFe retorno = criaRetEnviNFeComProt(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                StatusEnum.AUTORIZADO.getCodigo(), "Autorizado");
+        assertFalse(RetornoUtil.isRetornoAssincrono(retorno));
+    }
+
+    @Test
+    void isRetornoAssincrono_cStatErrado_lancaExcecao() {
+        TRetEnviNFe retorno = criaRetEnviNFe("999", "Erro generico");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.isRetornoAssincrono(retorno));
+    }
+
+    // -------------------------------------------------------------------------
+    // validaSincrono
+    // -------------------------------------------------------------------------
+
+    @Test
+    void validaSincrono_autorizado_naoLancaExcecao() {
+        TRetEnviNFe retorno = criaRetEnviNFeComProt(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                StatusEnum.AUTORIZADO.getCodigo(), "Autorizado o uso da NF-e");
+        assertDoesNotThrow(() -> RetornoUtil.validaSincrono(retorno));
+    }
+
+    @Test
+    void validaSincrono_autorizadoForaPrazo_naoLancaExcecao() {
+        TRetEnviNFe retorno = criaRetEnviNFeComProt(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                StatusEnum.AUTORIZADO_FORA_PRAZO.getCodigo(), "Autorizado fora do prazo");
+        assertDoesNotThrow(() -> RetornoUtil.validaSincrono(retorno));
+    }
+
+    @Test
+    void validaSincrono_cStatEnvelopeErrado_lancaExcecao() {
+        TRetEnviNFe retorno = criaRetEnviNFe("999", "Servico indisponivel");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaSincrono(retorno));
+    }
+
+    @Test
+    void validaSincrono_cStatProtocoloErrado_lancaExcecao() {
+        TRetEnviNFe retorno = criaRetEnviNFeComProt(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                "204", "Duplicidade de NF-e");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaSincrono(retorno));
+    }
+
+    // -------------------------------------------------------------------------
+    // validaAssincrono
+    // -------------------------------------------------------------------------
+
+    @Test
+    void validaAssincrono_loteProcessadoAutorizado_naoLancaExcecao() {
+        TRetConsReciNFe retorno = criaRetConsReciNFe(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                StatusEnum.AUTORIZADO.getCodigo(), "Autorizado");
+        assertDoesNotThrow(() -> RetornoUtil.validaAssincrono(retorno));
+    }
+
+    @Test
+    void validaAssincrono_loteEmProcessamento_lancaExcecao() {
+        TRetConsReciNFe retorno = new TRetConsReciNFe();
+        retorno.setCStat(StatusEnum.LOTE_EM_PROCESSAMENTO.getCodigo());
+        retorno.setXMotivo("Lote em processamento");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaAssincrono(retorno));
+    }
+
+    @Test
+    void validaAssincrono_protocoloComErro_lancaExcecao() {
+        TRetConsReciNFe retorno = criaRetConsReciNFe(
+                StatusEnum.LOTE_PROCESSADO.getCodigo(), "Lote processado",
+                "204", "Duplicidade de NF-e");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaAssincrono(retorno));
+    }
+
+    // -------------------------------------------------------------------------
+    // validaCancelamento
+    // -------------------------------------------------------------------------
+
+    @Test
+    void validaCancelamento_eventoVinculado_naoLancaExcecao() {
+        TRetEnvEventoCancelamento retorno = criaRetEnvEvento(
+                StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo(),
+                StatusEnum.EVENTO_VINCULADO.getCodigo());
+        assertDoesNotThrow(() -> RetornoUtil.validaCancelamento(retorno));
+    }
+
+    @Test
+    void validaCancelamento_cancelamentoForaPrazo_naoLancaExcecao() {
+        TRetEnvEventoCancelamento retorno = criaRetEnvEvento(
+                StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo(),
+                StatusEnum.CANCELAMENTO_FORA_PRAZO.getCodigo());
+        assertDoesNotThrow(() -> RetornoUtil.validaCancelamento(retorno));
+    }
+
+    @Test
+    void validaCancelamento_envelopeErrado_lancaExcecao() {
+        TRetEnvEventoCancelamento retorno = criaRetEnvEvento("999", StatusEnum.EVENTO_VINCULADO.getCodigo());
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaCancelamento(retorno));
+    }
+
+    @Test
+    void validaCancelamento_eventoErrado_lancaExcecao() {
+        TRetEnvEventoCancelamento retorno = criaRetEnvEvento(
+                StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo(), "999");
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaCancelamento(retorno));
+    }
+
+    // -------------------------------------------------------------------------
+    // validaInutilizacao
+    // -------------------------------------------------------------------------
+
+    @Test
+    void validaInutilizacao_inutilizado_naoLancaExcecao() {
+        TRetInutNFe retorno = new TRetInutNFe();
+        TRetInutNFe.InfInut infInut = new TRetInutNFe.InfInut();
+        infInut.setCStat(StatusEnum.INUTILIZADO.getCodigo());
+        infInut.setXMotivo("Inutilizacao de numero de NF-e homologada");
+        retorno.setInfInut(infInut);
+
+        assertDoesNotThrow(() -> RetornoUtil.validaInutilizacao(retorno));
+    }
+
+    @Test
+    void validaInutilizacao_cStatErrado_lancaExcecao() {
+        TRetInutNFe retorno = new TRetInutNFe();
+        TRetInutNFe.InfInut infInut = new TRetInutNFe.InfInut();
+        infInut.setCStat("999");
+        infInut.setXMotivo("Erro");
+        retorno.setInfInut(infInut);
+
+        assertThrows(ExcecaoNfe.class, () -> RetornoUtil.validaInutilizacao(retorno));
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private TRetEnviNFe criaRetEnviNFe(String cStat, String xMotivo) {
+        TRetEnviNFe retorno = new TRetEnviNFe();
+        retorno.setCStat(cStat);
+        retorno.setXMotivo(xMotivo);
+        return retorno;
+    }
+
+    private TRetEnviNFe criaRetEnviNFeComProt(String cStatEnvelope, String xMotivoEnvelope,
+                                               String cStatProt, String xMotivoProt) {
+        TRetEnviNFe retorno = criaRetEnviNFe(cStatEnvelope, xMotivoEnvelope);
+
+        TProtNFe protNFe = new TProtNFe();
+        TProtNFe.InfProt infProt = new TProtNFe.InfProt();
+        infProt.setCStat(cStatProt);
+        infProt.setXMotivo(xMotivoProt);
+        protNFe.setInfProt(infProt);
+        retorno.setProtNFe(protNFe);
+
+        return retorno;
+    }
+
+    private TRetConsReciNFe criaRetConsReciNFe(String cStatEnvelope, String xMotivoEnvelope,
+                                                String cStatProt, String xMotivoProt) {
+        TRetConsReciNFe retorno = new TRetConsReciNFe();
+        retorno.setCStat(cStatEnvelope);
+        retorno.setXMotivo(xMotivoEnvelope);
+
+        TProtNFe protNFe = new TProtNFe();
+        TProtNFe.InfProt infProt = new TProtNFe.InfProt();
+        infProt.setCStat(cStatProt);
+        infProt.setXMotivo(xMotivoProt);
+        infProt.setChNFe("52240310732644000128550010000000011234567890");
+        protNFe.setInfProt(infProt);
+        retorno.getProtNFe().add(protNFe);
+
+        return retorno;
+    }
+
+    private TRetEnvEventoCancelamento criaRetEnvEvento(String cStatEnvelope, String cStatEvento) {
+        TRetEnvEventoCancelamento retorno = new TRetEnvEventoCancelamento();
+        retorno.setCStat(cStatEnvelope);
+        retorno.setXMotivo("Lote de Evento Processado");
+
+        TRetEventoCancelamento retEvento = new TRetEventoCancelamento();
+        TRetEventoCancelamento.InfEvento infEvento = new TRetEventoCancelamento.InfEvento();
+        infEvento.setCStat(cStatEvento);
+        infEvento.setXMotivo("Evento registrado");
+        infEvento.setChNFe("52240310732644000128550010000000011234567890");
+        retEvento.setInfEvento(infEvento);
+        retorno.getRetEvento().add(retEvento);
+
+        return retorno;
+    }
+}

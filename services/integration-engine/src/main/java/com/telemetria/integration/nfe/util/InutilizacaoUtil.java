@@ -7,7 +7,7 @@ import com.telemetria.integration.nfe.Assinar;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
 import com.telemetria.integration.nfe.schemas.TProcInutNFe;
 import com.telemetria.integration.nfe.schemas.TRetInutNFe;
@@ -30,7 +30,7 @@ public class InutilizacaoUtil {
      * @param justificativa
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     public static TInutNFe montaInutilizacao(DocumentoEnum tipoDocumento, String cnpj, int serie, int numeroInicial, int numeroFinal, String justificativa, LocalDateTime dataInutilizacao, ConfiguracoesNfe configuracao){
 
@@ -74,9 +74,9 @@ public class InutilizacaoUtil {
      * @param configuracoesNfe
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcInutilizacao(ConfiguracoesNfe configuracoesNfe, TInutNFe inutNFe, TRetInutNFe retorno) throws JAXBException, NfeException {
+    public static String criaProcInutilizacao(ConfiguracoesNfe configuracoesNfe, TInutNFe inutNFe, TRetInutNFe retorno) throws JAXBException, ExcecaoNfe {
 
 
         String xml = XmlNfeUtil.objectToXml(inutNFe, configuracoesNfe.getEncode());

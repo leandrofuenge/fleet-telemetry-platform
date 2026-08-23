@@ -11,7 +11,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.EventosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoGenerico;
@@ -29,9 +29,9 @@ public class EventoGenericoUtil {
      * @param evento
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoGenerico montaEvento(Evento evento, Class<?> clazz, EventosEnum eventosEnum, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoGenerico montaEvento(Evento evento, Class<?> clazz, EventosEnum eventosEnum, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
 
         TEnvEventoGenerico enviEvento = new TEnvEventoGenerico();
         enviEvento.setVersao(ConstantesUtil.VERSAO.EVENTO_GENERICO);
@@ -84,9 +84,9 @@ public class EventoGenericoUtil {
      * @param retorno
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcEventoGenerico(ConfiguracoesNfe config, TEnvEventoGenerico enviEvento, TRetEventoGenerico retorno) throws JAXBException, NfeException {
+    public static String criaProcEventoGenerico(ConfiguracoesNfe config, TEnvEventoGenerico enviEvento, TRetEventoGenerico retorno) throws JAXBException, ExcecaoNfe {
 
         String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
         xml = xml.replace(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "")

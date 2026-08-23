@@ -9,7 +9,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.ManifestacaoEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoManifestacao;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoManifestacao;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoManifestacao;
@@ -31,9 +31,9 @@ public class ManifestacaoUtil {
      * @param manifesta
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoManifestacao montaManifestacao(Evento manifesta, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoManifestacao montaManifestacao(Evento manifesta, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
         return montaManifestacao(Collections.singletonList(manifesta), configuracao);
     }
 
@@ -43,12 +43,12 @@ public class ManifestacaoUtil {
      * @param listaManifestacao
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoManifestacao montaManifestacao(List<Evento> listaManifestacao, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoManifestacao montaManifestacao(List<Evento> listaManifestacao, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
 
         if (listaManifestacao.size() > 20) {
-            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+            throw new ExcecaoNfe("Podem ser enviados no máximo 20 eventos no Lote.");
         }
 
         TEnvEventoManifestacao enviEvento = new TEnvEventoManifestacao();
@@ -103,9 +103,9 @@ public class ManifestacaoUtil {
      * @param retorno    Um {@link TRetEventoManifestacao} com os dados do resultado do Envio do Evento.
      * @return Uma {@link String} retornando um XML de evento assinado.
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcEventoManifestacao(ConfiguracoesNfe config, TEnvEventoManifestacao enviEvento, TRetEventoManifestacao retorno) throws JAXBException, NfeException {
+    public static String criaProcEventoManifestacao(ConfiguracoesNfe config, TEnvEventoManifestacao enviEvento, TRetEventoManifestacao retorno) throws JAXBException, ExcecaoNfe {
 
         String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
         xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");

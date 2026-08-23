@@ -3,12 +3,16 @@ package com.telemetria.integration.sefaz.nfe.soap;
 import java.net.URI;
 
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.telemetria.integration.sefaz.nfe.NfeProperties;
 
 /** Orquestra envelope, transporte e validação do protocolo SOAP da NF-e. */
 @Component
 public class NfeSoapGateway {
+
+    private static final Logger log = LoggerFactory.getLogger(NfeSoapGateway.class);
 
     private final NfeSoapEnvelopeFactory envelopeFactory;
     private final NfeSoapTransport transport;
@@ -24,9 +28,17 @@ public class NfeSoapGateway {
     }
 
     public String enviar(NfeSoapService service, URI endpoint, String xmlFiscal) {
-        String resposta = transport.enviar(envelopeFactory.criar(service, xmlFiscal), endpoint, service,
+        log.debug("NF-e: preparando envelope SOAP para {} (timeoutMillis={})", service.name(),
                 properties.getTimeoutMillis());
-        responseValidator.validar(resposta, service);
-        return resposta;
+        try {
+            String resposta = transport.enviar(envelopeFactory.criar(service, xmlFiscal), endpoint, service,
+                    properties.getTimeoutMillis());
+            responseValidator.validar(resposta, service);
+            log.debug("NF-e: resposta SOAP válida para {}", service.name());
+            return resposta;
+        } catch (RuntimeException exception) {
+            log.warn("NF-e: falha na comunicação SOAP para {}: {}", service.name(), exception.getMessage());
+            throw exception;
+        }
     }
 }

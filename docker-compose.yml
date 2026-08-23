@@ -138,6 +138,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
       SPRING_PROFILES_ACTIVE: ${INTEGRATION_PROFILES:-docker}
       SEFAZ_CTE_AMBIENTE: ${SEFAZ_CTE_AMBIENTE:-homologacao}
       SEFAZ_CTE_AUTORIZACAO_URL: ${SEFAZ_CTE_AUTORIZACAO_URL:-https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoSincV4}
@@ -180,6 +181,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:9060/actuator/health/liveness > /dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
     networks: [fleet-network]
 
 networks:

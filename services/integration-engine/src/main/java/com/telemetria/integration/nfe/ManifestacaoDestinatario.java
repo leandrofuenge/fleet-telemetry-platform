@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoManifestacao;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -16,7 +16,7 @@ import jakarta.xml.bind.JAXBException;
  */
 class ManifestacaoDestinatario {
 
-	static TRetEnvEventoManifestacao eventoManifestacao(ConfiguracoesNfe config, TEnvEventoManifestacao envEvento , boolean valida) throws NfeException {
+	static TRetEnvEventoManifestacao eventoManifestacao(ConfiguracoesNfe config, TEnvEventoManifestacao envEvento , boolean valida) throws ExcecaoNfe {
 		try {
 
             String xml = XmlNfeUtil.objectToXml(envEvento, config.getEncode());
@@ -28,7 +28,7 @@ class ManifestacaoDestinatario {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoManifestacao.class);
 
 		} catch (JAXBException e) {
-			throw new NfeException(e.getMessage(),e);
+			throw new ExcecaoNfe(e.getMessage(),e);
 		}
 	}
 

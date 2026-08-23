@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoInsucessoEntrega;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoInsucessoEntrega;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -19,7 +19,7 @@ class InsucessoEntrega {
     }
 
     static TRetEnvEventoInsucessoEntrega eventoInsuccessoEntrega(ConfiguracoesNfe config, TEnvEventoInsucessoEntrega enviEvento, boolean valida)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -32,7 +32,7 @@ class InsucessoEntrega {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoInsucessoEntrega.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
 
     }

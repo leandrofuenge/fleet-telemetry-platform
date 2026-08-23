@@ -25,7 +25,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.telemetria.integration.nfe.exception.DanfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoDanfe;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -164,7 +164,7 @@ public class ImpressaoNfeUtil {
 	public static void impressaoDireta(ImpressaoDTO impressao, PrintService impressora, SimplePrintServiceExporterConfiguration configuration) throws JRException, ParserConfigurationException, IOException, SAXException, PrinterException {
 		JasperPrint jasperPrint = geraImpressao(impressao);
 		if (impressora == null) {
-			throw new DanfeException("Impressora não encontrada");
+			throw new ExcecaoDanfe("Impressora não encontrada");
 		}
 
 		if (configuration == null) {
@@ -207,11 +207,11 @@ public class ImpressaoNfeUtil {
 	public static JasperReport carregaJasperResources(String caminhoJasper) {
 		try (InputStream in = ImpressaoNfeUtil.class.getResourceAsStream(caminhoJasper)) {
 			if (in == null) {
-				throw new DanfeException(String.format("Jasper não encontrado %s", caminhoJasper));
+				throw new ExcecaoDanfe(String.format("Jasper não encontrado %s", caminhoJasper));
 			}
 			return (JasperReport) JRLoader.loadObject(in);
 		} catch (IOException | JRException e) {
-			throw new DanfeException(String.format("Erro ao carregar Jasper %s", caminhoJasper), e);
+			throw new ExcecaoDanfe(String.format("Erro ao carregar Jasper %s", caminhoJasper), e);
 		}
 	}
 

@@ -8,7 +8,7 @@ import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schema_4.enviNFe.*;
 import com.telemetria.integration.nfe.schema_4.enviNFe.TNFe.InfNFe;
 import com.telemetria.integration.nfe.schema_4.enviNFe.TNFe.InfNFe.*;
@@ -157,9 +157,9 @@ public class EnvioNfeTeste {
      * @param cDv
      * @param dataEmissao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    private static Ide preencheIde(ConfiguracoesNfe config, String cnf, int numeroNfe, String tipoEmissao, String modelo, int serie, String cDv, LocalDateTime dataEmissao) throws NfeException {
+    private static Ide preencheIde(ConfiguracoesNfe config, String cnf, int numeroNfe, String tipoEmissao, String modelo, int serie, String cDv, LocalDateTime dataEmissao) throws ExcecaoNfe {
         Ide ide = new Ide();
         ide.setCUF(config.getEstado().getCodigoIbge());
         ide.setCNF(cnf);
@@ -395,7 +395,7 @@ public class EnvioNfeTeste {
 import com.telemetria.integration.nfe.Nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.*;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schema_4.enviNFe.*;
 import com.telemetria.integration.nfe.schema_4.enviNFe.TNFe.InfNFe;
 import com.telemetria.integration.nfe.schema_4.enviNFe.TNFe.InfNFe.*;
@@ -496,7 +496,7 @@ public class EnvioNfceTeste {
 
             TNFe.InfNFeSupl infNFeSupl = new TNFe.InfNFeSupl();
             infNFeSupl.setQrCode(qrCode);
-            infNFeSupl.setUrlChave(WebServiceUtil.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_CONSULTANFCE));
+            infNFeSupl.setUrlChave(UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_CONSULTANFCE));
             enviNFe.getNFe().get(0).setInfNFeSupl(infNFeSupl);
 
             // Envia a Nfe para a Sefaz
@@ -554,9 +554,9 @@ public class EnvioNfceTeste {
      * @param cDv
      * @param dataEmissao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    private static Ide preencheIde(ConfiguracoesNfe config, String cnf, int numeroNFCe, String tipoEmissao, String modelo, int serie, String cDv, LocalDateTime dataEmissao) throws NfeException {
+    private static Ide preencheIde(ConfiguracoesNfe config, String cnf, int numeroNFCe, String tipoEmissao, String modelo, int serie, String cDv, LocalDateTime dataEmissao) throws ExcecaoNfe {
         Ide ide = new Ide();
         ide.setCUF(config.getEstado().getCodigoIbge());
         ide.setCNF(cnf);
@@ -795,10 +795,10 @@ public class EnvioNfceTeste {
      * @param idToken
      * @param csc
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      * @throws NoSuchAlgorithmException
      */
-    private static String preencheQRCode(TEnviNFe enviNFe, ConfiguracoesNfe config, String idToken, String csc) throws NfeException, NoSuchAlgorithmException {
+    private static String preencheQRCode(TEnviNFe enviNFe, ConfiguracoesNfe config, String idToken, String csc) throws ExcecaoNfe, NoSuchAlgorithmException {
 
         //QRCODE EMISAO ONLINE
         return NFCeUtil.getCodeQRCode(
@@ -806,7 +806,7 @@ public class EnvioNfceTeste {
                 config.getAmbiente().getCodigo(),
                 idToken,
                 csc,
-                WebServiceUtil.getUrl(config,DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
+                UtilitarioServicoWeb.getUrl(config,DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
 
         //QRCODE EMISSAO OFFLINE
 //        return NFCeUtil.getCodeQRCodeContingencia(
@@ -817,7 +817,7 @@ public class EnvioNfceTeste {
 //                Base64.getEncoder().encodeToString(enviNFe.getNFe().get(0).getSignature().getSignedInfo().getReference().getDigestValue()),
 //                idToken,
 //                csc,
-//                WebServiceUtil.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
+//                UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFCE, ServicosEnum.URL_QRCODE));
     }
 
 }

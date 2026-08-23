@@ -57,10 +57,7 @@ public class CteSefazSender
          * da configuração do projeto.
          */
 
-        log.info(
-                "Preparando envio do CT-e para SEFAZ. chave={}",
-                context.metadata().chave()
-        );
+        log.warn("CT-e: envio fiscal interrompido; transporte SEFAZ do fluxo em lote não está configurado");
 
         throw new CteException(
                 "Integração com SEFAZ ainda não configurada."

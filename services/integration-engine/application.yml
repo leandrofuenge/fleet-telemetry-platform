@@ -10,7 +10,7 @@ sefaz:
 
   certificado:
     path: /opt/certificados/empresa_a1.pfx
-    senha: ${SENHA_CERTIFICADO:123456}
+    senha: ${SENHA_CERTIFICADO:}
 
   # CT-e v4.00 (Mato Grosso utiliza a estrutura SVRS)
   cte:

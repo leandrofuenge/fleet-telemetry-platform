@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 
 import br.com.swconsultoria.certificado.Certificado;
@@ -69,9 +69,9 @@ public class Assinar {
      * @param tipoAssinatura ('NFe' para nfe normal , 'infInut' para inutilizacao, 'evento'
      *                       para eventos)
      * @return String do Xml Assinado
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String assinaNfe(ConfiguracoesNfe config, String stringXml, AssinaturaEnum tipoAssinatura) throws NfeException {
+    public static String assinaNfe(ConfiguracoesNfe config, String stringXml, AssinaturaEnum tipoAssinatura) throws ExcecaoNfe {
 
         stringXml = stringXml.replaceAll("\r\n", "").replaceAll("\n", "").replaceAll(System.lineSeparator(), ""); // Erro quando tem salto de linha.
         stringXml = stringXml.replaceAll("\\s+<", "<"); // Erro Espaço antes do final da Tag.
@@ -81,7 +81,7 @@ public class Assinar {
         return stringXml;
     }
 
-    private static String assinaDocNFe(ConfiguracoesNfe config, String xml, AssinaturaEnum tipoAssinatura) throws NfeException {
+    private static String assinaDocNFe(ConfiguracoesNfe config, String xml, AssinaturaEnum tipoAssinatura) throws ExcecaoNfe {
 
         try {
             Document document = documentFactory(xml);
@@ -97,7 +97,7 @@ public class Assinar {
                 | InvalidAlgorithmParameterException | KeyStoreException | UnrecoverableEntryException
                 | CertificadoException | MarshalException
                 | XMLSignatureException e) {
-            throw new NfeException("Erro ao Assinar Nfe" + e.getMessage(),e);
+            throw new ExcecaoNfe("Erro ao Assinar Nfe" + e.getMessage(),e);
         }
     }
 
@@ -171,7 +171,7 @@ public class Assinar {
         keyInfo = keyInfoFactory.newKeyInfo(Collections.singletonList(x509Data));
     }
 
-    private static String outputXML(Document doc) throws NfeException {
+    private static String outputXML(Document doc) throws ExcecaoNfe {
 
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()){
             TransformerFactory tf = TransformerFactory.newInstance();
@@ -182,7 +182,7 @@ public class Assinar {
             xml = xml.replaceAll(" standalone=\"no\"", "");
             return xml;
         } catch (TransformerException | IOException e) {
-            throw new NfeException("Erro ao Transformar Documento:" + e.getMessage(),e);
+            throw new ExcecaoNfe("Erro ao Transformar Documento:" + e.getMessage(),e);
         }
     }
 }

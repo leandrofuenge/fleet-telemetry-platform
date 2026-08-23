@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamento;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -16,7 +16,7 @@ import jakarta.xml.bind.JAXBException;
 class Cancelar {
 
     static TRetEnvEventoCancelamento eventoCancelamento(ConfiguracoesNfe config, TEnvEventoCancelamento enviEvento, boolean valida, DocumentoEnum tipoDocumento)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -29,13 +29,13 @@ class Cancelar {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoCancelamento.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }
 
     static com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao eventoCancelamentoSubstituicao(ConfiguracoesNfe config, com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoSubstituicao enviEvento, boolean valida)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -48,7 +48,7 @@ class Cancelar {
             return XmlNfeUtil.xmlToObject(xml, com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }

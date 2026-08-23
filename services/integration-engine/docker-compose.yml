@@ -1,0 +1,65 @@
+name: integration-engine
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: telemetria
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+    volumes:
+      - integration-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks: [integration-network]
+
+  integration-engine:
+    build:
+      context: .
+    image: integration-engine:local
+    environment:
+      SERVER_PORT: 9060
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+      SEFAZ_CERT_PATH: ${SEFAZ_CERT_PATH:-}
+      SEFAZ_CERT_PASSWORD: ${SEFAZ_CERT_PASSWORD:-}
+      SEFAZ_CERT_KEY_PASSWORD: ${SEFAZ_CERT_KEY_PASSWORD:-}
+      SEFAZ_CERT_TYPE: ${SEFAZ_CERT_TYPE:-PKCS12}
+      SEFAZ_TRUSTSTORE_PATH: ${SEFAZ_TRUSTSTORE_PATH:-}
+      SEFAZ_TRUSTSTORE_PASSWORD: ${SEFAZ_TRUSTSTORE_PASSWORD:-}
+      SEFAZ_TRUSTSTORE_TYPE: ${SEFAZ_TRUSTSTORE_TYPE:-PKCS12}
+      SEFAZ_TLS_PROTOCOL: ${SEFAZ_TLS_PROTOCOL:-TLSv1.2}
+      TZ: ${TZ:-America/Cuiaba}
+    ports:
+      - "${INTEGRATION_PORT:-9060}:9060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:9060/actuator/health/liveness > /dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    networks: [integration-network]
+
+networks:
+  integration-network:
+    driver: bridge
+
+volumes:
+  integration-postgres-data:

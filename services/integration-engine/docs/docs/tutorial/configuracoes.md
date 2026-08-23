@@ -7,7 +7,7 @@ Para executar qualquer função NFe/NFCe, deve-se inicializar as Configuração.
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
 
-public ConfiguracoesNfe iniciaConfigurações() throws NfeException {
+public ConfiguracoesNfe iniciaConfigurações() throws ExcecaoNfe {
     Certificado certificado = // Obter certificado (1)
         
     return ConfiguracoesNfe.criarConfiguracoes(
@@ -25,12 +25,12 @@ public ConfiguracoesNfe iniciaConfigurações() throws NfeException {
 4.  Caminho da pasta que se encontra os Schemas Xsd
 
 
-### Proxy
+### ConfiguracaoProxy
 
-Para Habilitar o Proxy, ao iniciar as configurações Adicione as Seguintes Linhas:
+Para Habilitar o ConfiguracaoProxy, ao iniciar as configurações Adicione as Seguintes Linhas:
 
 ```java
-public static ConfiguracoesIniciaisNfe iniciaConfigurações() throws NfeException {
+public static ConfiguracoesIniciaisNfe iniciaConfigurações() throws ExcecaoNfe {
     // Certificado Arquivo, Parametros: -Caminho Certificado, - Senha
     Certificado certificado = CertificadoService.certificadoPfx("c:/certificado/certificado.pfx", "123456");
 
@@ -52,7 +52,7 @@ public static ConfiguracoesIniciaisNfe iniciaConfigurações() throws NfeExcepti
 Para Trabalhar com Contingência Scan, após iniciar as Configurações Set a Propriedade como True:
 
 ```java
-public static ConfiguracoesIniciaisNfe iniciaConfigurações() throws NfeException {
+public static ConfiguracoesIniciaisNfe iniciaConfigurações() throws ExcecaoNfe {
     // Certificado Arquivo, Parametros: -Caminho Certificado, - Senha
     Certificado certificado = CertificadoService.certificadoPfx(
         "c:/certificado/certificado.pfx", 

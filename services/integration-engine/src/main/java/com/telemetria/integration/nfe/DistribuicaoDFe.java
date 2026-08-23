@@ -14,13 +14,13 @@ import com.telemetria.integration.nfe.dom.enuns.ConsultaDFeEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.PessoaEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.DistDFeInt;
 import com.telemetria.integration.nfe.schemas.RetDistDFeInt;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.NFeDistribuicaoDFe.NFeDistribuicaoDFeStub;
 
@@ -46,10 +46,10 @@ class DistribuicaoDFe {
      * @param tipoConsulta Informe {@link ConsultaDFeEnum}
      * @param nsuChave     Informe a Chave ou o Nsu
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
     static RetDistDFeInt consultaNfe(ConfiguracoesNfe config, PessoaEnum tipoPessoa, String cpfCnpj, ConsultaDFeEnum tipoConsulta,
-                                     String nsuChave) throws NfeException {
+                                     String nsuChave) throws ExcecaoNfe {
 
         try {
 
@@ -94,9 +94,9 @@ class DistribuicaoDFe {
             NFeDistribuicaoDFeStub.NfeDistDFeInteresse distDFeInteresse = new NFeDistribuicaoDFeStub.NfeDistDFeInteresse();
             distDFeInteresse.setNfeDadosMsg(dadosMsgType0);
 
-            String url = WebServiceUtil.getUrl(config, DocumentoEnum.NFE, ServicosEnum.DISTRIBUICAO_DFE);
+            String url = UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFE, ServicosEnum.DISTRIBUICAO_DFE);
             NFeDistribuicaoDFeStub stub = new NFeDistribuicaoDFeStub(url);
-            StubUtil.configuraHttpClient(stub, config, url);
+            UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
             // Timeout
             if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -111,7 +111,7 @@ class DistribuicaoDFe {
                     RetDistDFeInt.class);
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(),e);
+            throw new ExcecaoNfe(e.getMessage(),e);
         }
     }
 

@@ -12,13 +12,13 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TConsReciNFe;
 import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.NFeRetAutorizacao.NFeRetAutorizacao4Stub;
 
@@ -44,9 +44,9 @@ class ConsultaRecibo {
      * @param recibo        Número Do Recibo para Consulta
      * @param tipoDocumento Informe {@link DocumentoEnum}
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    static TRetConsReciNFe reciboNfe(ConfiguracoesNfe config, String recibo, DocumentoEnum tipoDocumento) throws NfeException {
+    static TRetConsReciNFe reciboNfe(ConfiguracoesNfe config, String recibo, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         try {
 
@@ -67,10 +67,10 @@ class ConsultaRecibo {
             NFeRetAutorizacao4Stub.NfeDadosMsg dadosMsg = new NFeRetAutorizacao4Stub.NfeDadosMsg();
             dadosMsg.setExtraElement(ome);
 
-            String url = WebServiceUtil.getUrl(config, tipoDocumento, ServicosEnum.CONSULTA_RECIBO);
+            String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.CONSULTA_RECIBO);
             NFeRetAutorizacao4Stub stub = new NFeRetAutorizacao4Stub(url);
 
-            StubUtil.configuraHttpClient(stub, config, url);
+            UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
             // Timeout
             if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -84,7 +84,7 @@ class ConsultaRecibo {
             return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetConsReciNFe.class);
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }

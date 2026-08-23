@@ -39,7 +39,7 @@ public class ConfiguracoesNfe {
     private AmbienteEnum ambiente;
     private Certificado certificado;
     private String pastaSchemas;
-    private Proxy proxy;
+    private ConfiguracaoProxy proxy;
     private Integer timeout;
     private boolean contigenciaSVC;
     private boolean validacaoDocumento = true;
@@ -234,9 +234,9 @@ public class ConfiguracoesNfe {
      * Retorna o valor do atributo proxyUtil.
      *
      * @return proxyUtil
-     * @see Proxy
+     * @see ConfiguracaoProxy
      */
-    public Proxy getProxy() {
+    public ConfiguracaoProxy getProxy() {
         return proxy;
     }
 
@@ -245,7 +245,7 @@ public class ConfiguracoesNfe {
      *
      * @param proxy
      */
-    public void setProxy(Proxy proxy) {
+    public void setProxy(ConfiguracaoProxy proxy) {
         this.proxy = proxy;
     }
 

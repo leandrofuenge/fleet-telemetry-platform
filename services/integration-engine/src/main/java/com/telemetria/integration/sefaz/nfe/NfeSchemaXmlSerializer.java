@@ -20,7 +20,7 @@ public class NfeSchemaXmlSerializer {
     public String serializar(Object documento) {
         try {
             return XmlNfeUtil.objectToXml(documento);
-        } catch (JAXBException | com.telemetria.integration.nfe.exception.NfeException exception) {
+        } catch (JAXBException | com.telemetria.integration.nfe.exception.ExcecaoNfe exception) {
             throw new NfeException("Não foi possível montar o XML NF-e a partir do schema oficial.", exception);
         }
     }

@@ -8,7 +8,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.EventosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCartaCorrecao;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoCartaCorrecao;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoCartaCorrecao;
@@ -30,9 +30,9 @@ public class CartaCorrecaoUtil {
      * @param cce
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoCartaCorrecao montaCCe(Evento cce, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoCartaCorrecao montaCCe(Evento cce, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
         return montaCCe(Collections.singletonList(cce), configuracao);
     }
 
@@ -42,12 +42,12 @@ public class CartaCorrecaoUtil {
      * @param listaCCe
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoCartaCorrecao montaCCe(List<Evento> listaCCe, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoCartaCorrecao montaCCe(List<Evento> listaCCe, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
 
         if (listaCCe.size() > 20) {
-            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+            throw new ExcecaoNfe("Podem ser enviados no máximo 20 eventos no Lote.");
         }
 
         TEnvEventoCartaCorrecao envEvento = new TEnvEventoCartaCorrecao();
@@ -99,9 +99,9 @@ public class CartaCorrecaoUtil {
      * @param retorno
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcEventoCCe(ConfiguracoesNfe config, TEnvEventoCartaCorrecao enviEvento, TRetEnvEventoCartaCorrecao retorno) throws JAXBException, NfeException {
+    public static String criaProcEventoCCe(ConfiguracoesNfe config, TEnvEventoCartaCorrecao enviEvento, TRetEnvEventoCartaCorrecao retorno) throws JAXBException, ExcecaoNfe {
 
         String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
         xml = xml.replace(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "")

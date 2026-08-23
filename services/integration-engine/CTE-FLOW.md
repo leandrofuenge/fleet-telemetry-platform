@@ -38,8 +38,17 @@ propriedade `CteExchangeProperties.CTE_CONTEXT` do Camel Exchange.
 ## Fluxo de status
 
 `GET /api/integracoes/sefaz/cte/status` envia `CteStatusRequest` para
-`direct:cte-status`, que delega a consulta ao `CteStatusService`. A implementação
+`CteApplicationService`, que aciona `direct:cte-status` e delega a consulta ao
+`CteStatusService`. A implementação
 real de autorização continua separada no cliente e no transporte SOAP.
+
+## Operações síncronas
+
+`CteApplicationService` concentra autorização, consulta e envio de evento. Cada
+caso de uso delega ao `CteClient`, que aplica a guarda fiscal, valida XML/XSD e
+assinatura, envia por SOAP/mTLS e interpreta a resposta tipada. Os logs registram
+etapa, operação e tamanho dos payloads, sem registrar o XML, a chave de acesso,
+certificados ou credenciais.
 
 As rotas de `CteExperimentalRoutes` não fazem parte do fluxo padrão e só são ativadas
 com `integration.experimental-routes.enabled=true`.

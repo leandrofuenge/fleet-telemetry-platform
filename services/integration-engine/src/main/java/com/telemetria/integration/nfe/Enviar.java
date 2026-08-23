@@ -20,14 +20,14 @@ import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
-import com.telemetria.integration.nfe.util.StubUtil;
-import com.telemetria.integration.nfe.util.WebServiceUtil;
+import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
+import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
-import com.telemetria.integration.nfe.ws.RetryParameter;
+import com.telemetria.integration.nfe.ws.ParametroTentativa;
 import com.telemetria.integration.nfe.wsdl.NFeAutorizacao.NFeAutorizacao4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
@@ -51,9 +51,9 @@ class Enviar {
      * @param enviNFe
      * @param valida
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    static TEnviNFe montaNfe(ConfiguracoesNfe config, TEnviNFe enviNFe, boolean valida) throws NfeException {
+    static TEnviNFe montaNfe(ConfiguracoesNfe config, TEnviNFe enviNFe, boolean valida) throws ExcecaoNfe {
 
         try {
 
@@ -82,7 +82,7 @@ class Enviar {
             return XmlNfeUtil.xmlToObject(xml, TEnviNFe.class);
 
         } catch (Exception e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }
@@ -93,9 +93,9 @@ class Enviar {
      * @param enviNFe
      * @param tipoDocumento
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    static TRetEnviNFe enviaNfe(ConfiguracoesNfe config, TEnviNFe enviNFe, DocumentoEnum tipoDocumento) throws NfeException {
+    static TRetEnviNFe enviaNfe(ConfiguracoesNfe config, TEnviNFe enviNFe, DocumentoEnum tipoDocumento) throws ExcecaoNfe {
 
         try {
 
@@ -122,10 +122,10 @@ class Enviar {
             NFeAutorizacao4Stub.NfeDadosMsg dadosMsg = new NFeAutorizacao4Stub.NfeDadosMsg();
             dadosMsg.setExtraElement(ome);
 
-            String url = WebServiceUtil.getUrl(config, tipoDocumento, ServicosEnum.ENVIO);
+            String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.ENVIO);
             NFeAutorizacao4Stub stub = new NFeAutorizacao4Stub(url);
 
-            StubUtil.configuraHttpClient(stub, config, url);
+            UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
             // Timeout
             if (ObjetoUtil.verifica(config.getTimeout()).isPresent()) {
@@ -139,7 +139,7 @@ class Enviar {
             }
 
             if (ObjetoUtil.verifica(config.getRetry()).isPresent()) {
-                RetryParameter.populateRetry(stub, config.getRetry());
+                ParametroTentativa.populateRetry(stub, config.getRetry());
             }
 
             NFeAutorizacao4Stub.NfeResultMsg result = stub.nfeAutorizacaoLote(dadosMsg);
@@ -147,7 +147,7 @@ class Enviar {
             return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetEnviNFe.class);
 
         } catch (RemoteException | XMLStreamException | JAXBException | CertificadoException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }

@@ -13,8 +13,8 @@ import org.xml.sax.SAXParseException;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
-import com.telemetria.integration.nfe.exception.NfeValidacaoException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
+import com.telemetria.integration.nfe.exception.ExcecaoValidacaoNfe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 
 public class Validar implements ErrorHandler {
@@ -33,30 +33,30 @@ public class Validar implements ErrorHandler {
         try {
             validaXml(xsd, xml);
             return true;
-        } catch (NfeException ex) {
+        } catch (ExcecaoNfe ex) {
             return false;
         }
     }
 
-    private void validaXml(String xsd, String xml) throws NfeException {
+    private void validaXml(String xsd, String xml) throws ExcecaoNfe {
         System.setProperty("jdk.xml.maxOccurLimit", "99999");
         String errosValidacao;
 
         if (!new File(xsd).exists()) {
-            throw new NfeException("Schema Nfe não Localizado: " + xsd);
+            throw new ExcecaoNfe("Schema Nfe não Localizado: " + xsd);
         }
 
         errosValidacao = validateXml(xml, xsd);
         if (ObjetoUtil.verifica(errosValidacao).isPresent()) {
-            throw new NfeValidacaoException("Erro na validação: " + errosValidacao);
+            throw new ExcecaoValidacaoNfe("Erro na validação: " + errosValidacao);
         }
     }
 
-    void validaXml(ConfiguracoesNfe config, String xml, ServicosEnum servico) throws NfeException {
+    void validaXml(ConfiguracoesNfe config, String xml, ServicosEnum servico) throws ExcecaoNfe {
         validaXml(config.getPastaSchemas() + System.getProperty("file.separator") + servico.getXsd(), xml);
     }
 
-    private String validateXml(String xml, String xsd) throws NfeException {
+    private String validateXml(String xml, String xsd) throws ExcecaoNfe {
 
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setValidating(true);
@@ -69,13 +69,13 @@ public class Validar implements ErrorHandler {
             builder = docBuilderFactory.newDocumentBuilder();
             builder.setErrorHandler(this);
         } catch (ParserConfigurationException ex) {
-            throw new NfeException(ex.getMessage());
+            throw new ExcecaoNfe(ex.getMessage());
         }
 
         try {
             builder.parse(new InputSource(new StringReader(xml)));
         } catch (Exception ex) {
-            throw new NfeException(ex.toString());
+            throw new ExcecaoNfe(ex.toString());
         }
 
         return this.getListaComErrosDeValidacao();

@@ -14,7 +14,7 @@ import com.telemetria.integration.nfe.ConsultaTributacao;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dto.ClassificacaoTributariaDTO;
 import com.telemetria.integration.nfe.dto.CstDTO;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TAjusteCompet;
 import com.telemetria.integration.nfe.schemas.TCIBSNFe;
 import com.telemetria.integration.nfe.schemas.TCredPres;
@@ -196,7 +196,7 @@ public class IbsCbsUtil {
         inicializarTotais();
     }
 
-    public IbsCbsUtil(String json, DocumentoEnum documento) throws NfeException {
+    public IbsCbsUtil(String json, DocumentoEnum documento) throws ExcecaoNfe {
         this.listaCstIbsCbs = ConsultaTributacao.convertJsonToObject(
                 Objects.requireNonNull(json, "json é obrigatório"), new TypeReference<List<CstDTO>>() {});
         this.documento = Objects.requireNonNull(documento, "documento é obrigatório");
@@ -221,11 +221,11 @@ public class IbsCbsUtil {
         mapTotais.put(TOTAL_CBS_EST_CRED, BigDecimal.ZERO);
     }
 
-    public TTribNFe montaImpostosDet(String cclassTrib, TNFe.InfNFe.Det det) throws NfeException {
+    public TTribNFe montaImpostosDet(String cclassTrib, TNFe.InfNFe.Det det) throws ExcecaoNfe {
         return montaImpostosDet(cclassTrib, det, null);
     }
 
-    public TTribNFe montaImpostosDet(String cclassTrib, TNFe.InfNFe.Det det, String cclassTribRegular) throws NfeException {
+    public TTribNFe montaImpostosDet(String cclassTrib, TNFe.InfNFe.Det det, String cclassTribRegular) throws ExcecaoNfe {
         filtraCClasstrib(cclassTrib, cclassTribRegular);
         validaClassTrib(cclassTrib);
         calcularBaseCalculoIBSCBS(det);
@@ -396,21 +396,21 @@ public class IbsCbsUtil {
                 .findFirst();
     }
 
-    private void validaClassTrib(String cclassTrib) throws NfeException {
+    private void validaClassTrib(String cclassTrib) throws ExcecaoNfe {
         if (classTribIbsCbs == null) {
-            throw new NfeException("CClassTrib inválido ou não encontrado: " + cclassTrib);
+            throw new ExcecaoNfe("CClassTrib inválido ou não encontrado: " + cclassTrib);
         }
 
         if (documento.equals(DocumentoEnum.NFE) && Boolean.FALSE.equals(classTribIbsCbs.getIndNFe())) {
-            throw new NfeException("CClassTrib não pode ser utilizado para NFe: " + cclassTrib);
+            throw new ExcecaoNfe("CClassTrib não pode ser utilizado para NFe: " + cclassTrib);
         }
 
         if (documento.equals(DocumentoEnum.NFCE) && Boolean.FALSE.equals(classTribIbsCbs.getIndNFCe())) {
-            throw new NfeException("CClassTrib não pode ser utilizado para NFCe: " + cclassTrib);
+            throw new ExcecaoNfe("CClassTrib não pode ser utilizado para NFCe: " + cclassTrib);
         }
 
         if (Boolean.TRUE.equals(classTribIbsCbs.getIndTribRegular()) && classTribIbsCbsTribRegular == null) {
-            throw new NfeException("Obrigatório informar Tributação Regular para CClassTrib: " + cclassTrib);
+            throw new ExcecaoNfe("Obrigatório informar Tributação Regular para CClassTrib: " + cclassTrib);
         }
     }
 

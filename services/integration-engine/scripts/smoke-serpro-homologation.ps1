@@ -24,4 +24,7 @@ $response = Invoke-RestMethod -Method Post `
     -Uri "$BaseUrl/api/integracoes/senatran/serpro/veiculos/consulta" `
     -Headers $headers -ContentType "application/json" -Body $payload
 
-$response | ConvertTo-Json -Depth 8
+[pscustomobject]@{
+    resultado = "OK"
+    correlationId = $correlationId
+} | ConvertTo-Json

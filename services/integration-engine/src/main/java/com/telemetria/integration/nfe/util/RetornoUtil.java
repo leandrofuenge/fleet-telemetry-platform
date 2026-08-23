@@ -1,7 +1,7 @@
 package com.telemetria.integration.nfe.util;
 
 import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
 import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
@@ -16,16 +16,16 @@ public class RetornoUtil {
      * Valida Retorno Assincrono Trasmissão de Contingencia!
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaSincronoTrasmissaoContingencia(TRetEnviNFe retorno) throws NfeException {
+    public static void validaSincronoTrasmissaoContingencia(TRetEnviNFe retorno) throws ExcecaoNfe {
 
         if (!retorno.getCStat().equals(StatusEnum.LOTE_RECEBIDO.getCodigo()) && !retorno.getCStat().equals(StatusEnum.LOTE_PROCESSADO.getCodigo())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         if (!retorno.getProtNFe().getInfProt().getCStat().equals(StatusEnum.AUTORIZADO.getCodigo()) && !retorno.getProtNFe().getInfProt().getCStat().equals(StatusEnum.AUTORIZADO_FORA_PRAZO.getCodigo())) {
-            throw new NfeException(retorno.getProtNFe().getInfProt().getCStat() + " - " + retorno.getProtNFe().getInfProt().getXMotivo());
+            throw new ExcecaoNfe(retorno.getProtNFe().getInfProt().getCStat() + " - " + retorno.getProtNFe().getInfProt().getXMotivo());
         }
     }
 
@@ -33,11 +33,11 @@ public class RetornoUtil {
      * Valida o Retorno Do Cancelamento
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaCancelamento(TRetEnvEventoCancelamento retorno) throws NfeException {
+    public static void validaCancelamento(TRetEnvEventoCancelamento retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         final String[] erro = {""};
@@ -49,7 +49,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
     }
 
@@ -57,11 +57,11 @@ public class RetornoUtil {
      * Valida o Retorno Do Cancelamento Substituicao
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaCancelamentoSubstituicao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao retorno) throws NfeException {
+    public static void validaCancelamentoSubstituicao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         final String[] erro = {""};
@@ -72,7 +72,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
     }
 
@@ -80,11 +80,11 @@ public class RetornoUtil {
      * Valida o Retorno Do Evento Generico
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaEventoGenerico(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico retorno) throws NfeException {
+    public static void validaEventoGenerico(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         final String[] erro = {""};
@@ -95,7 +95,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
     }
 
@@ -103,11 +103,11 @@ public class RetornoUtil {
      * Valida o Retorno Da Manifestação
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaManifestacao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao retorno) throws NfeException {
+    public static void validaManifestacao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         final String[] erro = {""};
@@ -118,7 +118,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
 
     }
@@ -127,11 +127,11 @@ public class RetornoUtil {
      * Valida o Retorno Da Carta de Correção
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaCartaCorrecao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao retorno) throws NfeException {
+    public static void validaCartaCorrecao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
         final String[] erro = {""};
         retorno.getRetEvento().forEach(retEvento -> {
@@ -141,7 +141,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
     }
 
@@ -149,11 +149,11 @@ public class RetornoUtil {
      * Valida o Retorno Do EPEC
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaEpec(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec retorno) throws NfeException {
+    public static void validaEpec(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
 
         }
 
@@ -165,7 +165,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
     }
 
@@ -173,11 +173,11 @@ public class RetornoUtil {
      * Valida o Retorno Da Consulta Cadastro
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaConsultaCadastro(com.telemetria.integration.nfe.schemas.TRetConsCad retorno) throws NfeException {
+    public static void validaConsultaCadastro(com.telemetria.integration.nfe.schemas.TRetConsCad retorno) throws ExcecaoNfe {
         if (!retorno.getInfCons().getCStat().equals(StatusEnum.CADASTRO_ENCONTRADO.getCodigo())) {
-            throw new NfeException(retorno.getInfCons().getCStat() + " - " + retorno.getInfCons().getXMotivo());
+            throw new ExcecaoNfe(retorno.getInfCons().getCStat() + " - " + retorno.getInfCons().getXMotivo());
         }
     }
 
@@ -185,11 +185,11 @@ public class RetornoUtil {
      * Valida o Retorno Da Inutilização
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaInutilizacao(com.telemetria.integration.nfe.schemas.TRetInutNFe retorno) throws NfeException {
+    public static void validaInutilizacao(com.telemetria.integration.nfe.schemas.TRetInutNFe retorno) throws ExcecaoNfe {
         if (!retorno.getInfInut().getCStat().equals(StatusEnum.INUTILIZADO.getCodigo())) {
-            throw new NfeException(retorno.getInfInut().getCStat() + " - " + retorno.getInfInut().getXMotivo());
+            throw new ExcecaoNfe(retorno.getInfInut().getCStat() + " - " + retorno.getInfInut().getXMotivo());
         }
     }
 
@@ -199,9 +199,9 @@ public class RetornoUtil {
      * @param retorno
      * @return
      */
-    public static boolean isRetornoAssincrono(TRetEnviNFe retorno) throws NfeException {
+    public static boolean isRetornoAssincrono(TRetEnviNFe retorno) throws ExcecaoNfe {
         if (!retorno.getCStat().equals(StatusEnum.LOTE_RECEBIDO.getCodigo()) && !retorno.getCStat().equals(StatusEnum.LOTE_PROCESSADO.getCodigo())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         return retorno.getCStat().equals(StatusEnum.LOTE_RECEBIDO.getCodigo());
@@ -211,12 +211,12 @@ public class RetornoUtil {
      * Valida Retorno Assincrono
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaAssincrono(TRetConsReciNFe retorno) throws NfeException {
+    public static void validaAssincrono(TRetConsReciNFe retorno) throws ExcecaoNfe {
 
         if (!retorno.getCStat().equals(StatusEnum.LOTE_PROCESSADO.getCodigo())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         final String[] erro = {""};
@@ -227,7 +227,7 @@ public class RetornoUtil {
         });
 
         if (ObjetoUtil.verifica(erro[0]).isPresent()) {
-            throw new NfeException(erro[0]);
+            throw new ExcecaoNfe(erro[0]);
         }
 
     }
@@ -236,17 +236,17 @@ public class RetornoUtil {
      * Valida Retorno Assincrono
      *
      * @param retorno
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static void validaSincrono(TRetEnviNFe retorno) throws NfeException {
+    public static void validaSincrono(TRetEnviNFe retorno) throws ExcecaoNfe {
 
         if (!retorno.getCStat().equals(StatusEnum.LOTE_RECEBIDO.getCodigo()) && !retorno.getCStat().equals(StatusEnum.LOTE_PROCESSADO.getCodigo())) {
-            throw new NfeException(retorno.getCStat() + " - " + retorno.getXMotivo());
+            throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
 
         if (!retorno.getProtNFe().getInfProt().getCStat().equals(StatusEnum.AUTORIZADO.getCodigo()) &&
             !retorno.getProtNFe().getInfProt().getCStat().equals(StatusEnum.AUTORIZADO_FORA_PRAZO.getCodigo())) {
-            throw new NfeException(retorno.getProtNFe().getInfProt().getCStat() + " - " + retorno.getProtNFe().getInfProt().getXMotivo());
+            throw new ExcecaoNfe(retorno.getProtNFe().getInfProt().getCStat() + " - " + retorno.getProtNFe().getInfProt().getXMotivo());
         }
     }
 

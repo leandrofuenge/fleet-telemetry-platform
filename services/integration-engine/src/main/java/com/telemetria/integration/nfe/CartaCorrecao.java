@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCartaCorrecao;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
@@ -16,7 +16,7 @@ import jakarta.xml.bind.JAXBException;
 class CartaCorrecao {
 
     static TRetEnvEventoCartaCorrecao eventoCCe(ConfiguracoesNfe config, TEnvEventoCartaCorrecao enviEvento, boolean valida)
-            throws NfeException {
+            throws ExcecaoNfe {
 
         try {
 
@@ -29,7 +29,7 @@ class CartaCorrecao {
             return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoCartaCorrecao.class);
 
         } catch (JAXBException e) {
-            throw new NfeException(e.getMessage(), e);
+            throw new ExcecaoNfe(e.getMessage(), e);
         }
 
     }

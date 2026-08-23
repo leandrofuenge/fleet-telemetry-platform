@@ -8,7 +8,7 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enuns.EventosEnum;
-import com.telemetria.integration.nfe.exception.NfeException;
+import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamento;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoCancelamento;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamento;
@@ -30,9 +30,9 @@ public class CancelamentoUtil {
      * @param cancela
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoCancelamento montaCancelamento(Evento cancela, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoCancelamento montaCancelamento(Evento cancela, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
         return montaCancelamento(Collections.singletonList(cancela), configuracao);
     }
 
@@ -42,12 +42,12 @@ public class CancelamentoUtil {
      * @param listaCancela
      * @param configuracao
      * @return
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static TEnvEventoCancelamento montaCancelamento(List<Evento> listaCancela, ConfiguracoesNfe configuracao) throws NfeException {
+    public static TEnvEventoCancelamento montaCancelamento(List<Evento> listaCancela, ConfiguracoesNfe configuracao) throws ExcecaoNfe {
 
         if (listaCancela.size() > 20) {
-            throw new NfeException("Podem ser enviados no máximo 20 eventos no Lote.");
+            throw new ExcecaoNfe("Podem ser enviados no máximo 20 eventos no Lote.");
         }
 
         TEnvEventoCancelamento enviEvento = new TEnvEventoCancelamento();
@@ -96,9 +96,9 @@ public class CancelamentoUtil {
      * @param retorno
      * @return
      * @throws JAXBException
-     * @throws NfeException
+     * @throws ExcecaoNfe
      */
-    public static String criaProcEventoCancelamento(ConfiguracoesNfe config, TEnvEventoCancelamento enviEvento, TRetEventoCancelamento retorno) throws JAXBException, NfeException {
+    public static String criaProcEventoCancelamento(ConfiguracoesNfe config, TEnvEventoCancelamento enviEvento, TRetEventoCancelamento retorno) throws JAXBException, ExcecaoNfe {
 
         String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
         xml = xml.replace(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "")

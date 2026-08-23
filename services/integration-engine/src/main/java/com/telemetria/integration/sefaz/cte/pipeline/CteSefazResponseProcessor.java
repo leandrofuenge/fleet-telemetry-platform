@@ -126,5 +126,7 @@ public class CteSefazResponseProcessor
                 CteExchangeProperties.CTE_RESULTADO,
                 result
         );
+
+        log.warn("CT-e: SEFAZ rejeitou o documento (codigo={})", codigo);
     }
 }
