@@ -1,35 +1,25 @@
 # Integration Engine
 
-## Fluxo técnico
+O catálogo completo está em [`docs/flow-catalog.md`](docs/flow-catalog.md).
 
-Cada funcionalidade deve seguir a mesma direção de dependências:
+## Direção das dependências
 
-`api/controller -> application/service -> client -> sistema externo`
+`api -> application/service -> validation/guard -> client/transport -> sistema externo`
 
-Rotas Camel ficam em `route` e são usadas para encadeamento, auditoria, retentativas e integração assíncrona. Regras de negócio ficam em `application` ou no `Service` do domínio, nunca dentro do controller ou da rota.
+Rotas Camel orquestram etapas, auditoria e integração assíncrona. Regras fiscais
+ficam nos services e guards, nunca em controllers ou rotas.
 
-## Estrutura
+## Regras
 
-- `config`: configuração compartilhada do Spring e Camel.
-- `datatransfer`: utilitários de transporte de payloads e SOAP.
-- `workflow`: casos de uso que coordenam mais de uma integração.
-  - `api`: endpoints HTTP.
-  - `application`: serviços de aplicação e decisão de negócio.
-  - `domain`: contratos de entrada e saída.
-  - `route`: rotas Camel de orquestração.
-- `antt`, `sefaz`, `senatran`: integrações agrupadas por órgão e produto.
-- `security`: assinatura e segurança de documentos.
-- `support`: processadores transversais, auditoria e erros.
-- `util`: funções puras reutilizáveis.
+1. Controllers validam o contrato HTTP e delegam.
+2. Rotas Camel orquestram; não implementam regras fiscais.
+3. Guards autorizam operações com efeito fiscal.
+4. Builders criam payloads; validators não os alteram.
+5. Clients representam sistemas externos; transports fazem I/O.
+6. Parsers convertem respostas em objetos de domínio.
+7. Repositories são a fronteira de persistência.
+8. Rotas experimentais exigem habilitação explícita.
+9. Logs não contêm credenciais, certificados ou XML fiscal completo.
 
-## Início de viagem
-
-1. O controller recebe a solicitação.
-2. A rota Camel registra a execução e delega ao serviço de aplicação.
-3. O motorista é validado localmente.
-4. O veículo é consultado no SENATRAN/RADAR quando o RENAVAM é informado.
-5. O transportador é validado na ANTT/RNTRC quando seu documento é informado.
-6. A disponibilidade do CT-e é verificada na SEFAZ.
-7. A viagem é liberada somente quando todas as validações aplicáveis forem aprovadas.
-
-Os campos `renavam` e `transportadorDocumento` são opcionais para manter compatibilidade com consumidores existentes. Quando ausentes, as respectivas integrações externas não são chamadas.
+Todo componente exclusivo de CT-e fica abaixo de
+`com.telemetria.integration.sefaz.cte`.

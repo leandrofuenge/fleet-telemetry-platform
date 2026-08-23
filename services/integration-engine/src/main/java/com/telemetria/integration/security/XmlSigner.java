@@ -36,7 +36,7 @@ import org.w3c.dom.NodeList;
 
 import com.telemetria.integration.config.SefazProperties;
 import com.telemetria.integration.sefaz.certificate.CertificadoLoader;
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 @Component
 public class XmlSigner {

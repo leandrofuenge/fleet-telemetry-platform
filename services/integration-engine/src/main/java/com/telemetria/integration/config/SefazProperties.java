@@ -5,15 +5,33 @@ import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import com.telemetria.integration.sefaz.cte.CteAmbiente;
+import com.telemetria.integration.sefaz.cte.domain.CteAmbiente;
 
 @Component
 @ConfigurationProperties(prefix = "sefaz")
 public class SefazProperties {
 
+    private String estado = "MT";
     private Cte cte = new Cte();
     private Certificado certificado = new Certificado();
     private Tls tls = new Tls();
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    // Alias para suporte transparente caso a propriedade venha como 'sefaz.uf'
+    public String getUf() {
+        return estado;
+    }
+
+    public void setUf(String uf) {
+        this.estado = uf;
+    }
 
     public Cte getCte() {
         return cte;
@@ -31,8 +49,13 @@ public class SefazProperties {
         this.certificado = certificado;
     }
 
-    public Tls getTls() { return tls; }
-    public void setTls(Tls tls) { this.tls = tls; }
+    public Tls getTls() { 
+        return tls; 
+    }
+
+    public void setTls(Tls tls) { 
+        this.tls = tls; 
+    }
 
     public static class Cte {
         private String ambiente = "homologacao";
@@ -68,8 +91,13 @@ public class SefazProperties {
             this.endpoints = endpoints;
         }
 
-        public Operations getOperations() { return operations; }
-        public void setOperations(Operations operations) { this.operations = operations; }
+        public Operations getOperations() { 
+            return operations; 
+        }
+
+        public void setOperations(Operations operations) { 
+            this.operations = operations; 
+        }
     }
 
     public static class Operations {
@@ -77,15 +105,26 @@ public class SefazProperties {
         private boolean cancellationEnabled;
         private boolean authorizedFiscalTestData;
 
-        public boolean isAuthorizationEnabled() { return authorizationEnabled; }
+        public boolean isAuthorizationEnabled() { 
+            return authorizationEnabled; 
+        }
+
         public void setAuthorizationEnabled(boolean authorizationEnabled) {
             this.authorizationEnabled = authorizationEnabled;
         }
-        public boolean isCancellationEnabled() { return cancellationEnabled; }
+
+        public boolean isCancellationEnabled() { 
+            return cancellationEnabled; 
+        }
+
         public void setCancellationEnabled(boolean cancellationEnabled) {
             this.cancellationEnabled = cancellationEnabled;
         }
-        public boolean isAuthorizedFiscalTestData() { return authorizedFiscalTestData; }
+
+        public boolean isAuthorizedFiscalTestData() { 
+            return authorizedFiscalTestData; 
+        }
+
         public void setAuthorizedFiscalTestData(boolean authorizedFiscalTestData) {
             this.authorizedFiscalTestData = authorizedFiscalTestData;
         }

@@ -1,6 +1,6 @@
 package com.telemetria.integration.sefaz.cte.retorno;
 
-import com.telemetria.integration.sefaz.cte.CteException;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 
 public class CteSoapFaultException extends CteException {
     private final String faultCode;

@@ -24,8 +24,10 @@ public class SerproCorrelationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
+        String current = MDC.get("correlationId");
         String incoming = request.getHeader(HEADER);
-        String correlationId = incoming == null || incoming.isBlank() ? UUID.randomUUID().toString() : incoming;
+        String correlationId = current != null ? current
+                : incoming == null || incoming.isBlank() ? UUID.randomUUID().toString() : incoming;
         response.setHeader(HEADER, correlationId);
         try (MDC.MDCCloseable ignored = MDC.putCloseable("correlationId", correlationId)) {
             chain.doFilter(request, response);

@@ -3,7 +3,7 @@ package com.telemetria.integration.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.telemetria.integration.sefaz.cte.CteSoapService;
+import com.telemetria.integration.sefaz.cte.soap.CteSoapService;
 
 /**
  * Utilitário para encapsulamento e extração de documentos XML dentro de envelopes SOAP 1.2 para a SEFAZ.

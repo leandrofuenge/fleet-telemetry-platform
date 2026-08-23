@@ -1,5 +1,20 @@
 server:
   port: ${SERVER_PORT:9060}
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:framework}
+  ssl:
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SERVER_SSL_KEY_STORE:}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
+    key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
+    key-alias: ${SERVER_SSL_KEY_ALIAS:}
+    enabled-protocols: ${SERVER_SSL_ENABLED_PROTOCOLS:TLSv1.3,TLSv1.2}
+
+security:
+  transport:
+    require-https: ${SECURITY_REQUIRE_HTTPS:${SERVER_SSL_ENABLED:false}}
+    hsts-enabled: ${SECURITY_HSTS_ENABLED:true}
+    hsts-max-age-seconds: ${SECURITY_HSTS_MAX_AGE_SECONDS:31536000}
+    hsts-include-subdomains: ${SECURITY_HSTS_INCLUDE_SUBDOMAINS:true}
 
 spring:
   application:
@@ -24,11 +39,44 @@ management:
       exposure:
         include: health,info,prometheus
 
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    com.telemetria.integration: ${LOGGING_LEVEL_INTEGRATION:INFO}
+    org.apache.camel: ${LOGGING_LEVEL_CAMEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [correlationId=%X{correlationId:-none}] %logger{36} - %msg%n"
+
+integration:
+  simulation:
+    enabled: ${INTEGRATION_SIMULATION_ENABLED:false}
+  experimental-routes:
+    enabled: ${INTEGRATION_EXPERIMENTAL_ROUTES_ENABLED:false}
+  data-transfer:
+    max-document-bytes: ${INTEGRATION_DATA_TRANSFER_MAX_DOCUMENT_BYTES:1048576}
+
+sefaz:
+  cte:
+    ambiente: ${SEFAZ_CTE_AMBIENTE:homologacao}
+    versao: "4.00"
+    endpoints:
+      autorizacao: ${SEFAZ_CTE_AUTORIZACAO_URL:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoSincV4}}
+      consulta: ${SEFAZ_CTE_CONSULTA_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeConsultaV4}
+      evento: ${SEFAZ_CTE_EVENTO_URL:${SEFAZ_CTE_WEBSERVICE_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoEventoV4}}
+      status: ${SEFAZ_CTE_STATUS_URL:https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4}
+  certificado:
+    arquivo: ${SEFAZ_CERT_PATH:}
+    senha: ${SEFAZ_CERT_PASSWORD:}
+    senha-chave: ${SEFAZ_CERT_KEY_PASSWORD:${SEFAZ_CERT_PASSWORD:}}
+    tipo: ${SEFAZ_CERT_TYPE:PKCS12}
+  tls:
+    protocolo: ${SEFAZ_TLS_PROTOCOL:TLSv1.2}
+    truststore:
+      arquivo: ${SEFAZ_TRUSTSTORE_PATH:}
+      senha: ${SEFAZ_TRUSTSTORE_PASSWORD:}
+      tipo: ${SEFAZ_TRUSTSTORE_TYPE:PKCS12}
+
 camel:
   springboot:
     name: IntegrationEngineCamelContext
     main-run-controller: true
-
-integration:
-  data-transfer:
-    max-document-bytes: ${INTEGRATION_DATA_TRANSFER_MAX_DOCUMENT_BYTES:1048576}

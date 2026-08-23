@@ -13,6 +13,7 @@ logs/
 
 # Java builds
 **/target/
+**/.m2/
 *.class
 
 # IDEs
