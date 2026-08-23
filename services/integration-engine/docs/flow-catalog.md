@@ -88,6 +88,23 @@ flags fiscais, certificado válido e ambiente autorizado.
 `INTEGRATION_EXPERIMENTAL_ROUTES_ENABLED=true`. Não deve ser habilitada em
 produção antes de idempotência, persistência e retentativa completas.
 
+## NF-e
+
+```text
+NfeController
+  -> NfeApplicationService
+    -> NfeFiscalOperationGuard (operações mutáveis)
+    -> NfeXmlPayloadValidator e XmlSignatureValidator
+    -> NfeClient
+      -> NfeSoapGateway -> HTTPS/mTLS -> SEFAZ
+      -> NfeSoapResponseValidator
+```
+
+`NfeApplicationService` concentra os casos de uso expostos pela API: status,
+consulta por chave, recibo, autorização, eventos, inutilização e distribuição DFe.
+Os pacotes `integration.nfe.schemas` e `integration.nfe.wsdl` são fontes gerados e
+ficam fora da orquestração; não devem ser editados manualmente.
+
 ## Início de viagem
 
 ```text
