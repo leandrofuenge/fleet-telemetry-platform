@@ -1,4 +1,4 @@
-FROM maven:3.9.9-eclipse-temurin-17 AS builder
+FROM docker.io/library/maven:3.9.9-eclipse-temurin-17 AS builder
 
 WORKDIR /workspace
 
@@ -9,7 +9,7 @@ COPY src ./src
 COPY schemas ./schemas
 RUN mvn --batch-mode --no-transfer-progress clean package -DskipTests
 
-FROM eclipse-temurin:17-jre-jammy
+FROM docker.io/library/eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 

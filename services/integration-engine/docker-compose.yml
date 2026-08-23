@@ -2,11 +2,11 @@ name: integration-engine
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: telemetria
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
     volumes:
       - integration-postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -21,11 +21,11 @@ services:
     build:
       context: .
     image: integration-engine:local
+    env_file:
+      - .env
     environment:
       SERVER_PORT: 9060
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
       MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
       SEFAZ_CERT_PATH: ${SEFAZ_CERT_PATH:-}
       SEFAZ_CERT_PASSWORD: ${SEFAZ_CERT_PASSWORD:-}
