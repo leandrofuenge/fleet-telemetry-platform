@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
+import java.util.logging.Logger;
 
 import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
@@ -16,7 +17,6 @@ import com.telemetria.integration.nfe.util.ObjetoUtil;
 
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import java.util.logging.Logger;
 
 /**
  * @author Samuel Oliveira

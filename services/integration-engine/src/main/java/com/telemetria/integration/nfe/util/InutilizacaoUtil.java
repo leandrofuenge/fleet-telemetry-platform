@@ -3,8 +3,6 @@ package com.telemetria.integration.nfe.util;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javax.xml.bind.JAXBException;
-
 import com.telemetria.integration.nfe.Assinar;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
@@ -13,6 +11,8 @@ import com.telemetria.integration.nfe.exception.NfeException;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
 import com.telemetria.integration.nfe.schemas.TProcInutNFe;
 import com.telemetria.integration.nfe.schemas.TRetInutNFe;
+
+import jakarta.xml.bind.JAXBException;
 
 /**
  * @author Samuel Oliveira - samuk.exe@hotmail.com

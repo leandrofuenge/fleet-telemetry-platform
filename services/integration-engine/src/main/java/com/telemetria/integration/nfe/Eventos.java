@@ -1,6 +1,7 @@
 package com.telemetria.integration.nfe;
 
 import java.rmi.RemoteException;
+import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -20,7 +21,6 @@ import com.telemetria.integration.nfe.ws.RetryParameter;
 import com.telemetria.integration.nfe.wsdl.NFeRecepcaoEvento.NFeRecepcaoEvento4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import java.util.logging.Logger;
 
 class Eventos {
 

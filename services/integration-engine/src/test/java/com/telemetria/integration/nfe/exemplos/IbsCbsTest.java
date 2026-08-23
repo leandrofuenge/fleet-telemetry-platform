@@ -8,7 +8,6 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,7 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author Samuel Oliveira

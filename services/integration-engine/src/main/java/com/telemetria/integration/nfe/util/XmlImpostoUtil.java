@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe.util;
 import java.math.BigDecimal;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * Classe utilitária para extração dos valores de impostos de uma lista de elementos JAXB

@@ -1,8 +1,8 @@
 package com.telemetria.integration.nfe;
 
 import java.rmi.RemoteException;
+import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.axiom.om.OMElement;
@@ -22,7 +22,7 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.wsdl.NFeStatusServico4.NFeStatusServico4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import java.util.logging.Logger;
+import jakarta.xml.bind.JAXBException;
 
 /**
  * Classe responsável por fazer a Verificação do Status Do Webservice

@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
-
 import org.junit.jupiter.api.Test;
 
 import com.telemetria.integration.nfe.schemas.ObjectFactory;
@@ -21,6 +19,8 @@ import com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ISSQN;
 import com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS;
 import com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS.PISAliq;
 import com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS.PISQtde;
+
+import jakarta.xml.bind.JAXBElement;
 
 class XmlImpostoUtilTest {
 

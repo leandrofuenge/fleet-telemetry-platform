@@ -1,7 +1,5 @@
 package com.telemetria.integration.nfe;
 
-import javax.xml.bind.JAXBException;
-
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
@@ -9,6 +7,8 @@ import com.telemetria.integration.nfe.exception.NfeException;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
+
+import jakarta.xml.bind.JAXBException;
 
 /**
  * @author Samuel Oliveira - samuel@swconsultoria.com.br Data: 28/09/2017 - 11:11

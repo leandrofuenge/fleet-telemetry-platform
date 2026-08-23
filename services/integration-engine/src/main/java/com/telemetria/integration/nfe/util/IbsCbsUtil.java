@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.xml.bind.JAXBElement;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.telemetria.integration.nfe.ConsultaTributacao;
 import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
@@ -32,6 +30,8 @@ import com.telemetria.integration.nfe.schemas.TTransfCred;
 import com.telemetria.integration.nfe.schemas.TTribCompraGov;
 import com.telemetria.integration.nfe.schemas.TTribNFe;
 import com.telemetria.integration.nfe.schemas.TTribRegular;
+
+import jakarta.xml.bind.JAXBElement;
 
 
 public class IbsCbsUtil {

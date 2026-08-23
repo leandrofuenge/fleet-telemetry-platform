@@ -1,10 +1,10 @@
 package com.telemetria.integration.sefaz.nfe;
 
-import javax.xml.bind.JAXBException;
-
 import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
+
+import jakarta.xml.bind.JAXBException;
 
 /**
  * Ponte entre os modelos NF-e gerados a partir dos schemas oficiais e o

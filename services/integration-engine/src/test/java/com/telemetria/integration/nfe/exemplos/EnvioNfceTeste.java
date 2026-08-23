@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.telemetria.integration.nfe.Nfe;
@@ -49,6 +48,8 @@ import com.telemetria.integration.nfe.util.NFCeUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 import com.telemetria.integration.nfe.util.WebServiceUtil;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
+
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author Samuel Oliveira

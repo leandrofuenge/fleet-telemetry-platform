@@ -3,8 +3,6 @@ package com.telemetria.integration.nfe.util;
 import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
 import com.telemetria.integration.nfe.Assinar;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.Evento;
@@ -16,6 +14,8 @@ import com.telemetria.integration.nfe.schemas_eventos.TEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec;
 import com.telemetria.integration.nfe.schemas_eventos.TUf;
+
+import jakarta.xml.bind.JAXBException;
 
 /**
  * @author Samuel Oliveira - samuk.exe@hotmail.com

@@ -1,6 +1,5 @@
 package com.telemetria.integration.nfe.util;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
@@ -17,6 +16,8 @@ import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TProcEventoGenerico;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEventoGenerico;
+
+import jakarta.xml.bind.JAXBException;
 
 public class EventoGenericoUtil {
 

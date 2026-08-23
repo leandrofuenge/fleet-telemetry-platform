@@ -23,9 +23,9 @@
         <java-certificado.version>3.16</java-certificado.version>
         <axis2.version>1.7.5</axis2.version>
         <axiom-api.version>1.2.20</axiom-api.version>
-        <jaxb-impl.version>2.3.1</jaxb-impl.version>
-        <jaxb-xjc.version>2.3.1</jaxb-xjc.version>
-        <jaxb-core.version>2.3.0.1</jaxb-core.version>
+        <jaxb-impl.version>4.0.5</jaxb-impl.version>
+        <jaxb-xjc.version>4.0.5</jaxb-xjc.version>
+        <jaxb-core.version>4.0.5</jaxb-core.version>
         <jmockit.version>1.49</jmockit.version>
         <jasper.version>6.20.6</jasper.version>
         <barbecue.version>1.5-beta1</barbecue.version>
@@ -110,6 +110,11 @@
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-core</artifactId>
             <version>${jaxb-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.axis2</groupId>

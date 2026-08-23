@@ -19,13 +19,9 @@ import java.time.ZoneId;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
@@ -52,7 +48,11 @@ import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TNfeProc;
 import com.telemetria.integration.nfe.schemas.TProtNFe;
 
-import java.util.logging.Logger;
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 
 /**
  * Classe Responsavel por Metodos referentes ao XML

@@ -3,8 +3,8 @@ package com.telemetria.integration.nfe;
 import java.io.StringReader;
 import java.rmi.RemoteException;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.axiom.om.OMAbstractFactory;
@@ -31,7 +31,7 @@ import com.telemetria.integration.nfe.ws.RetryParameter;
 import com.telemetria.integration.nfe.wsdl.NFeAutorizacao.NFeAutorizacao4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
-import java.util.logging.Logger;
+import jakarta.xml.bind.JAXBException;
 
 /**
  * Classe Responsavel por Enviar o XML.
