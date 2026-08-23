@@ -13,6 +13,7 @@ sefaz:
     ambiente: "2"
     codigo-uf: ${SEFAZ_NFE_CODIGO_UF:51}
     timeout-millis: ${SEFAZ_NFE_TIMEOUT_MILLIS:30000}
+    max-xml-bytes: ${SEFAZ_NFE_MAX_XML_BYTES:1048576}
     endpoints:
       autorizacao: ${SEFAZ_NFE_AUTORIZACAO_URL}
       ret-autorizacao: ${SEFAZ_NFE_RET_AUTORIZACAO_URL}

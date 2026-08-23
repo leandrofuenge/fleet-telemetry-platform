@@ -14,9 +14,11 @@ public class NfeFiscalOperationGuard {
     public void exigirInutilizacaoPermitida() { exigir(properties.getOperations().isInutilizationEnabled(), "inutilização"); }
 
     private void exigir(boolean enabled, String operation) {
-        if (!enabled) throw new NfeException("Operação NF-e bloqueada (" + operation + "): desabilitada por configuração.");
+        if (!enabled) throw new NfeOperationBlockedException(
+                "Operação NF-e bloqueada (" + operation + "): desabilitada por configuração.");
         if (!properties.getOperations().isAuthorizedFiscalTestData()) {
-            throw new NfeException("Operação NF-e bloqueada (" + operation + "): massa fiscal de teste não confirmada.");
+            throw new NfeOperationBlockedException(
+                    "Operação NF-e bloqueada (" + operation + "): massa fiscal de teste não confirmada.");
         }
     }
 }

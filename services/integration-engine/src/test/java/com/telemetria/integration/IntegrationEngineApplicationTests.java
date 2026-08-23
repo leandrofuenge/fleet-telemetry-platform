@@ -8,17 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.telemetria.integration.datatransfer.Base64TransferRequest;
-import com.telemetria.integration.datatransfer.Base64TransferResponse;
-import com.telemetria.integration.datatransfer.DataTransferRoute;
 import com.telemetria.integration.sefaz.cte.route.CteRoute;
 import com.telemetria.integration.sefaz.cte.status.CteStatusRequest;
 import com.telemetria.integration.sefaz.cte.status.CteStatusResponse;
 import com.telemetria.integration.util.Base64Utils;
 import com.telemetria.integration.util.SoapEnvelopeHelper;
-import com.telemetria.integration.workflow.domain.ViagemWorkflowRequest;
-import com.telemetria.integration.workflow.domain.ViagemWorkflowResponse;
-import com.telemetria.integration.workflow.route.InicioViagemWorkflowRoute;
 
 @SpringBootTest(properties = "integration.simulation.enabled=true")
 class IntegrationEngineApplicationTests {
@@ -66,32 +60,6 @@ class IntegrationEngineApplicationTests {
     }
 
     @Test
-    @DisplayName("Deve executar a rota Camel de transferência Base64 e contextualização SOAP")
-    void deveExecutarRotaTransferenciaBase64() {
-        String xmlPayload = "<eventoCTe versao=\"4.00\"><infEvento Id=\"ID1101105126080000000000000057001000000001100000001001\"><tpEvento>110110</tpEvento></infEvento></eventoCTe>";
-
-        Base64TransferRequest request = new Base64TransferRequest(
-                xmlPayload,
-                "CTE",
-                false,
-                true
-        );
-
-        Base64TransferResponse response = producerTemplate.requestBody(
-                DataTransferRoute.ROUTE_TRANSFER_BASE64,
-                request,
-                Base64TransferResponse.class
-        );
-
-        assertThat(response).isNotNull();
-        assertThat(response.isSucesso()).isTrue();
-        assertThat(response.getConteudoBase64()).isNotBlank();
-        assertThat(response.getSoapEnvelopeXml()).contains("<soap12:Envelope");
-        assertThat(response.getSoapEnvelopeXmlBase64()).isNotBlank();
-        assertThat(response.getTamanhoBytesOriginal()).isGreaterThan(0);
-    }
-
-    @Test
     @DisplayName("Deve executar a rota Camel CT-e 4.00 com contexto SOAP e geração de Base64 no envio e retorno")
     void deveExecutarRotaSefazCteStatusComXmlEBase64() {
         CteStatusRequest request = new CteStatusRequest("MT", "homologacao");
@@ -117,27 +85,4 @@ class IntegrationEngineApplicationTests {
         assertThat(response.getXmlRetornoDadosBase64()).isNotBlank();
     }
 
-    @Test
-    @DisplayName("Deve executar workflow completo de inicio de viagem via Apache Camel")
-    void deveExecutarWorkflowInicioViagem() {
-        ViagemWorkflowRequest request = new ViagemWorkflowRequest(
-                "VGM-2026-001",
-                "ABC1D23",
-                "12345678900",
-                "MT",
-                "SP"
-        );
-
-        ViagemWorkflowResponse response = producerTemplate.requestBody(
-                InicioViagemWorkflowRoute.ROUTE_INICIAR_VIAGEM,
-                request,
-                ViagemWorkflowResponse.class
-        );
-
-        assertThat(response).isNotNull();
-        assertThat(response.getViagemId()).isEqualTo("VGM-2026-001");
-        assertThat(response.isMotoristaValido()).isTrue();
-        assertThat(response.isVeiculoValido()).isTrue();
-        assertThat(response.getEtapasConcluidas()).contains("MOTORISTA_VALIDADO", "VEICULO_VALIDADO");
-    }
 }

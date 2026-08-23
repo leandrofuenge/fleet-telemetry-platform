@@ -1,21 +1,14 @@
 package com.telemetria.integration.sefaz.nfe;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.SSLContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.security.XmlSignatureValidator;
+import com.telemetria.integration.sefaz.nfe.soap.NfeSoapGateway;
+import com.telemetria.integration.sefaz.nfe.soap.NfeSoapService;
 
 /**
  * Cliente SOAP 1.2 da NF-e 4.00, com mTLS e operações fiscais protegidas.
@@ -27,50 +20,37 @@ import com.telemetria.integration.security.XmlSignatureValidator;
 @Component
 public class NfeClient {
 
-    private static final Logger log = LoggerFactory.getLogger(NfeClient.class);
-
     private static final Pattern CHAVE_ACESSO_PATTERN = Pattern.compile("\\d{44}");
     private static final Pattern N_REC_PATTERN = Pattern.compile("\\d{15}");
 
-    private static final String NS_AUTORIZACAO = "http://www.portalfiscal.inf.br/nfe/wsdl/NfeAutorizacao4";
-    private static final String NS_RET_AUTORIZACAO = "http://www.portalfiscal.inf.br/nfe/wsdl/NfeRetAutorizacao4";
-    private static final String NS_CONSULTA = "http://www.portalfiscal.inf.br/nfe/wsdl/NfeConsultaProtocolo4";
-    private static final String NS_STATUS_SERVICO = "http://www.portalfiscal.inf.br/nfe/wsdl/NfeStatusServico4";
-    private static final String NS_EVENTO = "http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4";
-    private static final String NS_INUTILIZACAO = "http://www.portalfiscal.inf.br/nfe/wsdl/NfeInutilizacao4";
-    private static final String NS_DISTRIBUICAO_DFE = "http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe";
-
     private final NfeProperties properties;
-    private final SSLContext sslContext;
     private final XmlSignatureValidator signatureValidator;
     private final NfeFiscalOperationGuard operationGuard;
-    private final HttpClient httpClient;
+    private final NfeXmlPayloadValidator xmlPayloadValidator;
+    private final NfeSoapGateway soapGateway;
 
-    public NfeClient(NfeProperties properties, @Qualifier("sefazSslContext") SSLContext sslContext,
-            XmlSignatureValidator signatureValidator, NfeFiscalOperationGuard operationGuard) {
+    public NfeClient(NfeProperties properties,
+            XmlSignatureValidator signatureValidator, NfeFiscalOperationGuard operationGuard,
+            NfeXmlPayloadValidator xmlPayloadValidator, NfeSoapGateway soapGateway) {
         this.properties = properties;
-        this.sslContext = sslContext;
         this.signatureValidator = signatureValidator;
         this.operationGuard = operationGuard;
-        this.httpClient = HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .connectTimeout(Duration.ofMillis(properties.getTimeoutMillis()))
-                .build();
+        this.xmlPayloadValidator = xmlPayloadValidator;
+        this.soapGateway = soapGateway;
     }
 
     public String autorizarNfe(String xmlNfeAssinado) {
         operationGuard.exigirAutorizacaoPermitida();
+        xmlPayloadValidator.validar(xmlNfeAssinado, Set.of("NFe", "enviNFe"), "autorização");
         validarXmlAssinado(xmlNfeAssinado, "infNFe");
-        return enviar(properties.getEndpoints().getAutorizacao(), xmlNfeAssinado,
-                NS_AUTORIZACAO, NS_AUTORIZACAO + "/nfeAutorizacaoLote");
+        return enviar(NfeSoapService.AUTORIZACAO, properties.getEndpoints().getAutorizacao(), xmlNfeAssinado);
     }
 
     public String consultarReciboAutorizacao(String nRec) {
         exigirPadrao(nRec, N_REC_PATTERN, "nRec deve possuir 15 dígitos.");
         String xml = "<consReciNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
                 + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><nRec>" + nRec + "</nRec></consReciNFe>";
-        return enviar(properties.getEndpoints().getRetAutorizacao(), xml,
-                NS_RET_AUTORIZACAO, NS_RET_AUTORIZACAO + "/nfeRetAutorizacaoLote");
+        return enviar(NfeSoapService.RET_AUTORIZACAO, properties.getEndpoints().getRetAutorizacao(), xml);
     }
 
     public String consultarNfe(String chaveAcesso) {
@@ -78,41 +58,41 @@ public class NfeClient {
         String xml = "<consSitNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
                 + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><xServ>CONSULTAR</xServ><chNFe>"
                 + chaveAcesso + "</chNFe></consSitNFe>";
-        return enviar(properties.getEndpoints().getConsulta(), xml,
-                NS_CONSULTA, NS_CONSULTA + "/nfeConsultaNF");
+        return enviar(NfeSoapService.CONSULTA, properties.getEndpoints().getConsulta(), xml);
     }
 
     public String consultarStatusServico() {
         String xml = "<consStatServ xmlns=\"http://www.portalfiscal.inf.br/nfe\" versao=\"4.00\">"
                 + "<tpAmb>" + properties.getAmbiente() + "</tpAmb><cUF>" + properties.getCodigoUf()
                 + "</cUF><xServ>STATUS</xServ></consStatServ>";
-        return enviar(properties.getEndpoints().getStatusServico(), xml,
-                NS_STATUS_SERVICO, NS_STATUS_SERVICO + "/nfeStatusServicoNF");
+        return enviar(NfeSoapService.STATUS, properties.getEndpoints().getStatusServico(), xml);
     }
 
     public String enviarEvento(String xmlEventoAssinado) {
         operationGuard.exigirEventoPermitido();
+        xmlPayloadValidator.validar(xmlEventoAssinado, Set.of("evento", "envEvento"), "evento");
         validarXmlAssinado(xmlEventoAssinado, "infEvento");
-        return enviar(properties.getEndpoints().getEvento(), xmlEventoAssinado,
-                NS_EVENTO, NS_EVENTO + "/nfeRecepcaoEvento");
+        return enviar(NfeSoapService.EVENTO, properties.getEndpoints().getEvento(), xmlEventoAssinado);
     }
 
     public String inutilizarNumeracao(String xmlInutAssinado) {
         operationGuard.exigirInutilizacaoPermitida();
+        xmlPayloadValidator.validar(xmlInutAssinado, Set.of("inutNFe"), "inutilização");
         validarXmlAssinado(xmlInutAssinado, "infInut");
-        return enviar(properties.getEndpoints().getInutilizacao(), xmlInutAssinado,
-                NS_INUTILIZACAO, NS_INUTILIZACAO + "/nfeInutilizacaoNF");
+        return enviar(NfeSoapService.INUTILIZACAO, properties.getEndpoints().getInutilizacao(), xmlInutAssinado);
     }
 
     public String consultarDistribuicaoDfe(String xmlConsulta) {
-        exigirXml(xmlConsulta);
-        return enviar(properties.getEndpoints().getDistribuicaoDfe(), xmlConsulta,
-                NS_DISTRIBUICAO_DFE, NS_DISTRIBUICAO_DFE + "/nfeDistDFeInteresse");
+        xmlPayloadValidator.validar(xmlConsulta, Set.of("distDFeInt"), "distribuição DFe");
+        return enviar(NfeSoapService.DISTRIBUICAO_DFE, properties.getEndpoints().getDistribuicaoDfe(), xmlConsulta);
     }
 
     private void validarXmlAssinado(String xml, String element) {
-        exigirXml(xml);
-        signatureValidator.validar(xml, element);
+        try {
+            signatureValidator.validar(xml, element);
+        } catch (RuntimeException exception) {
+            throw new NfeException("Assinatura XMLDSig NF-e inválida: " + exception.getMessage(), exception);
+        }
     }
 
     private void exigirXml(String xml) {
@@ -127,52 +107,7 @@ public class NfeClient {
         }
     }
 
-    /**
-     * Envia um envelope SOAP 1.2 assinado/validado para a SEFAZ e retorna o corpo da resposta como texto.
-     *
-     * <p>Não loga o conteúdo do XML (dados fiscais sensíveis) — apenas metadados operacionais.</p>
-     */
-    private String enviar(URI endpoint, String xmlDados, String namespace, String action) {
-        if (endpoint == null || !"https".equalsIgnoreCase(endpoint.getScheme())) {
-            throw new NfeException("Endpoint HTTPS NF-e não configurado.");
-        }
-
-        String soap = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-                + "<soap12:Envelope xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\"><soap12:Body>"
-                + "<nfeDadosMsg xmlns=\"" + namespace + "\">" + xmlDados
-                + "</nfeDadosMsg></soap12:Body></soap12:Envelope>";
-
-        HttpRequest request = HttpRequest.newBuilder(endpoint)
-                .timeout(Duration.ofMillis(properties.getTimeoutMillis()))
-                .header("Content-Type", "application/soap+xml; charset=utf-8; action=\"" + action + "\"")
-                .POST(HttpRequest.BodyPublishers.ofString(soap, StandardCharsets.UTF_8))
-                .build();
-
-        long inicio = System.currentTimeMillis();
-        try {
-            HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            long duracaoMs = System.currentTimeMillis() - inicio;
-            String corpo = new String(response.body(), StandardCharsets.UTF_8);
-
-            log.info("SEFAZ NF-e [{}] -> status={} tempoMs={}", action, response.statusCode(), duracaoMs);
-
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new NfeException("SEFAZ retornou HTTP " + response.statusCode()
-                        + " para a operação " + action + ".");
-            }
-            if (corpo.isBlank()) {
-                throw new NfeException("SEFAZ retornou HTTP " + response.statusCode() + " sem corpo.");
-            }
-            if (corpo.contains("soap:Fault") || corpo.contains("soap12:Fault")) {
-                log.warn("SEFAZ NF-e [{}] retornou SOAP Fault.", action);
-                throw new NfeException("SEFAZ retornou SOAP Fault para a operação " + action + ".");
-            }
-            return corpo;
-        } catch (NfeException exception) {
-            throw exception;
-        } catch (Exception exception) {
-            log.error("Falha na comunicação mTLS/SOAP com a SEFAZ NF-e [{}].", action, exception);
-            throw new NfeException("Falha na comunicação mTLS/SOAP com a SEFAZ NF-e.", exception);
-        }
+    private String enviar(NfeSoapService service, URI endpoint, String xmlFiscal) {
+        return soapGateway.enviar(service, endpoint, xmlFiscal);
     }
 }

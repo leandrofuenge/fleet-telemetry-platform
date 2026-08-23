@@ -32,15 +32,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   jackson:
     default-property-inclusion: non_null
-  kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-    listener:
-      ack-mode: record
 
 management:
   endpoints:
@@ -61,13 +52,6 @@ integration:
     enabled: ${INTEGRATION_SIMULATION_ENABLED:false}
   experimental-routes:
     enabled: ${INTEGRATION_EXPERIMENTAL_ROUTES_ENABLED:false}
-  data-transfer:
-    max-document-bytes: ${INTEGRATION_DATA_TRANSFER_MAX_DOCUMENT_BYTES:1048576}
-  telemetry-events:
-    enabled: ${INTEGRATION_TELEMETRY_EVENTS_ENABLED:false}
-    topic: ${INTEGRATION_TELEMETRY_EVENTS_TOPIC:telemetria-events}
-    consumer-group: ${INTEGRATION_TELEMETRY_EVENTS_CONSUMER_GROUP:integration-engine-telemetry-v1}
-    concurrency: ${INTEGRATION_TELEMETRY_EVENTS_CONCURRENCY:3}
 
 sefaz:
   cte:

@@ -12,6 +12,7 @@ public class NfeProperties {
     private String ambiente = "2";
     private String codigoUf = "51";
     private int timeoutMillis = 30000;
+    private int maxXmlBytes = 1048576;
     private Endpoints endpoints = new Endpoints();
     private Operations operations = new Operations();
 
@@ -21,6 +22,8 @@ public class NfeProperties {
     public void setCodigoUf(String codigoUf) { this.codigoUf = codigoUf; }
     public int getTimeoutMillis() { return timeoutMillis; }
     public void setTimeoutMillis(int timeoutMillis) { this.timeoutMillis = timeoutMillis; }
+    public int getMaxXmlBytes() { return maxXmlBytes; }
+    public void setMaxXmlBytes(int maxXmlBytes) { this.maxXmlBytes = maxXmlBytes; }
     public Endpoints getEndpoints() { return endpoints; }
     public void setEndpoints(Endpoints endpoints) { this.endpoints = endpoints; }
     public Operations getOperations() { return operations; }
