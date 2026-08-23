@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import com.telemetria.integration.sefaz.cte.CteXmlValidator;
+import com.telemetria.integration.sefaz.cte.validation.CteXmlValidator;
 
 class DocumentoFiscalXmlValidatorTests {
     private final DocumentoFiscalXmlValidator validator = new DocumentoFiscalXmlValidator(1024, new CteXmlValidator());

@@ -21,9 +21,12 @@ public class DataTransferRoute extends RouteBuilder {
 
         from(ROUTE_TRANSFER_BASE64)
             .routeId("data-transfer-base64-route")
+            // Entrada: cria ou reaproveita a correlação e registra o início.
             .process("auditLogProcessor")
-            .log("Executando pipeline de transferência Base64 e contextualização SOAP...")
+            .log("Executando pipeline de transferência: decodificação, validação, transformação e resposta.")
+            // Processamento: o processador coordena componentes especializados.
             .process("base64TransferProcessor")
+            // Saída: registra o encerramento com a mesma correlação.
             .process("auditLogProcessor")
             .log("Pipeline de transferência Base64 concluído com sucesso.");
     }

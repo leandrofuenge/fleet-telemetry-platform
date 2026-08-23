@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.telemetria.integration.sefaz.cte.CteException;
-import com.telemetria.integration.sefaz.cte.CteXmlValidator;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
+import com.telemetria.integration.sefaz.cte.validation.CteXmlValidator;
 
 @Component
 public class DocumentoFiscalXmlValidator {

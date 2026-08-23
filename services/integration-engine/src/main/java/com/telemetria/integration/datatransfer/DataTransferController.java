@@ -1,34 +1,28 @@
 package com.telemetria.integration.datatransfer;
 
 import java.util.Map;
-import java.util.UUID;
 
-import org.apache.camel.ProducerTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.server.ResponseStatusException;
 
-import com.telemetria.integration.util.Base64Utils;
 import com.telemetria.integration.util.Base32Utils;
+import com.telemetria.integration.util.Base64Utils;
 import com.telemetria.integration.util.SoapEnvelopeHelper;
 
 @RestController
 @RequestMapping("/api/integracoes/transfer")
 public class DataTransferController {
 
-    private final ProducerTemplate producerTemplate;
-    private final TransferenciaDadosService transferenciaDadosService;
+    private final DataTransferApplicationService dataTransferApplicationService;
 
-    public DataTransferController(ProducerTemplate producerTemplate, TransferenciaDadosService transferenciaDadosService) {
-        this.producerTemplate = producerTemplate;
-        this.transferenciaDadosService = transferenciaDadosService;
+    public DataTransferController(DataTransferApplicationService dataTransferApplicationService) {
+        this.dataTransferApplicationService = dataTransferApplicationService;
     }
 
     /**
@@ -38,25 +32,14 @@ public class DataTransferController {
     public ResponseEntity<Base64TransferResponse> processarTransferenciaBase64(
             @RequestBody Base64TransferRequest request,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationId) {
-        String idCorrelacao = correlationId == null || correlationId.isBlank()
-                ? UUID.randomUUID().toString()
-                : correlationId;
         try {
-            Base64TransferResponse response = producerTemplate.requestBody(
-                    DataTransferRoute.ROUTE_TRANSFER_BASE64,
-                    request,
-                    Base64TransferResponse.class);
-            response.setCorrelationId(idCorrelacao);
-            transferenciaDadosService.registrarSucesso(idCorrelacao, request, response);
+            DataTransferApplicationService.TransferResult resultado = dataTransferApplicationService.processar(request, correlationId);
             return ResponseEntity.ok()
-                    .header("X-Correlation-ID", idCorrelacao)
-                    .body(response);
+                    .header("X-Correlation-ID", resultado.correlationId())
+                    .body(resultado.response());
         } catch (DataTransferValidationException exception) {
-            transferenciaDadosService.registrarFalha(idCorrelacao, request, exception);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
-        } catch (RuntimeException exception) {
-            transferenciaDadosService.registrarFalha(idCorrelacao, request, exception);
-            throw exception;
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
         }
     }
 

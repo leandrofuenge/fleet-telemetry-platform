@@ -113,4 +113,3 @@ public class PareamentoDispositivoService {
     public record CodigoPareamento(String codigo, LocalDateTime expiraEm) {
     }
 }
-'

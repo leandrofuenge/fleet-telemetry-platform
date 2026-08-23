@@ -138,18 +138,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "${INTEGRATION_ENGINE_PORT:-9060}:9060"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks: [fleet-network]
-
-  integration-engine:
-    build:
-      context: ./services/integration-engine
-    environment:
-      SERVER_PORT: 9060
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      INTEGRATION_TELEMETRY_EVENTS_ENABLED: "true"
       SPRING_PROFILES_ACTIVE: ${INTEGRATION_PROFILES:-docker}
       SEFAZ_CTE_AMBIENTE: ${SEFAZ_CTE_AMBIENTE:-homologacao}
       SEFAZ_CTE_AUTORIZACAO_URL: ${SEFAZ_CTE_AUTORIZACAO_URL:-https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoSincV4}
@@ -189,6 +179,11 @@ services:
       SECURITY_REQUIRE_HTTPS: ${INTEGRATION_REQUIRE_HTTPS:-false}
     ports:
       - "${INTEGRATION_PORT:-9060}:9060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks: [fleet-network]
 
 networks:
