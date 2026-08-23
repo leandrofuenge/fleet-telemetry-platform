@@ -1,8 +1,10 @@
 package com.telemetria.integration.datatransfer;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.camel.ProducerTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,8 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.telemetria.integration.util.Base64Utils;
+import com.telemetria.integration.util.Base32Utils;
 import com.telemetria.integration.util.SoapEnvelopeHelper;
 
 @RestController
@@ -19,22 +24,40 @@ import com.telemetria.integration.util.SoapEnvelopeHelper;
 public class DataTransferController {
 
     private final ProducerTemplate producerTemplate;
+    private final TransferenciaDadosService transferenciaDadosService;
 
-    public DataTransferController(ProducerTemplate producerTemplate) {
+    public DataTransferController(ProducerTemplate producerTemplate, TransferenciaDadosService transferenciaDadosService) {
         this.producerTemplate = producerTemplate;
+        this.transferenciaDadosService = transferenciaDadosService;
     }
 
     /**
      * Processa a transferência de dados e documentos (XML/JSON/binário) com suporte a Base64 e contextualização SOAP.
      */
     @PostMapping(value = "/base64", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Base64TransferResponse> processarTransferenciaBase64(@RequestBody Base64TransferRequest request) {
-        Base64TransferResponse response = producerTemplate.requestBody(
-                DataTransferRoute.ROUTE_TRANSFER_BASE64,
-                request,
-                Base64TransferResponse.class
-        );
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Base64TransferResponse> processarTransferenciaBase64(
+            @RequestBody Base64TransferRequest request,
+            @RequestHeader(value = "X-Correlation-ID", required = false) String correlationId) {
+        String idCorrelacao = correlationId == null || correlationId.isBlank()
+                ? UUID.randomUUID().toString()
+                : correlationId;
+        try {
+            Base64TransferResponse response = producerTemplate.requestBody(
+                    DataTransferRoute.ROUTE_TRANSFER_BASE64,
+                    request,
+                    Base64TransferResponse.class);
+            response.setCorrelationId(idCorrelacao);
+            transferenciaDadosService.registrarSucesso(idCorrelacao, request, response);
+            return ResponseEntity.ok()
+                    .header("X-Correlation-ID", idCorrelacao)
+                    .body(response);
+        } catch (DataTransferValidationException exception) {
+            transferenciaDadosService.registrarFalha(idCorrelacao, request, exception);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        } catch (RuntimeException exception) {
+            transferenciaDadosService.registrarFalha(idCorrelacao, request, exception);
+            throw exception;
+        }
     }
 
     /**
@@ -85,5 +108,17 @@ public class DataTransferController {
                 "base64", base64,
                 "original", texto
         ));
+    }
+
+    /** Utilitário para códigos de dispositivos, identificadores e segredos compatíveis com Base32. */
+    @PostMapping(value = "/base32/encode", consumes = MediaType.TEXT_PLAIN_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> encodeBase32(@RequestBody String texto) {
+        return ResponseEntity.ok(Map.of("original", texto, "base32", Base32Utils.encode(texto)));
+    }
+
+    /** Decodifica Base32 RFC 4648; espaços, hífens, preenchimento e minúsculas são aceitos. */
+    @PostMapping(value = "/base32/decode", consumes = MediaType.TEXT_PLAIN_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> decodeBase32(@RequestBody String base32) {
+        return ResponseEntity.ok(Map.of("base32", base32, "original", Base32Utils.decodeToString(base32)));
     }
 }

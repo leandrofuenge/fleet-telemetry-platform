@@ -76,15 +76,31 @@ public final class Base64Utils {
      * Descomprime conteúdo GZIP codificado em Base64 para String UTF-8.
      */
     public static String decompressGzipBase64(String base64Gzip) throws IOException {
+        return decompressGzipBase64(base64Gzip, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Descomprime GZIP com limite de saída para evitar expansão descontrolada
+     * de payloads comprimidos.
+     */
+    public static String decompressGzipBase64(String base64Gzip, int maxOutputBytes) throws IOException {
         if (base64Gzip == null || base64Gzip.isBlank()) {
             return "";
+        }
+        if (maxOutputBytes < 1) {
+            throw new IllegalArgumentException("O limite de saída GZIP deve ser positivo.");
         }
         byte[] compressed = Base64.getDecoder().decode(base64Gzip.trim());
         try (GZIPInputStream gzipIn = new GZIPInputStream(new ByteArrayInputStream(compressed));
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[1024];
             int len;
+            int total = 0;
             while ((len = gzipIn.read(buffer)) != -1) {
+                total += len;
+                if (total > maxOutputBytes) {
+                    throw new IOException("Conteúdo GZIP excede o limite permitido de " + maxOutputBytes + " bytes.");
+                }
                 baos.write(buffer, 0, len);
             }
             return baos.toString(StandardCharsets.UTF_8);

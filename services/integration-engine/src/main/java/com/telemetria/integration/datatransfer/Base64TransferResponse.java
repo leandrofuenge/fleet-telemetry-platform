@@ -3,6 +3,7 @@ package com.telemetria.integration.datatransfer;
 public class Base64TransferResponse {
 
     private boolean sucesso;
+    private String correlationId;
     private String tipoDocumento;
     private String conteudoOriginal;
     private String conteudoBase64;
@@ -11,6 +12,8 @@ public class Base64TransferResponse {
     private int tamanhoBytesOriginal;
     private int tamanhoBytesBase64;
     private boolean compactadoGzip;
+    private boolean entradaCompactadaGzip;
+    private boolean respostaCompactadaGzip;
     private String mensagem;
 
     public Base64TransferResponse() {
@@ -23,6 +26,9 @@ public class Base64TransferResponse {
     public void setSucesso(boolean sucesso) {
         this.sucesso = sucesso;
     }
+
+    public String getCorrelationId() { return correlationId; }
+    public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
 
     public String getTipoDocumento() {
         return tipoDocumento;
@@ -86,6 +92,15 @@ public class Base64TransferResponse {
 
     public void setCompactadoGzip(boolean compactadoGzip) {
         this.compactadoGzip = compactadoGzip;
+    }
+
+    public boolean isEntradaCompactadaGzip() { return entradaCompactadaGzip; }
+    public void setEntradaCompactadaGzip(boolean entradaCompactadaGzip) {
+        this.entradaCompactadaGzip = entradaCompactadaGzip;
+    }
+    public boolean isRespostaCompactadaGzip() { return respostaCompactadaGzip; }
+    public void setRespostaCompactadaGzip(boolean respostaCompactadaGzip) {
+        this.respostaCompactadaGzip = respostaCompactadaGzip;
     }
 
     public String getMensagem() {

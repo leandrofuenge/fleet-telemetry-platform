@@ -11,6 +11,9 @@ public class DataTransferRoute extends RouteBuilder {
     @Override
     public void configure() {
 
+        onException(DataTransferValidationException.class)
+            .handled(false);
+
         onException(Exception.class)
             .handled(true)
             .log("Erro no processamento de transferência Base64/SOAP: ${exception.message}")

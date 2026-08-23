@@ -38,6 +38,9 @@ public class SecurityConfig {
                 // ========================================================
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/dispositivos/pareamentos/consumir").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/dispositivos/pareamentos/**")
+                    .hasAnyRole("OPERADOR", "GESTOR", "ADMIN", "SUPER_ADMIN")
                 
                 .requestMatchers(HttpMethod.POST, "/api/v1/tenants").permitAll()
                 .requestMatchers("/api/v1/tenants/**").hasRole("SUPER_ADMIN")
