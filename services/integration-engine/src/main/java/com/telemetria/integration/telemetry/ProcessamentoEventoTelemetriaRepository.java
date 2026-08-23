@@ -4,6 +4,6 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TelemetriaIntegrationReceiptRepository extends JpaRepository<TelemetriaIntegrationReceipt, UUID> {
+public interface ProcessamentoEventoTelemetriaRepository extends JpaRepository<ProcessamentoEventoTelemetria, UUID> {
     boolean existsByEventId(String eventId);
 }

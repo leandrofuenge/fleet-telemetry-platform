@@ -12,19 +12,19 @@ import com.telemetria.integration.support.AuditLogProcessor;
  * Centraliza a correlação, a chamada ao Camel e a auditoria persistida.
  */
 @Service
-public class DataTransferApplicationService {
+public class OrquestradorTransferenciaDados {
 
     private final ProducerTemplate producerTemplate;
     private final TransferenciaDadosService transferenciaDadosService;
 
-    public DataTransferApplicationService(
+    public OrquestradorTransferenciaDados(
             ProducerTemplate producerTemplate,
             TransferenciaDadosService transferenciaDadosService) {
         this.producerTemplate = producerTemplate;
         this.transferenciaDadosService = transferenciaDadosService;
     }
 
-    public TransferResult processar(Base64TransferRequest request, String correlationIdInformado) {
+    public ResultadoTransferenciaDados processar(Base64TransferRequest request, String correlationIdInformado) {
         String correlationId = correlationIdInformado == null || correlationIdInformado.isBlank()
                 ? UUID.randomUUID().toString()
                 : correlationIdInformado;
@@ -37,13 +37,13 @@ public class DataTransferApplicationService {
                     Base64TransferResponse.class);
             response.setCorrelationId(correlationId);
             transferenciaDadosService.registrarSucesso(correlationId, request, response);
-            return new TransferResult(correlationId, response);
+            return new ResultadoTransferenciaDados(correlationId, response);
         } catch (RuntimeException exception) {
             transferenciaDadosService.registrarFalha(correlationId, request, exception);
             throw exception;
         }
     }
 
-    public record TransferResult(String correlationId, Base64TransferResponse response) {
+    public record ResultadoTransferenciaDados(String correlationId, Base64TransferResponse response) {
     }
 }

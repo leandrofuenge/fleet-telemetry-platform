@@ -13,7 +13,7 @@ import jakarta.persistence.UniqueConstraint;
 @Entity
 @Table(name = "telemetria_integration_receipts", uniqueConstraints = {
         @UniqueConstraint(name = "uk_telemetria_integration_event", columnNames = "event_id") })
-public class TelemetriaIntegrationReceipt {
+public class ProcessamentoEventoTelemetria {
 
     @Id
     private UUID id;
@@ -42,11 +42,11 @@ public class TelemetriaIntegrationReceipt {
     @Column(name = "processado_em")
     private LocalDateTime processadoEm;
 
-    protected TelemetriaIntegrationReceipt() {
+    protected ProcessamentoEventoTelemetria() {
     }
 
-    public static TelemetriaIntegrationReceipt recebido(TelemetriaIntegrationEvent event) {
-        TelemetriaIntegrationReceipt receipt = new TelemetriaIntegrationReceipt();
+    public static ProcessamentoEventoTelemetria recebido(EventoTelemetriaPersistida event) {
+        ProcessamentoEventoTelemetria receipt = new ProcessamentoEventoTelemetria();
         receipt.id = UUID.randomUUID();
         receipt.eventId = event.eventId();
         receipt.outboxEventId = event.outboxEventId();

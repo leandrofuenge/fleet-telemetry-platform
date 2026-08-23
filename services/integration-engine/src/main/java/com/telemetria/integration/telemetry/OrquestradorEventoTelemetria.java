@@ -8,20 +8,20 @@ import com.telemetria.integration.support.AuditLogProcessor;
 
 /** Coordena idempotência, auditoria e encaminhamento Camel de eventos de telemetria. */
 @Service
-public class TelemetriaIntegrationApplicationService {
+public class OrquestradorEventoTelemetria {
 
-    private final TelemetriaIntegrationReceiptRepository repository;
+    private final ProcessamentoEventoTelemetriaRepository repository;
     private final ProducerTemplate producerTemplate;
 
-    public TelemetriaIntegrationApplicationService(
-            TelemetriaIntegrationReceiptRepository repository,
+    public OrquestradorEventoTelemetria(
+            ProcessamentoEventoTelemetriaRepository repository,
             ProducerTemplate producerTemplate) {
         this.repository = repository;
         this.producerTemplate = producerTemplate;
     }
 
     @Transactional
-    public boolean processar(TelemetriaIntegrationEvent event) {
+    public boolean processar(EventoTelemetriaPersistida event) {
         if (!event.valido()) {
             throw new IllegalArgumentException("Evento de telemetria incompleto para integração.");
         }
@@ -29,9 +29,9 @@ public class TelemetriaIntegrationApplicationService {
             return false;
         }
 
-        TelemetriaIntegrationReceipt receipt = repository.save(TelemetriaIntegrationReceipt.recebido(event));
+        ProcessamentoEventoTelemetria receipt = repository.save(ProcessamentoEventoTelemetria.recebido(event));
         producerTemplate.sendBodyAndHeader(
-                TelemetriaIntegrationRoute.ROUTE_PROCESSAR_EVENTO,
+                RotaEventoTelemetria.ROUTE_PROCESSAR_EVENTO,
                 event,
                 AuditLogProcessor.HEADER_CORRELATION_ID,
                 event.eventId());

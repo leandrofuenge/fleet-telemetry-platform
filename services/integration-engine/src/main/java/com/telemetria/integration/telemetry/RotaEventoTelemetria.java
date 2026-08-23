@@ -7,7 +7,7 @@ import com.telemetria.integration.support.AuditLogProcessor;
 
 /** Rota de extensão para ações externas desencadeadas por telemetria persistida. */
 @Component
-public class TelemetriaIntegrationRoute extends RouteBuilder {
+public class RotaEventoTelemetria extends RouteBuilder {
 
     public static final String ROUTE_PROCESSAR_EVENTO = "direct:telemetria-integration-event";
 

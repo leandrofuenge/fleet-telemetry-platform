@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
  * Contrato de integração publicado pelo telemetry-service no tópico telemetria-events.
  * O payload original é mantido apenas para que adaptadores futuros possam processá-lo.
  */
-public record TelemetriaIntegrationEvent(
+public record EventoTelemetriaPersistida(
         String outboxEventId,
         String eventId,
         Long telemetriaId,

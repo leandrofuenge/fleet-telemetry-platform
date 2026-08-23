@@ -8,16 +8,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** Consome a outbox publicada pelo telemetry-service em um grupo independente. */
 @Component
-public class TelemetriaIntegrationKafkaConsumer {
+public class ConsumidorKafkaEventoTelemetria {
 
     private final ObjectMapper objectMapper;
-    private final TelemetriaIntegrationApplicationService applicationService;
+    private final OrquestradorEventoTelemetria orquestrador;
 
-    public TelemetriaIntegrationKafkaConsumer(
+    public ConsumidorKafkaEventoTelemetria(
             ObjectMapper objectMapper,
-            TelemetriaIntegrationApplicationService applicationService) {
+            OrquestradorEventoTelemetria orquestrador) {
         this.objectMapper = objectMapper;
-        this.applicationService = applicationService;
+        this.orquestrador = orquestrador;
     }
 
     @KafkaListener(
@@ -26,7 +26,7 @@ public class TelemetriaIntegrationKafkaConsumer {
             concurrency = "${integration.telemetry-events.concurrency:3}",
             autoStartup = "${integration.telemetry-events.enabled:false}")
     public void consumir(ConsumerRecord<String, String> record) throws Exception {
-        TelemetriaIntegrationEvent event = objectMapper.readValue(record.value(), TelemetriaIntegrationEvent.class);
-        applicationService.processar(event);
+        EventoTelemetriaPersistida event = objectMapper.readValue(record.value(), EventoTelemetriaPersistida.class);
+        orquestrador.processar(event);
     }
 }

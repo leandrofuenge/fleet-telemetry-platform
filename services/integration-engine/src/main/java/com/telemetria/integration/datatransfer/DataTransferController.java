@@ -19,10 +19,10 @@ import com.telemetria.integration.util.SoapEnvelopeHelper;
 @RequestMapping("/api/integracoes/transfer")
 public class DataTransferController {
 
-    private final DataTransferApplicationService dataTransferApplicationService;
+    private final OrquestradorTransferenciaDados orquestradorTransferenciaDados;
 
-    public DataTransferController(DataTransferApplicationService dataTransferApplicationService) {
-        this.dataTransferApplicationService = dataTransferApplicationService;
+    public DataTransferController(OrquestradorTransferenciaDados orquestradorTransferenciaDados) {
+        this.orquestradorTransferenciaDados = orquestradorTransferenciaDados;
     }
 
     /**
@@ -33,7 +33,8 @@ public class DataTransferController {
             @RequestBody Base64TransferRequest request,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationId) {
         try {
-            DataTransferApplicationService.TransferResult resultado = dataTransferApplicationService.processar(request, correlationId);
+            OrquestradorTransferenciaDados.ResultadoTransferenciaDados resultado =
+                    orquestradorTransferenciaDados.processar(request, correlationId);
             return ResponseEntity.ok()
                     .header("X-Correlation-ID", resultado.correlationId())
                     .body(resultado.response());
