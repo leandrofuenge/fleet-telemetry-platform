@@ -1,7 +1,7 @@
 package com.telemetria.integration.sefaz.cte.portal;
 
-import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.stereotype.Service;
 
 import com.telemetria.integration.support.IntegrationRequest;
 import com.telemetria.integration.support.IntegrationResponse;

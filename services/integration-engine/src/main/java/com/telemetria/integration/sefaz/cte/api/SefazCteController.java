@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.telemetria.integration.sefaz.cte.exception.CteException;
 import com.telemetria.integration.sefaz.cte.application.CteApplicationService;
+import com.telemetria.integration.sefaz.cte.exception.CteException;
 import com.telemetria.integration.sefaz.cte.retorno.CteAutorizacaoResultado;
 import com.telemetria.integration.sefaz.cte.retorno.CteConsultaResultado;
 import com.telemetria.integration.sefaz.cte.retorno.CteEventoResultado;

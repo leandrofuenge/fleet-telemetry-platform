@@ -1,8 +1,8 @@
 package com.telemetria.integration.sefaz.nfe;
 
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /** Bloqueia operações fiscais mutáveis até a liberação explícita em homologação. */
 @Component

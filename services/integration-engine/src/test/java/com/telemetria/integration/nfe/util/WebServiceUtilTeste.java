@@ -12,7 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTeste;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
@@ -82,7 +82,7 @@ class WebServiceUtilTeste {
         assertThrows(ExcecaoNfe.class, () -> UtilitarioServicoWeb.getUrl(config, DocumentoEnum.NFE, ServicosEnum.STATUS_SERVICO));
     }
 
-    @ParameterizedTeste
+    @ParameterizedTest
     @MethodSource("provideStateAndServiceCombinationsNfe")
     void testGetUrlForStateServiceCombinationsNfe(EstadosEnum estado, ServicosEnum servico, AmbienteEnum ambienteEnum) throws ExcecaoNfe {
         ConfiguracoesNfe config = new ConfiguracoesNfe();
@@ -94,7 +94,7 @@ class WebServiceUtilTeste {
         assertTrue(url.startsWith("http"));
     }
 
-    @ParameterizedTeste
+    @ParameterizedTest
     @MethodSource("provideStateAndServiceCombinationsNfce")
     void testGetUrlForStateServiceCombinationsNfce(EstadosEnum estado, ServicosEnum servico, AmbienteEnum ambienteEnum) throws ExcecaoNfe {
         ConfiguracoesNfe config = new ConfiguracoesNfe();

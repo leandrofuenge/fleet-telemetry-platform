@@ -4,9 +4,9 @@ import java.net.URI;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.nfe.schemas.TConsReciNFe;
 import com.telemetria.integration.nfe.schemas.TConsSitNFe;

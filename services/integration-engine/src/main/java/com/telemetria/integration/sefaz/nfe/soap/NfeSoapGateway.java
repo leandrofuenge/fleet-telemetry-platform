@@ -2,9 +2,9 @@ package com.telemetria.integration.sefaz.nfe.soap;
 
 import java.net.URI;
 
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.telemetria.integration.sefaz.nfe.NfeProperties;
 

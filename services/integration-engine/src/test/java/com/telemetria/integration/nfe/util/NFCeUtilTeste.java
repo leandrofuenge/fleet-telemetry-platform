@@ -14,8 +14,8 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
 
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
