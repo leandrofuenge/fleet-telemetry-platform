@@ -1,6 +1,6 @@
 # Segurança de transporte HTTPS
 
-`integration-engine` e `telemetry-service` suportam dois modelos de implantação:
+`integration-engine` e `integration-engine-telemetry-service` suportam dois modelos de implantação:
 
 1. **TLS direto no serviço:** configure `SERVER_SSL_ENABLED=true`, o caminho do
    keystore PKCS12, sua senha e, opcionalmente, o alias. O serviço passa a escutar
@@ -25,7 +25,7 @@ SECURITY_HSTS_MAX_AGE_SECONDS=31536000
 SECURITY_HSTS_INCLUDE_SUBDOMAINS=true
 ```
 
-Para comunicação interna, configure o cliente do `telemetry-service` com a URL
+Para comunicação interna, configure o cliente do `integration-engine-telemetry-service` com a URL
 HTTPS do motor:
 
 ```text
@@ -33,7 +33,7 @@ INTEGRATION_SERVICE_URL=https://integration-engine:9060
 ```
 
 Se o certificado interno vier de uma CA privada, importe a CA no truststore da
-JVM do `telemetry-service`. Nunca desative a validação de certificado ou hostname.
+JVM do `integration-engine-telemetry-service`. Nunca desative a validação de certificado ou hostname.
 O mTLS já usado nas integrações SEFAZ é independente do certificado HTTPS de
 entrada e permanece configurado pelas variáveis `SEFAZ_CERT_*` e
 `SEFAZ_TRUSTSTORE_*`.

@@ -16,11 +16,11 @@
 
     <!-- ===================== PROJECT INFO ===================== -->
     <groupId>com.app</groupId>
-    <artifactId>telemetry-service</artifactId>
+    <artifactId>integration-engine-telemetry-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>telemetry-service</name>
-    <description>Projeto Telemetry Service</description>
+    <name>integration-engine-telemetry-service</name>
+    <description>Projeto Integration Engine Telemetry Service</description>
 
     <properties>
         <java.version>17</java.version>
@@ -35,8 +35,8 @@
         <skipTests>false</skipTests>
         <maven.test.skip>false</maven.test.skip>
         <maven.test.skip.exec>false</maven.test.skip.exec>
-        <sonar.projectKey>Telemetry-Service</sonar.projectKey>
-        <sonar.projectName>Telemetry Service</sonar.projectName>
+        <sonar.projectKey>integration-engine-telemetry-service</sonar.projectKey>
+        <sonar.projectName>Integration Engine Telemetry Service</sonar.projectName>
         <sonar.projectVersion>0.0.1-SNAPSHOT</sonar.projectVersion>
         <sonar.host.url>http://localhost:9050</sonar.host.url>
         <sonar.java.source>17</sonar.java.source>

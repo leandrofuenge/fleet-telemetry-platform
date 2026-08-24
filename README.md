@@ -14,7 +14,7 @@ var/            Estado local, logs e metadados de IDE — não versionados
 
 ## Serviços implementados
 
-- `telemetry-service` — ingestão e processamento de telemetria, alertas e integrações MQTT/Kafka.
+- `integration-engine-telemetry-service` — ingestão e processamento de telemetria, alertas e integrações MQTT/Kafka.
 - `routing-service` — cálculo e gestão de rotas, viagens e caches de roteamento.
 
 ## Subir o ambiente local

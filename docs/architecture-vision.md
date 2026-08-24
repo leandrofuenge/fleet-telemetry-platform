@@ -209,7 +209,7 @@ O sistema é projetado para ambientes adversos comuns no transporte rodoviário 
 
 | Microserviço | Banco | Principais Tabelas |
 |---|---|---|
-| `telemetry-service` | `telemetry_db` | `telemetria`, `posicao_atual`, `alertas`, `jornadas`, `geofences`, `dispositivos_iot` |
+| `integration-engine-telemetry-service` | `telemetry_db` | `telemetria`, `posicao_atual`, `alertas`, `jornadas`, `geofences`, `dispositivos_iot` |
 | `routing-service` | `routing_db` | `rotas`, `viagens`, `pontos_entrega`, `relatorio_viagem`, `osrm_route_cache` |
 | `auth-service` | `auth_db` | `usuarios`, `tokens`, `auditoria`, `permissoes` |
 | `vehicle-service` | `vehicle_db` | `veiculos`, `documentos`, `historico_manutencao` |
@@ -223,7 +223,7 @@ O sistema é projetado para ambientes adversos comuns no transporte rodoviário 
 Cada microserviço mantém cópias locais (`veiculos_cache`, `motoristas_cache`) atualizadas via **Kafka Event Sourcing**:
 
 ```java
-@KafkaListener(topics = "vehicle.events", groupId = "telemetry-service")
+@KafkaListener(topics = "vehicle.events", groupId = "integration-engine-telemetry-service")
 public void onVehicleEvent(VehicleEvent event) {
     VeiculoCache cache = veiculoCacheRepository
         .findById(event.getId())
@@ -236,19 +236,19 @@ public void onVehicleEvent(VehicleEvent event) {
 
 | Topic | Producer | Consumers |
 |---|---|---|
-| `telemetry.raw` | MQTT Gateway | telemetry-service |
-| `telemetry.processed` | telemetry-service | alert-service, ml-service |
-| `route.events` | routing-service | telemetry-service, alert-service |
-| `vehicle.events` | vehicle-service | telemetry-service, routing-service |
-| `driver.events` | driver-service | telemetry-service, routing-service |
+| `telemetry.raw` | MQTT Gateway | integration-engine-telemetry-service |
+| `telemetry.processed` | integration-engine-telemetry-service | alert-service, ml-service |
+| `route.events` | routing-service | integration-engine-telemetry-service, alert-service |
+| `vehicle.events` | vehicle-service | integration-engine-telemetry-service, routing-service |
+| `driver.events` | driver-service | integration-engine-telemetry-service, routing-service |
 | `alerts.generated` | alert-service | notification-service |
-| `deviation.detected` | telemetry-service | routing-service, alert-service |
+| `deviation.detected` | integration-engine-telemetry-service | routing-service, alert-service |
 
 ---
 
 ## ⚙️ Configuração
 
-### application.yml (telemetry-service)
+### application.yml (integration-engine-telemetry-service)
 
 ```yaml
 spring:
@@ -271,7 +271,7 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
     consumer:
-      group-id: telemetry-service
+      group-id: integration-engine-telemetry-service
       auto-offset-reset: earliest
 ```
 

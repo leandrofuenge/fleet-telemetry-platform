@@ -69,9 +69,9 @@ services:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     networks: [fleet-network]
 
-  telemetry-service:
+  integration-engine-telemetry-service:
     build:
-      context: ../../services/telemetry-service
+      context: ../../services/integration-engine-telemetry-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 9050
@@ -83,7 +83,7 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MQTT_BROKER_URL: tcp://mosquitto:1883
-      MQTT_CLIENT_ID: telemetry-service
+      MQTT_CLIENT_ID: integration-engine-telemetry-service
       JWT_SECRET: ${JWT_SECRET:?Configure JWT_SECRET in deploy/compose/.env}
     ports:
       - "9050:9050"

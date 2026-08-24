@@ -9,7 +9,7 @@
 ```
 frota-telemetria/
 ├── sql/
-│   ├── telemetry_service_db.sql      ← Banco do telemetry-service (COMPLETO)
+│   ├── telemetry_service_db.sql      ← Banco do integration-engine-telemetry-service (COMPLETO)
 │   ├── routing_service_db.sql        ← Banco do routing-service (COMPLETO)
 │   ├── 01_auth_service.sql           ← Banco do auth-service
 │   ├── 02_vehicle_service.sql        ← Banco do vehicle-service
@@ -18,8 +18,8 @@ frota-telemetria/
 │
 ├── java/
 │   ├── shared-enums.java             ← Enums compartilhados entre serviços
-│   ├── telemetry-service/
-│   │   └── TelemetryEntities.java    ← Todas as entidades JPA do telemetry-service
+│   ├── integration-engine-telemetry-service/
+│   │   └── TelemetryEntities.java    ← Todas as entidades JPA do integration-engine-telemetry-service
 │   └── routing-service/
 │       └── RoutingEntities.java      ← Todas as entidades JPA do routing-service
 ```
@@ -30,7 +30,7 @@ frota-telemetria/
 
 | Microserviço      | Banco              | Arquivo SQL                           |
 |-------------------|--------------------|---------------------------------------|
-| telemetry-service | `telemetry_db`     | `telemetry_service_db.sql`            |
+| integration-engine-telemetry-service | `telemetry_db`     | `telemetry_service_db.sql`            |
 | routing-service   | `routing_db`       | `routing_service_db.sql`              |
 | auth-service      | `auth_db`          | `01_auth_service.sql`                 |
 | vehicle-service   | `vehicle_db`       | `02_vehicle_service.sql`              |
@@ -79,7 +79,7 @@ frota-telemetria/
 
 ---
 
-## ☕ Entidades Java — telemetry-service
+## ☕ Entidades Java — integration-engine-telemetry-service
 
 ```
 VeiculoCache          → veiculos_cache
@@ -145,7 +145,7 @@ RelatorioViagem           → relatorio_viagem
 
 ---
 
-## ⚙️ application.yml (telemetry-service)
+## ⚙️ application.yml (integration-engine-telemetry-service)
 
 ```yaml
 spring:
@@ -170,7 +170,7 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
     consumer:
-      group-id: telemetry-service
+      group-id: integration-engine-telemetry-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -182,13 +182,13 @@ spring:
 
 | Topic                    | Producer              | Consumer(s)                          |
 |--------------------------|-----------------------|--------------------------------------|
-| `telemetry.raw`          | MQTT Gateway          | telemetry-service                    |
-| `telemetry.processed`    | telemetry-service     | alert-service, ml-service            |
-| `route.events`           | routing-service       | telemetry-service, alert-service     |
-| `vehicle.events`         | vehicle-service       | telemetry-service, routing-service   |
-| `driver.events`          | driver-service        | telemetry-service, routing-service   |
+| `telemetry.raw`          | MQTT Gateway          | integration-engine-telemetry-service                    |
+| `telemetry.processed`    | integration-engine-telemetry-service     | alert-service, ml-service            |
+| `route.events`           | routing-service       | integration-engine-telemetry-service, alert-service     |
+| `vehicle.events`         | vehicle-service       | integration-engine-telemetry-service, routing-service   |
+| `driver.events`          | driver-service        | integration-engine-telemetry-service, routing-service   |
 | `alerts.generated`       | alert-service         | notification-service                 |
-| `deviation.detected`     | telemetry-service     | routing-service, alert-service       |
+| `deviation.detected`     | integration-engine-telemetry-service     | routing-service, alert-service       |
 
 ---
 
@@ -197,8 +197,8 @@ spring:
 Os caches locais (`veiculos_cache`, `motoristas_cache`) são atualizados via **Kafka Event Sourcing**:
 
 ```java
-// Exemplo: consumer no telemetry-service
-@KafkaListener(topics = "vehicle.events", groupId = "telemetry-service")
+// Exemplo: consumer no integration-engine-telemetry-service
+@KafkaListener(topics = "vehicle.events", groupId = "integration-engine-telemetry-service")
 public void onVehicleEvent(VehicleEvent event) {
     VeiculoCache cache = veiculoCacheRepository.findById(event.getId())
         .orElse(new VeiculoCache());

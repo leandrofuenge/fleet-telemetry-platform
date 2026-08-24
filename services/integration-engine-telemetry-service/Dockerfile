@@ -16,7 +16,7 @@ WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
 
-COPY --from=builder /app/target/telemetry-service-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/integration-engine-telemetry-service-0.0.1-SNAPSHOT.jar app.jar
 
 RUN chown -R spring:spring /app
 

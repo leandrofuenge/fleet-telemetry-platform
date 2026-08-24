@@ -4,7 +4,7 @@
 
 | Serviço | Responsabilidade | Persistência própria |
 | --- | --- | --- |
-| `telemetry-service` | Ingestão de telemetria, alertas, posição atual e integrações IoT | `telemetria` |
+| `integration-engine-telemetry-service` | Ingestão de telemetria, alertas, posição atual e integrações IoT | `telemetria` |
 | `routing-service` | Rotas, viagens, pontos de entrega e caches de roteamento | `fleet_routing` |
 
 Os serviços se comunicam por APIs e eventos. Cada um mantém suas próprias migrations e não deve acessar o banco do outro diretamente.

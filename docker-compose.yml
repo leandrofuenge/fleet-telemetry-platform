@@ -75,9 +75,9 @@ services:
       - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro,Z
     networks: [fleet-network]
 
-  telemetry-service:
+  integration-engine-telemetry-service:
     build:
-      context: ./services/telemetry-service
+      context: ./services/integration-engine-telemetry-service
     environment:
       SERVER_PORT: 9050
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telemetria
