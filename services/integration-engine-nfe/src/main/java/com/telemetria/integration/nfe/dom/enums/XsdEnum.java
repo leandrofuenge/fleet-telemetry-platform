@@ -1,4 +1,4 @@
-package com.telemetria.integration.nfe.dom.enuns;
+package com.telemetria.integration.nfe.dom.enums;
 
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.DistDFeInt;

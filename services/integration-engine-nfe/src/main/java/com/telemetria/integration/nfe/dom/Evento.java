@@ -2,7 +2,7 @@ package com.telemetria.integration.nfe.dom;
 
 import java.time.LocalDateTime;
 
-import com.telemetria.integration.nfe.dom.enuns.ManifestacaoEnum;
+import com.telemetria.integration.nfe.dom.enums.ManifestacaoEnum;
 
 /**
  * Data: 04/03/2019 - 10:34

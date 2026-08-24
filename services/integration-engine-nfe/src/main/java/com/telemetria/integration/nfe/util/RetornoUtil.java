@@ -1,6 +1,6 @@
 package com.telemetria.integration.nfe.util;
 
-import com.telemetria.integration.nfe.dom.enuns.StatusEnum;
+import com.telemetria.integration.nfe.dom.enums.StatusEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
 import com.telemetria.integration.nfe.schemas.TRetEnviNFe;

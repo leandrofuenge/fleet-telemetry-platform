@@ -54,7 +54,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 

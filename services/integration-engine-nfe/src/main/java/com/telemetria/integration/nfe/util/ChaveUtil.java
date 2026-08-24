@@ -3,7 +3,7 @@ package com.telemetria.integration.nfe.util;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 
 public class ChaveUtil {
 

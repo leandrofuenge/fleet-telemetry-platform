@@ -5,8 +5,8 @@ import java.time.format.DateTimeFormatter;
 
 import com.telemetria.integration.nfe.Assinar;
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
 import com.telemetria.integration.nfe.schemas.TProcInutNFe;

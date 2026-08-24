@@ -9,9 +9,9 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
-import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TConsStatServ;
 import com.telemetria.integration.nfe.schemas.TRetConsStatServ;

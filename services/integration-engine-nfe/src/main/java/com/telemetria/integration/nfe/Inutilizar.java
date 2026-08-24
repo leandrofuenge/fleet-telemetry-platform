@@ -10,10 +10,10 @@ import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.axis2.transport.http.HTTPConstants;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
-import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TInutNFe;
 import com.telemetria.integration.nfe.schemas.TRetInutNFe;

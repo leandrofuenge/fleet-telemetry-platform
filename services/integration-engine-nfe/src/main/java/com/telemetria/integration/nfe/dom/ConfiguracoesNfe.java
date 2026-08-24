@@ -10,8 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.util.logging.Logger;
 
-import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.AmbienteEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 

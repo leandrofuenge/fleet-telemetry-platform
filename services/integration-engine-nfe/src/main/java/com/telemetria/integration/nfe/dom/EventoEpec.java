@@ -1,6 +1,6 @@
 package com.telemetria.integration.nfe.dom;
 
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 
 /**
  * Data: 04/03/2019 - 10:34

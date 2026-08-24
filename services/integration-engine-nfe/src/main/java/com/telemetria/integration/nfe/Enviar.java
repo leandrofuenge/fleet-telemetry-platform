@@ -16,10 +16,10 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.xml.sax.InputSource;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.AssinaturaEnum;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
-import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TRetEnviNFe;

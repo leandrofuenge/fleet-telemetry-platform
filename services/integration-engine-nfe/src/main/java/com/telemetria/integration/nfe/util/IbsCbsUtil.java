@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.telemetria.integration.nfe.ConsultaTributacao;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dto.ClassificacaoTributariaDTO;
 import com.telemetria.integration.nfe.dto.CstDTO;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;

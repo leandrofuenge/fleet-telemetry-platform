@@ -1,4 +1,4 @@
-package com.telemetria.integration.nfe.dom.enuns;
+package com.telemetria.integration.nfe.dom.enums;
 
 /**
  * Data: 02/03/2019 - 22:31

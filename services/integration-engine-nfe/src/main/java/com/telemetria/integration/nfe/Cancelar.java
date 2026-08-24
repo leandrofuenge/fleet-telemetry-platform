@@ -1,8 +1,8 @@
 package com.telemetria.integration.nfe;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamento;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;

@@ -16,10 +16,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
-import com.telemetria.integration.nfe.dom.enuns.AmbienteEnum;
-import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
-import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
-import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
+import com.telemetria.integration.nfe.dom.enums.AmbienteEnum;
+import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
+import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
+import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
 /**

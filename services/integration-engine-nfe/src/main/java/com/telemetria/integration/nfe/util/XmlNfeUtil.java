@@ -42,7 +42,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 
-import com.telemetria.integration.nfe.dom.enuns.XsdEnum;
+import com.telemetria.integration.nfe.dom.enums.XsdEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas.TEnviNFe;
 import com.telemetria.integration.nfe.schemas.TNfeProc;

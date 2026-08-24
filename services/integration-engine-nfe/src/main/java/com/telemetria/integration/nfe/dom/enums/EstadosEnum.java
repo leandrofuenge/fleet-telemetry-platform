@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.telemetria.integration.nfe.dom.enuns;
+package com.telemetria.integration.nfe.dom.enums;
 
 /**
  * enuns que contém todos os estados brasileiros.
