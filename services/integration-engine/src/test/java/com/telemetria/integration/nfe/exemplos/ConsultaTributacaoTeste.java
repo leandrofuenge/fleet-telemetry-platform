@@ -15,7 +15,6 @@ import com.telemetria.integration.nfe.dto.CstTesteDTO;
  * Exemplos de uso da classe ConsultaTributacao.
  * Demonstra os principais recursos disponíveis para consulta de classificações tributárias CFF.
  *
- * @author Rodrigo Cananea - rodrigo@rcconsultoria.inf.br
  */
 public class ConsultaTributacaoTeste {
 

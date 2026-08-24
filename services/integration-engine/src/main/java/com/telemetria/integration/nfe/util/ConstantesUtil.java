@@ -4,7 +4,6 @@
 package com.telemetria.integration.nfe.util;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public interface ConstantesUtil {

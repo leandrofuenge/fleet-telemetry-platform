@@ -16,7 +16,6 @@ import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.CertificadoService;
 
 /**
- * @author Samuel Oliveira
  */
 public class NFCeUtil {
 

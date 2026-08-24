@@ -28,7 +28,6 @@ import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;
 
 /**
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 class DistribuicaoDFe {
 

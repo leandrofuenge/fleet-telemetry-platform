@@ -29,7 +29,6 @@ import br.com.swconsultoria.certificado.CertificadoService;
 import jakarta.xml.bind.JAXBElement;
 
 /**
- * @author Samuel Oliveira
  */
 @EnabledIfEnvironmentVariable(named = "NFE_TEST_CERT_PATH", matches = ".+")
 class IbsCbsTeste {

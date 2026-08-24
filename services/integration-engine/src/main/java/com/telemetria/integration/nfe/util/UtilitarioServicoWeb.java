@@ -23,7 +23,6 @@ import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
 /**
- * @author Samuel Oliveira
  * <p>
  * Classe responsávelem montar as URL's de consulta de serviços do SEFAZ.
  */

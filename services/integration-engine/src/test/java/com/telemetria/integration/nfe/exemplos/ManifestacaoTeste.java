@@ -17,7 +17,6 @@ import com.telemetria.integration.nfe.util.ManifestacaoUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 
 /**
- * @author Samuel Oliveira
  */
 public class ManifestacaoTeste {
 

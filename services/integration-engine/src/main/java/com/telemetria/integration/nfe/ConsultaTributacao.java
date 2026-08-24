@@ -65,7 +65,6 @@ import br.com.swconsultoria.certificado.exception.CertificadoException;
  * ValidationReport report = ConsultaTributacao.validate(config, CstDTO.class);
  * </pre>
  *
- * @author Rodrigo Cananea - rodrigo@rcconsultoria.inf.br
  */
 @SuppressWarnings("all")
 public class ConsultaTributacao {

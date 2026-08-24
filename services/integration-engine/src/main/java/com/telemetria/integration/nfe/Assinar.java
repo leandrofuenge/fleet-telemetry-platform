@@ -56,7 +56,6 @@ import br.com.swconsultoria.certificado.exception.CertificadoException;
 /**
  * Classe Responsavel Por Assinar O Xml.
  *
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 public class Assinar {
 

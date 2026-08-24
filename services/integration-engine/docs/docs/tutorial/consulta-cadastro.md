@@ -11,7 +11,6 @@ import com.telemetria.integration.nfe.schema.retConsCad.TRetConsCad;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class ConsultaCadastroTeste {

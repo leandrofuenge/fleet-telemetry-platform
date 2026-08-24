@@ -57,7 +57,6 @@ import jakarta.xml.bind.Marshaller;
 /**
  * Classe Responsavel por Metodos referentes ao XML
  *
- * @author Samuel Oliveira
  */
 public class XmlNfeUtil {
 

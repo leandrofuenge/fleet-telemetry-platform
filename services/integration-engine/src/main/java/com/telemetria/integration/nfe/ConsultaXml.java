@@ -29,7 +29,6 @@ import jakarta.xml.bind.JAXBException;
 /**
  * Classe responsavel por Consultar a Situaçao do XML na SEFAZ.
  *
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 class ConsultaXml {
 

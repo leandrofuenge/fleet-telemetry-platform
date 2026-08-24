@@ -19,7 +19,6 @@ import br.com.swconsultoria.certificado.Certificado;
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 
 /**
- * @author Samuel Oliveira
  * <p>
  * Responsável por iniciar as configurações das operações NF-e.
  * <p>
@@ -109,8 +108,7 @@ public class ConfiguracoesNfe {
             }
         }
 
-        log.info(String.format("JAVA-NFE | Samuel Oliveira | samuel@swconsultoria.com.br " +
-                        "| VERSAO=%s | DATA_VERSAO=%s | PASTA_SCHEMAS=%s | AMBIENTE=%s | ESTADO=%s",
+        log.info(String.format("JAVA-NFE | VERSAO=%s | DATA_VERSAO=%s | PASTA_SCHEMAS=%s | AMBIENTE=%s | ESTADO=%s",
                 "4.1.2",
                 "16/08/2026",
                 pastaSchemas,

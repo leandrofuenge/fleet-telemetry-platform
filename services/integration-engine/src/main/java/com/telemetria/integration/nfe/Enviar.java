@@ -36,7 +36,6 @@ import jakarta.xml.bind.JAXBException;
 /**
  * Classe Responsavel por Enviar o XML.
  *
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 class Enviar {
 

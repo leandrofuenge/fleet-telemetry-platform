@@ -11,7 +11,6 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import jakarta.xml.bind.JAXBException;
 
 /**
- * @author Samuel Oliveira - samuel@swconsultoria.com.br
  * Data: 28/09/2017 - 11:11
  */
 class Epec {

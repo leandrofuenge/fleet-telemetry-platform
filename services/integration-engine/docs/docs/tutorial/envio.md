@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class EnvioNfeTeste {
@@ -418,7 +417,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class EnvioNfceTeste {
@@ -838,7 +836,6 @@ import com.telemetria.integration.nfe.util.RetornoUtil;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class EnvioNfeXmlTeste {

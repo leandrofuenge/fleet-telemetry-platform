@@ -9,7 +9,6 @@ import br.com.swconsultoria.certificado.exception.CertificadoException;
 /**
  * Classe Responsavel Por Carregar as informações do Certificado Digital
  * 
- * @author Samuel Oliveira
  * 
  */
 public class ConfiguracoesUtil {

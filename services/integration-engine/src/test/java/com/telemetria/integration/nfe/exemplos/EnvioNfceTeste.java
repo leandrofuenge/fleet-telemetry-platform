@@ -52,7 +52,6 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import jakarta.xml.bind.JAXBElement;
 
 /**
- * @author Samuel Oliveira
  */
 public class EnvioNfceTeste {
 

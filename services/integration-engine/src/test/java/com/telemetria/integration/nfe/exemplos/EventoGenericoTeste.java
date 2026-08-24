@@ -19,7 +19,6 @@ import com.telemetria.integration.nfe.util.EventoGenericoUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 
 /**
- * @author Samuel Oliveira
  */
 public class EventoGenericoTeste {
 

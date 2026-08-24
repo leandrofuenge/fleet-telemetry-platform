@@ -11,7 +11,6 @@ import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 import com.telemetria.integration.nfe.schemas.TRetConsStatServ;
 
 /**
- * @author Samuel Oliveira
  */
 public class StatusServicoTeste {
 

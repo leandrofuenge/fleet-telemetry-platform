@@ -14,7 +14,6 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import java.util.List;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class DistribuicaoDFeTeste {

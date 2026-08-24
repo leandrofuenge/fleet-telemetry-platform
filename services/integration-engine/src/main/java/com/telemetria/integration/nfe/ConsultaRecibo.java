@@ -28,7 +28,6 @@ import jakarta.xml.bind.JAXBException;
 /**
  * Classe Responsavel Por pegar o Retorno da NFE, apos o Envio.
  *
- * @author Samuel Oliveira
  */
 class ConsultaRecibo {
 

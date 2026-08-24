@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * DTO representando um CST (Código de Situação Tributária) do CFF.
  * Tolerante a mudanças: campos desconhecidos são ignorados automaticamente.
  *
- * @author Rodrigo Cananea - rodrigo@rcconsultoria.inf.br
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CstDTO implements Serializable {

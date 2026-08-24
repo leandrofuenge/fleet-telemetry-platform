@@ -9,7 +9,6 @@ import com.telemetria.integration.nfe.schemas.TRetConsSitNFe;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class ConsultaXmlTeste {

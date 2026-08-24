@@ -27,7 +27,6 @@ import jakarta.xml.bind.JAXBException;
 /**
  * Classe responsável por fazer a Verificação do Status Do Webservice
  *
- * @author Samuel Oliveira
  */
 class Status {
 

@@ -29,7 +29,6 @@ import jakarta.xml.bind.JAXBException;
 /**
  * Classe Responsavel por inutilizar uma Faixa de numeracao da Nfe.
  *
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 class Inutilizar {
 

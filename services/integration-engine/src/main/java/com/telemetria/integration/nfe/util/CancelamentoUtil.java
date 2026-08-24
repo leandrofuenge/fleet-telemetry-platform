@@ -17,7 +17,6 @@ import com.telemetria.integration.nfe.schemas_eventos.TRetEventoCancelamento;
 import jakarta.xml.bind.JAXBException;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com
  * Data: 02/03/2019 - 22:51
  */
 public class CancelamentoUtil {

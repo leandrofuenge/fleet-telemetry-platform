@@ -1,7 +1,6 @@
 package com.telemetria.integration.nfe.dom.enuns;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com
  * Data: 02/03/2019 - 22:31
  */
 public enum EventosEnum {

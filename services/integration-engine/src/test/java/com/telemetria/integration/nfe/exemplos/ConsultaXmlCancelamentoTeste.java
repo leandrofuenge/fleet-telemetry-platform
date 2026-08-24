@@ -16,7 +16,6 @@ import com.telemetria.integration.nfe.util.CancelamentoUtil;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class ConsultaXmlCancelamentoTeste {

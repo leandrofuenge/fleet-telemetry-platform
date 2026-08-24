@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * DTO representando uma Classificação Tributária do CFF.
  * Tolerante a mudanças: campos desconhecidos são ignorados automaticamente.
  *
- * @author Rodrigo Cananea - rodrigo@rcconsultoria. inf.br
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClassificacaoTributariaDTO implements Serializable {

@@ -7,7 +7,6 @@ import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com
  * Data: 02/03/2019 - 23:05
  */
 public class RetornoUtil {

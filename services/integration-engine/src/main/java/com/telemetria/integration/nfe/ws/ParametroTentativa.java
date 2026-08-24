@@ -7,7 +7,6 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 
 /**
  * 
- * @author Leonardo Wiest
  *
  */
 public class ParametroTentativa {

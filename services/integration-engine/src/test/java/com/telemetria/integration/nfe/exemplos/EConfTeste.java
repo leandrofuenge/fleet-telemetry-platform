@@ -16,7 +16,6 @@ import com.telemetria.integration.nfe.schemas_eventos.TUfEmi;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class EConfTeste {

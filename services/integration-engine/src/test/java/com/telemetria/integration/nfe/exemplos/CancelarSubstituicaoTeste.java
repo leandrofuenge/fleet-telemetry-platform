@@ -16,7 +16,6 @@ import com.telemetria.integration.nfe.util.CancelamentoSubstituicaoUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 
 /**
- * @author Samuel Oliveira
  */
 public class CancelarSubstituicaoTeste {
 

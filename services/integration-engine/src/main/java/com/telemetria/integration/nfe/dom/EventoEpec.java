@@ -3,7 +3,6 @@ package com.telemetria.integration.nfe.dom;
 import com.telemetria.integration.nfe.dom.enuns.EstadosEnum;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com
  * Data: 04/03/2019 - 10:34
  */
 public class EventoEpec {

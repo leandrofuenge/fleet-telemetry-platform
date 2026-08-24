@@ -4,12 +4,10 @@
 package com.telemetria.integration.nfe.dom.enuns;
 
 /**
- * @author Samuel Oliveira
  *
  */
 /**
  * enuns que contém todos os estados brasileiros.
- * @author Samuel Oliveira
  *
  */
 public enum StatusEnum {

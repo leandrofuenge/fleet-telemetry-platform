@@ -14,7 +14,6 @@ import com.telemetria.integration.nfe.schemas.RetDistDFeInt.LoteDistDFeInt.DocZi
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 /**
- * @author Samuel Oliveira
  */
 public class DistribuicaoDFeTeste {
 

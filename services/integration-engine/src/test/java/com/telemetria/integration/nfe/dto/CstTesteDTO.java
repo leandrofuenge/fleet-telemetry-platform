@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
  * DTO representando um CST (Código de Situação Tributária) do CFF.
  * Tolerante a mudanças: campos desconhecidos são ignorados automaticamente.
  *
- * @author Rodrigo Cananea - rodrigo@rcconsultoria.inf.br
  */
 @Data
 @NoArgsConstructor

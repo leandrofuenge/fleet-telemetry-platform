@@ -14,7 +14,6 @@ import com.telemetria.integration.nfe.util.EpecUtil;
 import com.telemetria.integration.nfe.util.RetornoUtil;
 
 /**
- * @author Samuel Oliveira
  */
 public class EpecTeste {
 

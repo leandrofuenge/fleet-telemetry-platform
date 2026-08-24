@@ -17,7 +17,6 @@ import com.telemetria.integration.nfe.util.RetornoUtil;
 import java.time.LocalDateTime;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class InutilizarTeste {

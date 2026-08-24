@@ -41,7 +41,6 @@ import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao;
 import com.telemetria.integration.nfe.util.ConfiguracoesUtil;
 
 /**
- * @author Samuel Oliveira - samuel@swconsultoria.com.br - www.swconsultoria.com.br
  */
 public class Nfe {
 

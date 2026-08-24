@@ -54,7 +54,6 @@ import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import jakarta.xml.bind.JAXBElement;
 
 /**
- * @author Samuel Oliveira
  *
  */
 public class EnvioNfceContingenciaTeste {
@@ -97,9 +96,9 @@ public class EnvioNfceContingenciaTeste {
 
             TInfRespTec respTec = new TInfRespTec();
             respTec.setCNPJ("32330160000195");
-            respTec.setEmail("samuel@swconsultoria.com.br");
+            respTec.setEmail("responsavel@example.com");
             respTec.setFone("62993066546");
-            respTec.setXContato("Samuel Oliveira");
+            respTec.setXContato("Responsável Técnico");
 
             infNFe.setInfRespTec(respTec);
 

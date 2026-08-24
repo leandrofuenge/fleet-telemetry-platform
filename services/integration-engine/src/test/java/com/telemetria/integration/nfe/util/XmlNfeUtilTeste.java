@@ -15,7 +15,6 @@ import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com Data: 26/05/2019 - 12:38
  */
 class XmlNfeUtilTeste {
 

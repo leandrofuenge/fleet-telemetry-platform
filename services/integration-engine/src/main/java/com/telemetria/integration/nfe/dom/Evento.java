@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import com.telemetria.integration.nfe.dom.enuns.ManifestacaoEnum;
 
 /**
- * @author Samuel Oliveira - samuk.exe@hotmail.com
  * Data: 04/03/2019 - 10:34
  */
 public class Evento {

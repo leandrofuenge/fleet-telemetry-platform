@@ -9,7 +9,6 @@ import com.telemetria.integration.nfe.dom.enuns.DocumentoEnum;
 import com.telemetria.integration.nfe.schema_4.retConsStatServ.TRetConsStatServ;
 
 /**
- * @author Samuel Oliveira
  */
 public class StatusServicoTeste {
     public static void main(String[] args) {
