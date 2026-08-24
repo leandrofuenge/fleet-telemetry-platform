@@ -9,6 +9,7 @@ import java.time.Duration;
 
 import javax.net.ssl.SSLContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ public class NfeHttpsSoapTransport implements NfeSoapTransport {
 
     private final HttpClient httpClient;
 
+    @Autowired
     public NfeHttpsSoapTransport(@Qualifier("sefazSslContext") SSLContext sslContext) {
         this(HttpClient.newBuilder().sslContext(sslContext).version(HttpClient.Version.HTTP_1_1).build());
     }
