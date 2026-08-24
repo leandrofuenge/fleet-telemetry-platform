@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.telemetria</groupId>
-    <artifactId>nfe-integration-engine</artifactId>
+    <artifactId>integration-engine-nfe</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>nfe-integration-engine</name>
+    <name>integration-engine-nfe</name>
     <description>Motor de integração com os serviços de NF-e da SEFAZ</description>
 
     <properties>

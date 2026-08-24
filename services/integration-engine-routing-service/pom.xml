@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.fleet</groupId>
-	<artifactId>routing-service</artifactId>
+	<artifactId>integration-engine-routing-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>routing-service</name>
+	<name>integration-engine-routing-service</name>
 	<description>Microserviço de roteamento para a plataforma de telemetria de frotas</description>
 	<url/>
 	<licenses>

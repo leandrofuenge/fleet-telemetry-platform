@@ -1,5 +1,5 @@
 services:
-  integration-engine:
+  integration-engine-cte:
     environment:
       SPRING_PROFILES_ACTIVE: ${INTEGRATION_PROFILES:-docker,cte-homologation}
       INTEGRATION_SIMULATION_ENABLED: "false"
@@ -14,5 +14,3 @@ services:
         source: ${SEFAZ_TRUSTSTORE_HOST_PATH:?Defina SEFAZ_TRUSTSTORE_HOST_PATH com caminho absoluto}
         target: /run/secrets/sefaz-truststore.p12
         read_only: true
-    security_opt:
-      - no-new-privileges:true
