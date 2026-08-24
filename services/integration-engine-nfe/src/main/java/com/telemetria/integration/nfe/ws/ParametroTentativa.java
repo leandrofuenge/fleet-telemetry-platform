@@ -1,7 +1,7 @@
 package com.telemetria.integration.nfe.ws;
 
 import org.apache.axis2.client.Stub;
-import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.axis2.kernel.http.HTTPConstants;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 
@@ -33,3 +33,4 @@ public class ParametroTentativa {
     }
 
 }
+

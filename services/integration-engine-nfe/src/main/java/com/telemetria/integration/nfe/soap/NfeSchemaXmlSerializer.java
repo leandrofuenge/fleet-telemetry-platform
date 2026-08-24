@@ -2,8 +2,8 @@ package com.telemetria.integration.nfe.soap;
 
 import org.springframework.stereotype.Component;
 
-import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.domain.exception.NfeException;
+import com.telemetria.integration.nfe.util.XmlNfeUtil;
 
 import jakarta.xml.bind.JAXBException;
 

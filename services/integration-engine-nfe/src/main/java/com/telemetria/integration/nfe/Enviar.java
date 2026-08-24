@@ -7,13 +7,11 @@ import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.axiom.om.OMAbstractFactory;
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMFactory;
+import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.axiom.om.util.StAXParserConfiguration;
-import org.apache.axis2.transport.http.HTTPConstants;
-import org.xml.sax.InputSource;
+import org.apache.axis2.kernel.http.HTTPConstants;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
@@ -104,8 +102,9 @@ class Enviar {
             if (tipoDocumento.equals(DocumentoEnum.NFE)) {
                 ome = AXIOMUtil.stringToOM(xml);
             } else {
-                OMFactory factory = OMAbstractFactory.getOMFactory();
-                ome = factory.getMetaFactory().createOMBuilder(factory, StAXParserConfiguration.NON_COALESCING, new InputSource(new StringReader(xml))).getDocumentElement();
+                ome = OMXMLBuilderFactory.createOMBuilder(
+                        StAXParserConfiguration.NON_COALESCING,
+                        new StringReader(xml)).getDocumentElement();
             }
 
             Iterator<?> children = ome.getChildrenWithLocalName("NFe");
@@ -152,3 +151,5 @@ class Enviar {
     }
 
 }
+
+

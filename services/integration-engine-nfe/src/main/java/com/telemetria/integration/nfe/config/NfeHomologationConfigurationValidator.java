@@ -9,9 +9,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.telemetria.integration.config.SefazProperties;
-import com.telemetria.integration.sefaz.certificate.CertificadoLoader;
 import com.telemetria.integration.nfe.domain.exception.NfeException;
+import com.telemetria.integration.nfe.security.CertificadoLoader;
 
 /** Faz o serviço falhar cedo quando a homologação NF-e estiver incompleta ou insegura. */
 @Component

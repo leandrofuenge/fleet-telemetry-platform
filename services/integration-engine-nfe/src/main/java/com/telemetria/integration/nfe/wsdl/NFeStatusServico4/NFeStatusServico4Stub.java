@@ -839,15 +839,9 @@ public class NFeStatusServico4Stub extends org.apache.axis2.client.Stub {
                         reader.next();
 
                     if (reader.isStartElement()) {
-                        //use the QName from the parser as the name for the builder
-                        javax.xml.namespace.QName startQname1 = reader.getName();
-
-                        // We need to wrap the reader so that it produces a fake START_DOCUMENT event
-                        // this is needed by the builder classes
-                        org.apache.axis2.databinding.utils.NamedStaxOMBuilder builder1 =
-                            new org.apache.axis2.databinding.utils.NamedStaxOMBuilder(new org.apache.axis2.util.StreamWrapper(
-                                    reader), startQname1);
-                        object.setExtraElement(builder1.getOMElement());
+                        org.apache.axiom.om.OMXMLParserWrapper builder1 =
+                            org.apache.axiom.om.OMXMLBuilderFactory.createStAXOMBuilder(reader);
+                        object.setExtraElement(builder1.getDocumentElement());
 
                         reader.next();
                     } // End of if for expected property start element
@@ -1236,15 +1230,9 @@ public class NFeStatusServico4Stub extends org.apache.axis2.client.Stub {
                         reader.next();
 
                     if (reader.isStartElement()) {
-                        //use the QName from the parser as the name for the builder
-                        javax.xml.namespace.QName startQname1 = reader.getName();
-
-                        // We need to wrap the reader so that it produces a fake START_DOCUMENT event
-                        // this is needed by the builder classes
-                        org.apache.axis2.databinding.utils.NamedStaxOMBuilder builder1 =
-                            new org.apache.axis2.databinding.utils.NamedStaxOMBuilder(new org.apache.axis2.util.StreamWrapper(
-                                    reader), startQname1);
-                        object.setExtraElement(builder1.getOMElement());
+                        org.apache.axiom.om.OMXMLParserWrapper builder1 =
+                            org.apache.axiom.om.OMXMLBuilderFactory.createStAXOMBuilder(reader);
+                        object.setExtraElement(builder1.getDocumentElement());
 
                         reader.next();
                     } // End of if for expected property start element
@@ -1272,3 +1260,4 @@ public class NFeStatusServico4Stub extends org.apache.axis2.client.Stub {
         } //end of factory class
     }
 }
+

@@ -58,8 +58,7 @@ class AtorInteressado {
             );
         }
 
-        if (config.getEncode() == null
-                || config.getEncode().isBlank()) {
+        if (config.getEncode() == null) {
 
             throw new ExcecaoNfe(
                     "Encoding da NFe não configurado."

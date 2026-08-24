@@ -8,12 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.telemetria.integration.nfe.config.NfeProperties;
+import com.telemetria.integration.nfe.domain.exception.NfeException;
 import com.telemetria.integration.nfe.schemas.TConsReciNFe;
 import com.telemetria.integration.nfe.schemas.TConsSitNFe;
 import com.telemetria.integration.nfe.schemas.TConsStatServ;
-import com.telemetria.integration.security.XmlSignatureValidator;
-import com.telemetria.integration.nfe.config.NfeProperties;
-import com.telemetria.integration.nfe.domain.exception.NfeException;
+import com.telemetria.integration.nfe.security.XmlSignatureValidator;
 import com.telemetria.integration.nfe.soap.NfeSchemaXmlSerializer;
 import com.telemetria.integration.nfe.soap.NfeSoapGateway;
 import com.telemetria.integration.nfe.soap.NfeSoapService;

@@ -1,7 +1,7 @@
 package com.telemetria.integration.nfe.util;
 
 import org.apache.axis2.client.Stub;
-import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.axis2.kernel.http.HTTPConstants;
 import org.apache.commons.httpclient.HttpClient;
 
 import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
@@ -39,3 +39,4 @@ public class UtilitarioClienteAxis2 {
         }
     }
 }
+
