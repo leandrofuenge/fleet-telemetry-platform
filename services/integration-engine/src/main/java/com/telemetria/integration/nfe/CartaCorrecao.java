@@ -6,9 +6,6 @@ import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCartaCorrecao;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao;
-import com.telemetria.integration.nfe.util.XmlNfeUtil;
-
-import jakarta.xml.bind.JAXBException;
 
 /**
  */
@@ -17,19 +14,13 @@ class CartaCorrecao {
     static TRetEnvEventoCartaCorrecao eventoCCe(ConfiguracoesNfe config, TEnvEventoCartaCorrecao enviEvento, boolean valida)
             throws ExcecaoNfe {
 
-        try {
-
-            String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
-            xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
-            xml = xml.replaceAll("<evento v", "<evento xmlns=\"http://www.portalfiscal.inf.br/nfe\" v");
-
-            xml = Eventos.enviarEvento(config, xml, ServicosEnum.CCE, valida, true, DocumentoEnum.NFE);
-
-            return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoCartaCorrecao.class);
-
-        } catch (JAXBException e) {
-            throw new ExcecaoNfe(e.getMessage(), e);
-        }
+        return EventoNfeSender.enviar(
+                config,
+                enviEvento,
+                TRetEnvEventoCartaCorrecao.class,
+                ServicosEnum.CCE,
+                DocumentoEnum.NFE,
+                valida);
 
     }
 }

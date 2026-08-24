@@ -6,31 +6,64 @@ import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoAtorInteressado;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoAtorInteressado;
-import com.telemetria.integration.nfe.util.XmlNfeUtil;
-
-import jakarta.xml.bind.JAXBException;
 
 /**
+ * Serviço responsável pelo evento de Ator Interessado.
  */
 class AtorInteressado {
 
-    static TRetEnvEventoAtorInteressado eventoAtorInteressado(ConfiguracoesNfe config, TEnvEventoAtorInteressado enviEvento, boolean valida)
-            throws ExcecaoNfe {
-
-        try {
-
-            String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
-            xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
-            xml = xml.replaceAll("<evento v", "<evento xmlns=\"http://www.portalfiscal.inf.br/nfe\" v");
-
-            xml = Eventos.enviarEvento(config, xml, ServicosEnum.ATOR_INTERESSADO, valida, true, DocumentoEnum.NFE);
-
-            return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoAtorInteressado.class);
-
-        } catch (JAXBException e) {
-            throw new ExcecaoNfe(e.getMessage(),e);
-        }
-
+    private AtorInteressado() {
+        // Classe utilitária.
     }
 
+    static TRetEnvEventoAtorInteressado eventoAtorInteressado(
+            ConfiguracoesNfe config,
+            TEnvEventoAtorInteressado enviEvento,
+            boolean valida) throws ExcecaoNfe {
+
+        validarParametros(
+                config,
+                enviEvento
+        );
+
+        return EventoNfeSender.enviar(
+                config,
+                enviEvento,
+                TRetEnvEventoAtorInteressado.class,
+                ServicosEnum.ATOR_INTERESSADO,
+                DocumentoEnum.NFE,
+                valida);
+    }
+
+    private static void validarParametros(
+            ConfiguracoesNfe config,
+            TEnvEventoAtorInteressado enviEvento)
+            throws ExcecaoNfe {
+
+        if (config == null) {
+            throw new ExcecaoNfe(
+                    "Configurações da NFe não informadas."
+            );
+        }
+
+        if (config.getCertificado() == null) {
+            throw new ExcecaoNfe(
+                    "Certificado digital não configurado."
+            );
+        }
+
+        if (enviEvento == null) {
+            throw new ExcecaoNfe(
+                    "Evento de ator interessado não informado."
+            );
+        }
+
+        if (config.getEncode() == null
+                || config.getEncode().isBlank()) {
+
+            throw new ExcecaoNfe(
+                    "Encoding da NFe não configurado."
+            );
+        }
+    }
 }

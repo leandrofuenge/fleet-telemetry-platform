@@ -6,9 +6,6 @@ import com.telemetria.integration.nfe.dom.enuns.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoInsucessoEntrega;
 import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoInsucessoEntrega;
-import com.telemetria.integration.nfe.util.XmlNfeUtil;
-
-import jakarta.xml.bind.JAXBException;
 
 /**
  */
@@ -20,19 +17,13 @@ class InsucessoEntrega {
     static TRetEnvEventoInsucessoEntrega eventoInsuccessoEntrega(ConfiguracoesNfe config, TEnvEventoInsucessoEntrega enviEvento, boolean valida)
             throws ExcecaoNfe {
 
-        try {
-
-            String xml = XmlNfeUtil.objectToXml(enviEvento, config.getEncode());
-            xml = xml.replaceAll(" xmlns:ns2=\"http://www.w3.org/2000/09/xmldsig#\"", "");
-            xml = xml.replaceAll("<evento v", "<evento xmlns=\"http://www.portalfiscal.inf.br/nfe\" v");
-
-            xml = Eventos.enviarEvento(config, xml, ServicosEnum.INSUCESSO_ENTREGA, valida, true, DocumentoEnum.NFE);
-
-            return XmlNfeUtil.xmlToObject(xml, TRetEnvEventoInsucessoEntrega.class);
-
-        } catch (JAXBException e) {
-            throw new ExcecaoNfe(e.getMessage(),e);
-        }
+        return EventoNfeSender.enviar(
+                config,
+                enviEvento,
+                TRetEnvEventoInsucessoEntrega.class,
+                ServicosEnum.INSUCESSO_ENTREGA,
+                DocumentoEnum.NFE,
+                valida);
 
     }
 
