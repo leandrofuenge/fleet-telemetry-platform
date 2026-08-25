@@ -4,8 +4,8 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoAtorInteressado;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoAtorInteressado;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoAtorInteressado;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoAtorInteressado;
 
 /**
  * Serviço responsável pelo evento de Ator Interessado.

@@ -28,9 +28,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVPIS(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo PIS
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS pis =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.PIS) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.PIS pis =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.PIS) elem.getValue();
                 // Busca vPIS em cada modalidade possível no XML
                 if (pis.getPISAliq() != null && pis.getPISAliq().getVPIS() != null)
                     return new BigDecimal(pis.getPISAliq().getVPIS());
@@ -55,9 +55,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVCOFINS(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo COFINS
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS cof =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.COFINS) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.COFINS cof =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.COFINS) elem.getValue();
                 // Busca vCOFINS em cada modalidade possível no XML
                 if (cof.getCOFINSAliq() != null && cof.getCOFINSAliq().getVCOFINS() != null)
                     return new BigDecimal(cof.getCOFINSAliq().getVCOFINS());
@@ -82,9 +82,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVICMS(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ICMS
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
                 // Busca vICMS em cada modalidade possível no XML
                 if (icms.getICMS00() != null && icms.getICMS00().getVICMS() != null)
                     return new BigDecimal(icms.getICMS00().getVICMS());
@@ -112,9 +112,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVICMSUFDest(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ICMSUFDest
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest icmsUfDest =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest icmsUfDest =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) elem.getValue();
                 if (icmsUfDest.getVICMSUFDest() != null)
                     return new BigDecimal(icmsUfDest.getVICMSUFDest());
             }
@@ -133,9 +133,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVFCP(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ICMS
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
                 // Busca vFCP em modalidades possíveis
                 if (icms.getICMS00() != null && icms.getICMS00().getVFCP() != null)
                     return new BigDecimal(icms.getICMS00().getVFCP());
@@ -162,9 +162,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVFCPUFDest(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ICMSUFDest
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest icmsUfDest =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest icmsUfDest =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMSUFDest) elem.getValue();
                 if (icmsUfDest.getVFCPUFDest() != null)
                     return new BigDecimal(icmsUfDest.getVFCPUFDest());
             }
@@ -183,9 +183,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVICMSMono(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ICMS
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS icms =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ICMS) elem.getValue();
                 // Busca vICMS em cada modalidade possível no XML
                 if (icms.getICMS02() != null && icms.getICMS02().getVICMSMono() != null)
                     return new BigDecimal(icms.getICMS02().getVICMSMono());
@@ -207,9 +207,9 @@ public class XmlImpostoUtil {
     public static BigDecimal getVISSQN(List<JAXBElement<?>> impostos) {
         for (JAXBElement<?> elem : impostos) {
             // Verifica se o elemento é do tipo ISSQN
-            if (elem.getValue() instanceof com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ISSQN) {
-                com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ISSQN issqn =
-                        (com.telemetria.integration.nfe.schemas.TNFe.InfNFe.Det.Imposto.ISSQN) elem.getValue();
+            if (elem.getValue() instanceof com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ISSQN) {
+                com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ISSQN issqn =
+                        (com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe.InfNFe.Det.Imposto.ISSQN) elem.getValue();
                 if (issqn.getVISSQN() != null)
                     return new BigDecimal(issqn.getVISSQN());
             }

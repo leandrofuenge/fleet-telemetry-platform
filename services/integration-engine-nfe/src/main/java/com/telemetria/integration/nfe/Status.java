@@ -13,13 +13,13 @@ import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TConsStatServ;
-import com.telemetria.integration.nfe.schemas.TRetConsStatServ;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsStatServ;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsStatServ;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
-import com.telemetria.integration.nfe.wsdl.NFeStatusServico4.NFeStatusServico4Stub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4.NFeStatusServico4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;
@@ -81,15 +81,15 @@ class Status {
             String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.STATUS_SERVICO);
 
             if (EstadosEnum.MS.equals(config.getEstado())) {
-                com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeDadosMsg dadosMsg =
-                        new com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeDadosMsg();
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeDadosMsg dadosMsg =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeDadosMsg();
                 dadosMsg.setExtraElement(ome);
 
-                com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub stub =
-                        new com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub(url);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub stub =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub(url);
                 UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
-                com.telemetria.integration.nfe.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeResultMsg result = stub.nfeStatusServicoNF(dadosMsg);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeStatusServico4MS.NFeStatusServico4Stub.NfeResultMsg result = stub.nfeStatusServicoNF(dadosMsg);
 
                 log.info("[XML-RETORNO]: " + result.getExtraElement().toString());
                 return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetConsStatServ.class);

@@ -4,8 +4,8 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoGenerico;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoGenerico;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoGenerico;
 
 /**
  */

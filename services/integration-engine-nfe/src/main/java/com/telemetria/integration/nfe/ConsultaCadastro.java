@@ -15,15 +15,15 @@ import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enums.PessoaEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TConsCad;
-import com.telemetria.integration.nfe.schemas.TRetConsCad;
-import com.telemetria.integration.nfe.schemas.TUfCons;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsCad;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsCad;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TUfCons;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
-import com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.CadConsultaCadastro4Stub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.CadConsultaCadastro4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;
@@ -74,12 +74,12 @@ class ConsultaCadastro {
 
             String url = UtilitarioServicoWeb.getUrl(configConsulta, DocumentoEnum.NFE, ServicosEnum.CONSULTA_CADASTRO);
             if (EstadosEnum.MS.equals(estado)) {
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg dadosMsg =
-                        new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg();
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg dadosMsg =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeDadosMsg();
                 dadosMsg.setExtraElement(ome);
 
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub stub =
-                        new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub(url);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub stub =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub(url);
 
                 UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
@@ -90,19 +90,19 @@ class ConsultaCadastro {
                             config.getTimeout());
                 }
 
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeResultMsg result = stub.consultaCadastro(dadosMsg);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.ms.CadConsultaCadastro4Stub.NfeResultMsg result = stub.consultaCadastro(dadosMsg);
 
                 log.info("[XML-RETORNO]: " + result.getExtraElement().toString());
                 return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetConsCad.class);
             } else if (EstadosEnum.MT.equals(estado)) {
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.ConsultaCadastro consultaCadastro =
-                        new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.ConsultaCadastro();
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeDadosMsg_type0 dadosMsg = new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeDadosMsg_type0();
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.ConsultaCadastro consultaCadastro =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.ConsultaCadastro();
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeDadosMsg_type0 dadosMsg = new com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeDadosMsg_type0();
                 dadosMsg.setExtraElement(ome);
                 consultaCadastro.setNfeDadosMsg(dadosMsg);
 
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub stub =
-                        new com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub(url);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub stub =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub(url);
 
                 UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
@@ -113,7 +113,7 @@ class ConsultaCadastro {
                             config.getTimeout());
                 }
 
-                com.telemetria.integration.nfe.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeResultMsg result = stub.consultaCadastro(consultaCadastro);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.CadConsultaCadastro.rs.CadConsultaCadastro4Stub.NfeResultMsg result = stub.consultaCadastro(consultaCadastro);
 
                 log.info("[XML-RETORNO]: " + result.getConsultaCadastroResult().getExtraElement().toString());
                 return XmlNfeUtil.xmlToObject(result.getConsultaCadastroResult().getExtraElement().toString(), TRetConsCad.class);

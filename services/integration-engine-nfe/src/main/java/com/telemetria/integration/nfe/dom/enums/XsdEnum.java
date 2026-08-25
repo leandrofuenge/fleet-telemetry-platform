@@ -1,23 +1,23 @@
 package com.telemetria.integration.nfe.dom.enums;
 
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.DistDFeInt;
-import com.telemetria.integration.nfe.schemas.RetDistDFeInt;
-import com.telemetria.integration.nfe.schemas.TConsCad;
-import com.telemetria.integration.nfe.schemas.TConsReciNFe;
-import com.telemetria.integration.nfe.schemas.TConsSitNFe;
-import com.telemetria.integration.nfe.schemas.TConsStatServ;
-import com.telemetria.integration.nfe.schemas.TEnviNFe;
-import com.telemetria.integration.nfe.schemas.TInutNFe;
-import com.telemetria.integration.nfe.schemas.TNFe;
-import com.telemetria.integration.nfe.schemas.TNfeProc;
-import com.telemetria.integration.nfe.schemas.TProcInutNFe;
-import com.telemetria.integration.nfe.schemas.TRetConsCad;
-import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
-import com.telemetria.integration.nfe.schemas.TRetConsSitNFe;
-import com.telemetria.integration.nfe.schemas.TRetConsStatServ;
-import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
-import com.telemetria.integration.nfe.schemas.TRetInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.DistDFeInt;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.RetDistDFeInt;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsCad;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsReciNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsSitNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsStatServ;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TNfeProc;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TProcInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsCad;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsReciNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsSitNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsStatServ;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetInutNFe;
 
 public enum XsdEnum {
 
@@ -42,7 +42,7 @@ public enum XsdEnum {
     ENVI_NFE(TEnviNFe.class, "enviNFe"),
     RET_ENVI_NFE(TRetEnviNFe.class, "retEnviNFe"),
     NFE_PROC(TNfeProc.class, "nfeProc"),
-    PROT_NFE(com.telemetria.integration.nfe.schemas.TProtNFe.class, "protNFe"),
+    PROT_NFE(com.telemetria.integration.nfe.codigo.gerado.schemas.TProtNFe.class, "protNFe"),
 
     //Inutilização
     INUT_NFE(TInutNFe.class, "inutNFe"),
@@ -50,59 +50,59 @@ public enum XsdEnum {
     RET_INUT_NFE(TRetInutNFe.class, "retInutNFe"),
 
     //Cancelamento
-    CANC_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamento.class, "procEventoNFe"),
-    CANC_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamento.class, "envEvento"),
-    CANC_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento.class, "retEnvEvento"),
+    CANC_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCancelamento.class, "procEventoNFe"),
+    CANC_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamento.class, "envEvento"),
+    CANC_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamento.class, "retEnvEvento"),
 
     //Cancelamento Substituicao
-    CANC_SUBS_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamentoSubstituicao.class, "procEventoNFe"),
-    CANC_SUBS_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoSubstituicao.class, "envEvento"),
-    CANC_SUBS_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao.class, "retEnvEvento"),
+    CANC_SUBS_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCancelamentoSubstituicao.class, "procEventoNFe"),
+    CANC_SUBS_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamentoSubstituicao.class, "envEvento"),
+    CANC_SUBS_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao.class, "retEnvEvento"),
 
     //Ator Interessado
-    ATOR_INTER_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoAtorInteressado.class, "procEventoNFe"),
-    ATOR_INTER_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoAtorInteressado.class, "envEvento"),
-    ATOR_INTER_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoAtorInteressado.class, "retEnvEvento"),
+    ATOR_INTER_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoAtorInteressado.class, "procEventoNFe"),
+    ATOR_INTER_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoAtorInteressado.class, "envEvento"),
+    ATOR_INTER_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoAtorInteressado.class, "retEnvEvento"),
 
     //Carta Correcao
-    CCE_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoCartaCorrecao.class, "procEventoNFe"),
-    CCE_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCartaCorrecao.class, "envEvento"),
-    CCE_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao.class, "retEnvEvento"),
+    CCE_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCartaCorrecao.class, "procEventoNFe"),
+    CCE_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCartaCorrecao.class, "envEvento"),
+    CCE_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCartaCorrecao.class, "retEnvEvento"),
 
     //EPEC
-    EPEC_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoEpec.class, "procEventoNFe"),
-    EPEC_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoEpec.class, "envEvento"),
-    EPEC_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec.class, "retEnvEvento"),
+    EPEC_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoEpec.class, "procEventoNFe"),
+    EPEC_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoEpec.class, "envEvento"),
+    EPEC_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoEpec.class, "retEnvEvento"),
 
     //MANIFESTACAO
-    MAN_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoManifestacao.class, "procEventoNFe"),
-    MAN_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoManifestacao.class, "envEvento"),
-    MAN_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao.class, "retEnvEvento"),
+    MAN_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoManifestacao.class, "procEventoNFe"),
+    MAN_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoManifestacao.class, "envEvento"),
+    MAN_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoManifestacao.class, "retEnvEvento"),
 
     //INSUCESSO
-    INS_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoInsucessoEntrega.class, "procEventoNFe"),
-    INS_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoInsucessoEntrega.class, "envEvento"),
-    INS_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoInsucessoEntrega.class, "retEnvEvento"),
+    INS_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoInsucessoEntrega.class, "procEventoNFe"),
+    INS_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoInsucessoEntrega.class, "envEvento"),
+    INS_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoInsucessoEntrega.class, "retEnvEvento"),
 
     //CANC INSUCESSO
-    _PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamentoInsucessoEntrega.class, "procEventoNFe"),
-    _ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoInsucessoEntrega.class, "envEvento"),
-    _RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoInsucessoEntrega.class, "retEnvEvento"),
+    _PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCancelamentoInsucessoEntrega.class, "procEventoNFe"),
+    _ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamentoInsucessoEntrega.class, "envEvento"),
+    _RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoInsucessoEntrega.class, "retEnvEvento"),
 
     //ECONF
-    ECONF_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoConciliacaoFinanceira.class, "procEventoNFe"),
-    ECONF_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoConciliacaoFinanceira.class, "envEvento"),
-    ECONF_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoConciliacaoFinanceira.class, "retEnvEvento"),
+    ECONF_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoConciliacaoFinanceira.class, "procEventoNFe"),
+    ECONF_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoConciliacaoFinanceira.class, "envEvento"),
+    ECONF_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoConciliacaoFinanceira.class, "retEnvEvento"),
 
     //CANC ECONF
-    CANC_ECONF_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamentoConciliacaoFinanceira.class, "procEventoNFe"),
-    CANC_ECONF_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoConciliacaoFinanceira.class, "envEvento"),
-    CANC_ECONF_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoConciliacaoFinanceira.class, "retEnvEvento"),
+    CANC_ECONF_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCancelamentoConciliacaoFinanceira.class, "procEventoNFe"),
+    CANC_ECONF_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamentoConciliacaoFinanceira.class, "envEvento"),
+    CANC_ECONF_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoConciliacaoFinanceira.class, "retEnvEvento"),
 
     //EVENTO GENERICO
-    EVENTO_GENERICO_PROC_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TProcEventoGenerico.class, "procEventoNFe"),
-    EVENTO_GENERICO_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TEnvEventoGenerico.class, "envEvento"),
-    EVENTO_GENERICO_RET_ENV_EVENTO(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico.class, "retEnvEvento"),
+    EVENTO_GENERICO_PROC_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoGenerico.class, "procEventoNFe"),
+    EVENTO_GENERICO_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoGenerico.class, "envEvento"),
+    EVENTO_GENERICO_RET_ENV_EVENTO(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoGenerico.class, "retEnvEvento"),
 
     //DistDfe
     DIST_DFE_INT(DistDFeInt.class, "distDFeInt"),

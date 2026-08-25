@@ -2,9 +2,9 @@ package com.telemetria.integration.nfe.util;
 
 import com.telemetria.integration.nfe.dom.enums.StatusEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TRetConsReciNFe;
-import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsReciNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamento;
 
 /**
  * Data: 02/03/2019 - 23:05
@@ -58,7 +58,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaCancelamentoSubstituicao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao retorno) throws ExcecaoNfe {
+    public static void validaCancelamentoSubstituicao(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
             throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
@@ -81,7 +81,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaEventoGenerico(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoGenerico retorno) throws ExcecaoNfe {
+    public static void validaEventoGenerico(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoGenerico retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
             throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
@@ -104,7 +104,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaManifestacao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoManifestacao retorno) throws ExcecaoNfe {
+    public static void validaManifestacao(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoManifestacao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
             throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
@@ -128,7 +128,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaCartaCorrecao(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao retorno) throws ExcecaoNfe {
+    public static void validaCartaCorrecao(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCartaCorrecao retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
             throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
         }
@@ -150,7 +150,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaEpec(com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoEpec retorno) throws ExcecaoNfe {
+    public static void validaEpec(com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoEpec retorno) throws ExcecaoNfe {
         if (!StatusEnum.LOTE_EVENTO_PROCESSADO.getCodigo().equals(retorno.getCStat())) {
             throw new ExcecaoNfe(retorno.getCStat() + " - " + retorno.getXMotivo());
 
@@ -174,7 +174,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaConsultaCadastro(com.telemetria.integration.nfe.schemas.TRetConsCad retorno) throws ExcecaoNfe {
+    public static void validaConsultaCadastro(com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsCad retorno) throws ExcecaoNfe {
         if (!retorno.getInfCons().getCStat().equals(StatusEnum.CADASTRO_ENCONTRADO.getCodigo())) {
             throw new ExcecaoNfe(retorno.getInfCons().getCStat() + " - " + retorno.getInfCons().getXMotivo());
         }
@@ -186,7 +186,7 @@ public class RetornoUtil {
      * @param retorno
      * @throws ExcecaoNfe
      */
-    public static void validaInutilizacao(com.telemetria.integration.nfe.schemas.TRetInutNFe retorno) throws ExcecaoNfe {
+    public static void validaInutilizacao(com.telemetria.integration.nfe.codigo.gerado.schemas.TRetInutNFe retorno) throws ExcecaoNfe {
         if (!retorno.getInfInut().getCStat().equals(StatusEnum.INUTILIZADO.getCodigo())) {
             throw new ExcecaoNfe(retorno.getInfInut().getCStat() + " - " + retorno.getInfInut().getXMotivo());
         }

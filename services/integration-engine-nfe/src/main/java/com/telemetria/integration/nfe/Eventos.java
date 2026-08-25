@@ -18,7 +18,7 @@ import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.ws.ParametroTentativa;
-import com.telemetria.integration.nfe.wsdl.NFeRecepcaoEvento.NFeRecepcaoEvento4Stub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeRecepcaoEvento.NFeRecepcaoEvento4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 

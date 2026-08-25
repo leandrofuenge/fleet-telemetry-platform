@@ -4,8 +4,8 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamento;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamento;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamento;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamento;
 
 /**
  */
@@ -24,13 +24,13 @@ class Cancelar {
 
     }
 
-    static com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao eventoCancelamentoSubstituicao(ConfiguracoesNfe config, com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoSubstituicao enviEvento, boolean valida)
+    static com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao eventoCancelamentoSubstituicao(ConfiguracoesNfe config, com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamentoSubstituicao enviEvento, boolean valida)
             throws ExcecaoNfe {
 
         return EventoNfeSender.enviar(
                 config,
                 enviEvento,
-                com.telemetria.integration.nfe.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao.class,
+                com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEnvEventoCancelamentoSubstituicao.class,
                 ServicosEnum.CANCELAMENTO_SUBSTITUICAO,
                 DocumentoEnum.NFCE,
                 valida);

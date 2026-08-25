@@ -19,14 +19,14 @@ import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TEnviNFe;
-import com.telemetria.integration.nfe.schemas.TRetEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetEnviNFe;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
 import com.telemetria.integration.nfe.ws.ParametroTentativa;
-import com.telemetria.integration.nfe.wsdl.NFeAutorizacao.NFeAutorizacao4Stub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeAutorizacao.NFeAutorizacao4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;

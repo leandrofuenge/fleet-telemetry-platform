@@ -44,9 +44,9 @@ import org.xml.sax.InputSource;
 
 import com.telemetria.integration.nfe.dom.enums.XsdEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TEnviNFe;
-import com.telemetria.integration.nfe.schemas.TNfeProc;
-import com.telemetria.integration.nfe.schemas.TProtNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TEnviNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TNfeProc;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TProtNFe;
 
 import jakarta.xml.bind.JAXB;
 import jakarta.xml.bind.JAXBContext;

@@ -1,0 +1,105 @@
+
+package com.telemetria.integration.nfe.codigo.gerado.schemas_eventos;
+
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
+
+/**
+ * <p>Classe Java de anonymous complex type.
+ * 
+ * <p>O seguinte fragmento do esquema especifica o conteúdo esperado contido dentro desta classe.
+ * 
+ * <pre>
+ * &lt;complexType>
+ *   &lt;complexContent>
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element name="descEvento">
+ *           &lt;simpleType>
+ *             &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *               &lt;whiteSpace value="preserve"/>
+ *               &lt;enumeration value="Ciencia da Operacao"/>
+ *             &lt;/restriction>
+ *           &lt;/simpleType>
+ *         &lt;/element>
+ *       &lt;/sequence>
+ *       &lt;attribute name="versao" use="required">
+ *         &lt;simpleType>
+ *           &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
+ *             &lt;whiteSpace value="preserve"/>
+ *             &lt;enumeration value="1.00"/>
+ *           &lt;/restriction>
+ *         &lt;/simpleType>
+ *       &lt;/attribute>
+ *     &lt;/restriction>
+ *   &lt;/complexContent>
+ * &lt;/complexType>
+ * </pre>
+ * 
+ * 
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {
+    "descEvento"
+})
+@XmlRootElement(name = "detEvento")
+public class DetEvento210210 {
+
+    @XmlElement(required = true)
+    protected String descEvento;
+    @XmlAttribute(name = "versao", required = true)
+    protected String versao;
+
+    /**
+     * Obtém o valor da propriedade descEvento.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getDescEvento() {
+        return descEvento;
+    }
+
+    /**
+     * Define o valor da propriedade descEvento.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setDescEvento(String value) {
+        this.descEvento = value;
+    }
+
+    /**
+     * Obtém o valor da propriedade versao.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getVersao() {
+        return versao;
+    }
+
+    /**
+     * Define o valor da propriedade versao.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setVersao(String value) {
+        this.versao = value;
+    }
+
+}

@@ -10,10 +10,10 @@ import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enums.ManifestacaoEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoManifestacao;
-import com.telemetria.integration.nfe.schemas_eventos.TEventoManifestacao;
-import com.telemetria.integration.nfe.schemas_eventos.TProcEventoManifestacao;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEventoManifestacao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoManifestacao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEventoManifestacao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoManifestacao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEventoManifestacao;
 
 import jakarta.xml.bind.JAXBException;
 

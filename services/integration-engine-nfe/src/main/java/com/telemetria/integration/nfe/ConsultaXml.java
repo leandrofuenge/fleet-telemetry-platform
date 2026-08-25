@@ -14,14 +14,14 @@ import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.EstadosEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TConsSitNFe;
-import com.telemetria.integration.nfe.schemas.TRetConsSitNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TConsSitNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetConsSitNFe;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
-import com.telemetria.integration.nfe.wsdl.NFeConsultaProtocolo.NFeConsultaProtocolo4Stub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocolo.NFeConsultaProtocolo4Stub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;
@@ -62,11 +62,11 @@ class ConsultaXml {
 
             String url = UtilitarioServicoWeb.getUrl(config, tipoDocumento, ServicosEnum.CONSULTA_XML);
             if (EstadosEnum.MS.equals(config.getEstado())) {
-                com.telemetria.integration.nfe.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeDadosMsg dadosMsg = new com.telemetria.integration.nfe.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeDadosMsg();
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeDadosMsg dadosMsg = new com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeDadosMsg();
                 dadosMsg.setExtraElement(ome);
 
-                com.telemetria.integration.nfe.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub stub =
-                        new com.telemetria.integration.nfe.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub(url);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub stub =
+                        new com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub(url);
 
                 UtilitarioClienteAxis2.configuraHttpClient(stub, config, url);
 
@@ -76,7 +76,7 @@ class ConsultaXml {
                     stub._getServiceClient().getOptions().setProperty(HTTPConstants.CONNECTION_TIMEOUT,
                             config.getTimeout());
                 }
-                com.telemetria.integration.nfe.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeResultMsg result = stub.nfeConsultaNF(dadosMsg);
+                com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeConsultaProtocoloMS.NFeConsultaProtocolo4Stub.NfeResultMsg result = stub.nfeConsultaNF(dadosMsg);
 
                 log.info("[XML-RETORNO]: " + result.getExtraElement().toString());
                 return XmlNfeUtil.xmlToObject(result.getExtraElement().toString(), TRetConsSitNFe.class);

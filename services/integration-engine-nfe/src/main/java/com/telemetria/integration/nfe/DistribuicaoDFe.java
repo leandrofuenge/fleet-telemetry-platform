@@ -15,14 +15,14 @@ import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.dom.enums.PessoaEnum;
 import com.telemetria.integration.nfe.dom.enums.ServicosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.DistDFeInt;
-import com.telemetria.integration.nfe.schemas.RetDistDFeInt;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.DistDFeInt;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.RetDistDFeInt;
 import com.telemetria.integration.nfe.util.ConstantesUtil;
 import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
-import com.telemetria.integration.nfe.wsdl.NFeDistribuicaoDFe.NFeDistribuicaoDFeStub;
+import com.telemetria.integration.nfe.codigo.gerado.wsdl.NFeDistribuicaoDFe.NFeDistribuicaoDFeStub;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
 import jakarta.xml.bind.JAXBException;

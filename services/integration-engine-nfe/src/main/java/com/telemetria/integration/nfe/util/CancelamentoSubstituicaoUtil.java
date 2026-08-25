@@ -9,10 +9,10 @@ import com.telemetria.integration.nfe.dom.Evento;
 import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enums.EventosEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas_eventos.TEnvEventoCancelamentoSubstituicao;
-import com.telemetria.integration.nfe.schemas_eventos.TEventoCancelamentoSubstituicao;
-import com.telemetria.integration.nfe.schemas_eventos.TProcEventoCancelamentoSubstituicao;
-import com.telemetria.integration.nfe.schemas_eventos.TRetEventoCancelamentoSubstituicao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEnvEventoCancelamentoSubstituicao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TEventoCancelamentoSubstituicao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TProcEventoCancelamentoSubstituicao;
+import com.telemetria.integration.nfe.codigo.gerado.schemas_eventos.TRetEventoCancelamentoSubstituicao;
 
 import jakarta.xml.bind.JAXBException;
 

@@ -8,9 +8,9 @@ import com.telemetria.integration.nfe.dom.ConfiguracoesNfe;
 import com.telemetria.integration.nfe.dom.enums.AssinaturaEnum;
 import com.telemetria.integration.nfe.dom.enums.DocumentoEnum;
 import com.telemetria.integration.nfe.exception.ExcecaoNfe;
-import com.telemetria.integration.nfe.schemas.TInutNFe;
-import com.telemetria.integration.nfe.schemas.TProcInutNFe;
-import com.telemetria.integration.nfe.schemas.TRetInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TProcInutNFe;
+import com.telemetria.integration.nfe.codigo.gerado.schemas.TRetInutNFe;
 
 import jakarta.xml.bind.JAXBException;
 
