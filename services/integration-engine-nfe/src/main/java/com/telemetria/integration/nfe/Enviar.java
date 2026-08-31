@@ -12,6 +12,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMXMLBuilderFactory;
 import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.axiom.om.util.StAXParserConfiguration;
+import org.apache.axis2.AxisFault;
 import org.apache.axis2.kernel.http.HTTPConstants;
 import org.apache.axis2.client.ServiceClient;
 
@@ -27,6 +28,7 @@ import com.telemetria.integration.nfe.exception.ExcecaoNfe;
 import com.telemetria.integration.nfe.util.UtilitarioClienteAxis2;
 import com.telemetria.integration.nfe.util.UtilitarioServicoWeb;
 import com.telemetria.integration.nfe.util.XmlNfeUtil;
+import com.telemetria.integration.nfe.util.ObjetoUtil;
 import com.telemetria.integration.nfe.ws.ParametroTentativa;
 
 import br.com.swconsultoria.certificado.exception.CertificadoException;
@@ -99,9 +101,7 @@ class Enviar {
                     TEnviNFe.class
             );
 
-        } catch (JAXBException
-                | CertificadoException
-                | RuntimeException e) {
+        } catch (JAXBException | RuntimeException e) {
 
             throw new ExcecaoNfe(
                     "Erro ao montar e assinar a NF-e.",
@@ -195,6 +195,13 @@ class Enviar {
             return XmlNfeUtil.xmlToObject(
                     xmlRetorno,
                     TRetEnviNFe.class
+            );
+
+        } catch (AxisFault e) {
+
+            throw new ExcecaoNfe(
+                    "Erro ao inicializar o cliente SEFAZ para envio da NF-e.",
+                    e
             );
 
         } catch (RemoteException e) {
@@ -452,7 +459,7 @@ class Enviar {
     private static NFeAutorizacao4Stub criarStub(
             ConfiguracoesNfe config,
             String url)
-            throws CertificadoException {
+            throws AxisFault, CertificadoException {
 
         NFeAutorizacao4Stub stub =
                 new NFeAutorizacao4Stub(url);
