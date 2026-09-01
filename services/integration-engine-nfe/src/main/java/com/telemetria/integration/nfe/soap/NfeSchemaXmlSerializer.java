@@ -19,6 +19,10 @@ import jakarta.xml.bind.JAXBException;
 public class NfeSchemaXmlSerializer {
 
     public String serializar(Object documento) {
+        if (documento == null) {
+            throw new IllegalArgumentException(
+                    "Documento do schema NF-e não pode ser nulo.");
+        }
         try {
             return XmlNfeUtil.objectToXml(documento);
         } catch (JAXBException | com.telemetria.integration.nfe.exception.ExcecaoNfe exception) {
