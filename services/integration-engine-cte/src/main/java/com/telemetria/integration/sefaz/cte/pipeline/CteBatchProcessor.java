@@ -9,63 +9,192 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.telemetria.integration.sefaz.cte.dto.CteBatchResult;
+import com.telemetria.integration.sefaz.cte.dto.CteItemResult;
+import com.telemetria.integration.sefaz.cte.dto.CteProcessingResult;
 import com.telemetria.integration.sefaz.cte.exception.CteException;
+import com.telemetria.integration.sefaz.cte.service.CteDocumentProcessor;
 
-/**
- * Processador de lote para agrupamento e validação/envio sequencial de CT-es agregados via Apache Camel.
- */
 @Component("cteBatchProcessor")
 public class CteBatchProcessor implements Processor {
 
-    private static final Logger log = LoggerFactory.getLogger(CteBatchProcessor.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(CteBatchProcessor.class);
+
+    private final CteDocumentProcessor documentProcessor;
+
+    public CteBatchProcessor(
+            CteDocumentProcessor documentProcessor
+    ) {
+        this.documentProcessor = documentProcessor;
+    }
 
     @Override
-    public void process(Exchange exchange) throws Exception {
-        List<?> rawList = exchange.getMessage().getBody(List.class);
+    public void process(Exchange exchange) {
 
-        if (rawList == null || rawList.isEmpty()) {
-            log.warn("Nenhum CT-e encontrado no corpo da mensagem para processamento em lote.");
-            exchange.getMessage().setBody(new CteBatchResult(0, 0, List.of()));
+        Object body = exchange.getMessage().getBody();
+
+        if (body == null) {
+            log.warn("Corpo da mensagem está nulo.");
+
+            exchange.getMessage().setBody(
+                    CteBatchResult.vazio()
+            );
+
             return;
         }
 
-        List<String> loteCtes = rawList.stream()
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .toList();
+        if (!(body instanceof List<?> documentos)) {
 
-        log.info("Iniciando processamento em lote de {} CT-es...", loteCtes.size());
+            log.warn(
+                    "Tipo de mensagem inválido para processamento em lote. tipo={}",
+                    body.getClass().getName()
+            );
 
-        int sucessos = 0;
-        List<String> falhas = new ArrayList<>();
+            exchange.getMessage().setBody(
+                    CteBatchResult.falhaGeral(
+                            "INVALID_BATCH_BODY",
+                            "O corpo da mensagem deve ser uma lista de CT-es."
+                    )
+            );
 
-        for (int i = 0; i < loteCtes.size(); i++) {
-            String xmlCte = loteCtes.get(i);
-            try {
-                processarDocumentoIndividual(xmlCte, i + 1);
-                sucessos++;
-            } catch (Exception e) {
-                log.error("Erro ao processar o CT-e #{} no lote: {}", i + 1, e.getMessage(), e);
-                falhas.add("Item " + (i + 1) + ": " + e.getMessage());
-            }
+            return;
         }
 
-        CteBatchResult resultado = new CteBatchResult(sucessos, falhas.size(), falhas);
-        log.info("Lote finalizado com sucesso. Sucessos: {}, Falhas: {}", sucessos, falhas.size());
+        if (documentos.isEmpty()) {
+
+            log.warn(
+                    "Nenhum CT-e encontrado no lote."
+            );
+
+            exchange.getMessage().setBody(
+                    CteBatchResult.vazio()
+            );
+
+            return;
+        }
+
+        log.info(
+                "Iniciando processamento do lote de CT-e. quantidade={}",
+                documentos.size()
+        );
+
+        List<CteItemResult> resultados =
+                new ArrayList<>(documentos.size());
+
+        for (int i = 0; i < documentos.size(); i++) {
+
+            int indice = i + 1;
+
+            Object documento = documentos.get(i);
+
+            CteItemResult resultado =
+                    processarItem(documento, indice);
+
+            resultados.add(resultado);
+        }
+
+        CteBatchResult resultado =
+                CteBatchResult.from(resultados);
+
+        log.info(
+                "Processamento do lote finalizado. total={}, sucessos={}, falhas={}",
+                resultado.total(),
+                resultado.totalSucessos(),
+                resultado.totalFalhas()
+        );
 
         exchange.getMessage().setBody(resultado);
     }
 
-    private void processarDocumentoIndividual(String xmlCte, int indice) {
-        log.debug("Processando documento #{} do lote...", indice);
-        if (xmlCte == null || xmlCte.isBlank()) {
-            throw new CteException("Conteúdo XML do CT-e é nulo ou está em branco.");
-        }
-        // TODO: Injetar serviço de negócio (ex: CteService, XmlSigner) para execução real
-    }
+    private CteItemResult processarItem(
+            Object documento,
+            int indice
+    ) {
 
-    /**
-     * DTO imutável de resultado consolidado do processamento em lote.
-     */
-    public record CteBatchResult(int totalSucessos, int totalFalhas, List<String> erros) {}
+        if (documento == null) {
+
+            return CteItemResult.falha(
+                    indice,
+                    "NULL_DOCUMENT",
+                    "Documento CT-e está nulo."
+            );
+        }
+
+        if (!(documento instanceof String xmlCte)) {
+
+            log.warn(
+                    "Item inválido no lote. indice={}, tipo={}",
+                    indice,
+                    documento.getClass().getName()
+            );
+
+            return CteItemResult.falha(
+                    indice,
+                    "INVALID_DOCUMENT_TYPE",
+                    "O CT-e deve ser informado como XML em formato String."
+            );
+        }
+
+        if (xmlCte.isBlank()) {
+
+            return CteItemResult.falha(
+                    indice,
+                    "EMPTY_XML",
+                    "O conteúdo XML do CT-e está vazio."
+            );
+        }
+
+        try {
+
+            log.debug(
+                    "Processando CT-e. indice={}",
+                    indice
+            );
+
+            CteProcessingResult resultado =
+                    documentProcessor.process(xmlCte);
+
+            log.info(
+                    "CT-e processado com sucesso. indice={}, chave={}, protocolo={}",
+                    indice,
+                    resultado.chaveAcesso(),
+                    resultado.protocolo()
+            );
+
+            return CteItemResult.sucesso(
+                    indice,
+                    resultado
+            );
+
+        } catch (CteException e) {
+
+            log.warn(
+                    "Falha no processamento do CT-e. indice={}, codigo={}, mensagem={}",
+                    indice,
+                    e.getCode(),
+                    e.getMessage()
+            );
+
+            return CteItemResult.falha(
+                    indice,
+                    e.getCode(),
+                    e.getMessage()
+            );
+
+        } catch (Exception e) {
+
+            log.error(
+                    "Erro inesperado durante processamento do CT-e. indice={}",
+                    indice,
+                    e
+            );
+
+            return CteItemResult.falha(
+                    indice,
+                    "INTERNAL_ERROR",
+                    "Erro interno durante processamento do CT-e."
+            );
+        }
+    }
 }

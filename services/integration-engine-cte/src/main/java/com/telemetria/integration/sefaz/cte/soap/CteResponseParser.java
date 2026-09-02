@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -24,36 +25,73 @@ import com.telemetria.integration.sefaz.cte.retorno.CteSoapFaultException;
 import com.telemetria.integration.sefaz.cte.retorno.CteStatusResultado;
 
 /**
- * Parser seguro e específico para cada retorno SOAP CT-e 4.00.
+ * Parser de respostas SOAP/XML do CT-e 4.00.
  *
- * <p><b>Observação:</b> {@link #primeiro(Node, String)} retorna apenas a
- * primeira ocorrência de um elemento por nome na subárvore. Em fluxos com
- * lote contendo múltiplos CT-e autorizados de uma vez, apenas o primeiro
- * resultado seria considerado — este parser assume autorização/consulta de
- * documento único.</p>
+ * Responsabilidades:
+ *
+ * - transformar XML SEFAZ em objetos de domínio;
+ * - detectar SOAP Fault;
+ * - impedir XXE;
+ * - validar campos obrigatórios;
+ * - identificar automaticamente o tipo de retorno;
+ * - evitar parsing duplicado do mesmo XML.
+ *
+ * Esta implementação trabalha com um único CT-e por resposta de autorização.
  */
 @Component
 public class CteResponseParser {
 
-    /**
-     * Factory JAXP configurada uma única vez (features XXE não mudam entre chamadas)
-     * e reutilizada para criar um {@code DocumentBuilder} novo a cada parse — prática
-     * recomendada pelo próprio JAXP: a factory é segura para uso concorrente na criação
-     * de builders, desde que não seja reconfigurada depois da inicialização.
+    /*
+     * ==========================================================
+     * AUTORIZAÇÃO
+     * ==========================================================
      */
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = criarFactorySegura();
 
     public CteAutorizacaoResultado parseAutorizacao(String xml) {
-        Document document = parse(xml);
+
+        Document document = prepararDocumento(xml);
+
+        return parseAutorizacao(document, xml);
+    }
+
+    private CteAutorizacaoResultado parseAutorizacao(
+            Document document,
+            String xml) {
+
+        /*
+         * No retorno de autorização normalmente teremos:
+         *
+         * retEnviCTe
+         *   protCTe
+         *     infProt
+         */
         Element contexto = primeiro(document, "infProt");
+
         if (contexto == null) {
-            contexto = document.getDocumentElement();
+
+            /*
+             * Pode existir um retorno de lote sem infProt.
+             * Nesse caso tentamos utilizar retEnviCTe.
+             */
+            contexto = primeiro(document, "retEnviCTe");
         }
-        int codigo = inteiro(contexto, "cStat", 999);
+
+        if (contexto == null) {
+            throw estruturaInvalida(
+                    "autorização",
+                    "infProt/retEnviCTe");
+        }
+
+        int codigo = inteiroObrigatorio(
+                contexto,
+                "cStat");
+
         return new CteAutorizacaoResultado(
                 codigo,
                 texto(contexto, "xMotivo"),
-                CteCodigoRetorno.classificar(CteOperacao.AUTORIZACAO, codigo),
+                CteCodigoRetorno.classificar(
+                        CteOperacao.AUTORIZACAO,
+                        codigo),
                 texto(contexto, "nProt"),
                 texto(contexto, "chCTe"),
                 texto(contexto, "dhRecbto"),
@@ -61,184 +99,804 @@ public class CteResponseParser {
                 xml);
     }
 
+    /*
+     * ==========================================================
+     * CONSULTA
+     * ==========================================================
+     */
+
     public CteConsultaResultado parseConsulta(String xml) {
-        Document document = parse(xml);
-        Element contexto = primeiro(document, "retConsSitCTe");
+
+        Document document = prepararDocumento(xml);
+
+        return parseConsulta(document, xml);
+    }
+
+    private CteConsultaResultado parseConsulta(
+            Document document,
+            String xml) {
+
+        Element contexto =
+                primeiro(document, "retConsSitCTe");
+
         if (contexto == null) {
-            contexto = document.getDocumentElement();
+            throw estruturaInvalida(
+                    "consulta",
+                    "retConsSitCTe");
         }
-        int codigo = inteiro(contexto, "cStat", 999);
+
+        int codigo =
+                inteiroObrigatorio(
+                        contexto,
+                        "cStat");
+
         return new CteConsultaResultado(
                 codigo,
                 texto(contexto, "xMotivo"),
-                CteCodigoRetorno.classificar(CteOperacao.CONSULTA, codigo),
+                CteCodigoRetorno.classificar(
+                        CteOperacao.CONSULTA,
+                        codigo),
                 texto(contexto, "nProt"),
                 texto(contexto, "chCTe"),
                 texto(contexto, "dhRecbto"),
                 xml);
     }
 
+    /*
+     * ==========================================================
+     * EVENTO
+     * ==========================================================
+     */
+
     public CteEventoResultado parseEvento(String xml) {
-        Document document = parse(xml);
-        Element lote = primeiro(document, "retEventoCTe");
+
+        Document document = prepararDocumento(xml);
+
+        return parseEvento(document, xml);
+    }
+
+    private CteEventoResultado parseEvento(
+            Document document,
+            String xml) {
+
+        Element lote =
+                primeiro(document, "retEventoCTe");
+
         if (lote == null) {
-            lote = document.getDocumentElement();
+            throw estruturaInvalida(
+                    "evento",
+                    "retEventoCTe");
         }
-        Element evento = primeiro(lote, "infEvento");
-        int codigoLote = inteiroDireto(lote, "cStat", 999);
-        int codigoEvento = evento != null ? inteiro(evento, "cStat", codigoLote) : codigoLote;
+
+        Element evento =
+                primeiro(lote, "infEvento");
+
+        int codigoLote =
+                inteiroObrigatorioDireto(
+                        lote,
+                        "cStat");
+
+        int codigoEvento;
+
+        if (evento != null) {
+            codigoEvento =
+                    inteiroObrigatorio(
+                            evento,
+                            "cStat");
+        } else {
+            codigoEvento = codigoLote;
+        }
+
+        String motivoLote =
+                textoDireto(
+                        lote,
+                        "xMotivo");
+
+        String motivoEvento =
+                evento != null
+                        ? texto(evento, "xMotivo")
+                        : motivoLote;
+
         return new CteEventoResultado(
                 codigoLote,
-                textoDireto(lote, "xMotivo"),
+                motivoLote,
                 codigoEvento,
-                evento != null ? texto(evento, "xMotivo") : textoDireto(lote, "xMotivo"),
-                CteCodigoRetorno.classificar(CteOperacao.EVENTO, codigoEvento),
-                evento != null ? texto(evento, "nProt") : null,
-                evento != null ? texto(evento, "chCTe") : null,
-                evento != null ? texto(evento, "tpEvento") : null,
-                evento != null ? inteiroOpcional(evento, "nSeqEvento") : null,
-                evento != null ? texto(evento, "dhRegEvento") : null,
+                motivoEvento,
+                CteCodigoRetorno.classificar(
+                        CteOperacao.EVENTO,
+                        codigoEvento),
+                evento != null
+                        ? texto(evento, "nProt")
+                        : null,
+                evento != null
+                        ? texto(evento, "chCTe")
+                        : null,
+                evento != null
+                        ? texto(evento, "tpEvento")
+                        : null,
+                evento != null
+                        ? inteiroOpcional(
+                                evento,
+                                "nSeqEvento")
+                        : null,
+                evento != null
+                        ? texto(
+                                evento,
+                                "dhRegEvento")
+                        : null,
                 xml);
     }
 
+    /*
+     * ==========================================================
+     * STATUS
+     * ==========================================================
+     */
+
     public CteStatusResultado parseStatus(String xml) {
-        Document document = parse(xml);
-        Element contexto = primeiro(document, "retConsStatServCTe");
+
+        Document document = prepararDocumento(xml);
+
+        return parseStatus(document, xml);
+    }
+
+    private CteStatusResultado parseStatus(
+            Document document,
+            String xml) {
+
+        Element contexto =
+                primeiro(
+                        document,
+                        "retConsStatServCTe");
+
         if (contexto == null) {
-            contexto = document.getDocumentElement();
+            throw estruturaInvalida(
+                    "status do serviço",
+                    "retConsStatServCTe");
         }
-        int codigo = inteiro(contexto, "cStat", 999);
+
+        int codigo =
+                inteiroObrigatorio(
+                        contexto,
+                        "cStat");
+
         return new CteStatusResultado(
                 codigo,
                 texto(contexto, "xMotivo"),
-                CteCodigoRetorno.classificar(CteOperacao.STATUS, codigo),
+                CteCodigoRetorno.classificar(
+                        CteOperacao.STATUS,
+                        codigo),
                 texto(contexto, "tpAmb"),
                 texto(contexto, "cUF"),
                 texto(contexto, "verAplic"),
                 texto(contexto, "dhRecbto"),
-                inteiroOpcional(contexto, "tMed"),
+                inteiroOpcional(
+                        contexto,
+                        "tMed"),
                 xml);
     }
 
-    /** Compatibilidade com rotas antigas; detecta a operação pela raiz do retorno. */
+    /*
+     * ==========================================================
+     * DETECÇÃO AUTOMÁTICA
+     * ==========================================================
+     */
+
+    /**
+     * Compatibilidade com rotas antigas.
+     *
+     * O XML é parseado UMA ÚNICA VEZ.
+     */
     public CteResultadoParse parseRetorno(String xml) {
-        Document document = parse(xml);
-        if (primeiro(document, "retConsStatServCTe") != null) {
-            CteStatusResultado result = parseStatus(xml);
-            return new CteResultadoParse(String.valueOf(result.codigo()), result.motivo(), null);
+
+        Document document =
+                prepararDocumento(xml);
+
+        if (existe(
+                document,
+                "retConsStatServCTe")) {
+
+            CteStatusResultado result =
+                    parseStatus(
+                            document,
+                            xml);
+
+            return new CteResultadoParse(
+                    String.valueOf(
+                            result.codigo()),
+                    result.motivo(),
+                    null);
         }
-        if (primeiro(document, "retConsSitCTe") != null) {
-            CteConsultaResultado result = parseConsulta(xml);
-            return new CteResultadoParse(String.valueOf(result.codigo()), result.motivo(), result.protocolo());
+
+        if (existe(
+                document,
+                "retConsSitCTe")) {
+
+            CteConsultaResultado result =
+                    parseConsulta(
+                            document,
+                            xml);
+
+            return new CteResultadoParse(
+                    String.valueOf(
+                            result.codigo()),
+                    result.motivo(),
+                    result.protocolo());
         }
-        if (primeiro(document, "retEventoCTe") != null || primeiro(document, "infEvento") != null) {
-            CteEventoResultado result = parseEvento(xml);
-            return new CteResultadoParse(String.valueOf(result.codigoEvento()),
-                    result.motivoEvento(), result.protocoloEvento());
+
+        if (existe(
+                document,
+                "retEventoCTe")) {
+
+            CteEventoResultado result =
+                    parseEvento(
+                            document,
+                            xml);
+
+            return new CteResultadoParse(
+                    String.valueOf(
+                            result.codigoEvento()),
+                    result.motivoEvento(),
+                    result.protocoloEvento());
         }
-        CteAutorizacaoResultado result = parseAutorizacao(xml);
-        return new CteResultadoParse(String.valueOf(result.codigo()), result.motivo(), result.protocolo());
+
+        /*
+         * Autorização.
+         */
+        if (existe(document, "retEnviCTe")
+                || existe(document, "protCTe")
+                || existe(document, "infProt")) {
+
+            CteAutorizacaoResultado result =
+                    parseAutorizacao(
+                            document,
+                            xml);
+
+            return new CteResultadoParse(
+                    String.valueOf(
+                            result.codigo()),
+                    result.motivo(),
+                    result.protocolo());
+        }
+
+        /*
+         * Não assumimos mais que XML desconhecido
+         * seja uma autorização.
+         */
+        throw new CteException(
+                "Tipo de resposta CT-e não reconhecido. "
+                        + "Nenhum elemento de retorno conhecido foi encontrado.");
     }
 
-    private static DocumentBuilderFactory criarFactorySegura() {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            factory.setXIncludeAware(false);
-            factory.setExpandEntityReferences(false);
-            return factory;
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException("Não foi possível configurar o parser XML seguro do CT-e.", e);
-        }
+    /*
+     * ==========================================================
+     * PARSER XML
+     * ==========================================================
+     */
+
+    /**
+     * Converte o XML em DOM seguro e interrompe o fluxo imediatamente
+     * quando a resposta contém um SOAP Fault.
+     */
+    private Document prepararDocumento(String xml) {
+
+        Document document =
+                parseDocument(xml);
+
+        validarSoapFault(document);
+
+        return document;
     }
 
-    private Document parse(String xml) {
-        if (xml == null || xml.isBlank()) {
-            throw new CteException("Resposta XML da SEFAZ não pode ser vazia.");
-        }
+    private Document parseDocument(String xml) {
+
+        validarXml(xml);
+
         try {
-            Document document = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().parse(
-                    new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-            Element fault = primeiro(document, "Fault");
-            if (fault != null) {
-                String code = primeiroNaoVazio(texto(fault, "Value"), texto(fault, "faultcode"), "SOAP-FAULT");
-                String reason = primeiroNaoVazio(texto(fault, "Text"), texto(fault, "faultstring"),
-                        "Falha SOAP sem descrição");
-                throw new CteSoapFaultException(code, reason);
-            }
-            return document;
+
+            DocumentBuilderFactory factory =
+                    criarFactorySegura();
+
+            DocumentBuilder builder =
+                    factory.newDocumentBuilder();
+
+            return builder.parse(
+                    new ByteArrayInputStream(
+                            xml.getBytes(
+                                    StandardCharsets.UTF_8)));
+
         } catch (CteException e) {
+
             throw e;
+
         } catch (Exception e) {
-            throw new CteException("Resposta XML inválida da SEFAZ.", e);
+
+            throw new CteException(
+                    "Resposta XML inválida da SEFAZ.",
+                    e);
         }
     }
 
-    private Element primeiro(Node contexto, String nome) {
-        NodeList nodes = contexto instanceof Document document
-                ? document.getElementsByTagNameNS("*", nome)
-                : ((Element) contexto).getElementsByTagNameNS("*", nome);
-        return nodes.getLength() == 0 ? null : (Element) nodes.item(0);
-    }
+    /**
+     * Criamos uma factory por parsing.
+     *
+     * O custo é pequeno comparado à chamada HTTPS/mTLS
+     * realizada anteriormente e evitamos depender de
+     * garantias de thread-safety da implementação JAXP.
+     */
+    private DocumentBuilderFactory criarFactorySegura() {
 
-    private String texto(Node contexto, String nome) {
-        Element element = primeiro(contexto, nome);
-        return element == null ? null : element.getTextContent().trim();
-    }
-
-    private String textoDireto(Element contexto, String nome) {
-        for (Node node = contexto.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node instanceof Element element && nome.equals(element.getLocalName())) {
-                return element.getTextContent().trim();
-            }
-        }
-        return null;
-    }
-
-    private int inteiro(Node contexto, String nome, int padrao) {
-        return converterInteiro(texto(contexto, nome), nome, padrao);
-    }
-
-    private int inteiroDireto(Element contexto, String nome, int padrao) {
-        return converterInteiro(textoDireto(contexto, nome), nome, padrao);
-    }
-
-    private Integer inteiroOpcional(Node contexto, String nome) {
-        String value = texto(contexto, nome);
-        if (value == null || value.isBlank()) {
-            return null;
-        }
         try {
-            return Integer.valueOf(value);
-        } catch (NumberFormatException e) {
-            throw new CteException("Campo '" + nome + "' com valor numérico inválido na resposta da SEFAZ: '"
-                    + value + "'.", e);
+
+            DocumentBuilderFactory factory =
+                    DocumentBuilderFactory.newInstance();
+
+            factory.setNamespaceAware(true);
+
+            /*
+             * Processamento seguro.
+             */
+            factory.setFeature(
+                    XMLConstants.FEATURE_SECURE_PROCESSING,
+                    true);
+
+            /*
+             * Impede DOCTYPE.
+             */
+            factory.setFeature(
+                    "http://apache.org/xml/features/disallow-doctype-decl",
+                    true);
+
+            /*
+             * Bloqueia entidades externas.
+             */
+            factory.setFeature(
+                    "http://xml.org/sax/features/external-general-entities",
+                    false);
+
+            factory.setFeature(
+                    "http://xml.org/sax/features/external-parameter-entities",
+                    false);
+
+            factory.setFeature(
+                    "http://apache.org/xml/features/nonvalidating/load-external-dtd",
+                    false);
+
+            /*
+             * Proteções JAXP adicionais.
+             */
+            factory.setAttribute(
+                    XMLConstants.ACCESS_EXTERNAL_DTD,
+                    "");
+
+            factory.setAttribute(
+                    XMLConstants.ACCESS_EXTERNAL_SCHEMA,
+                    "");
+
+            factory.setXIncludeAware(false);
+
+            factory.setExpandEntityReferences(false);
+
+            return factory;
+
+        } catch (ParserConfigurationException e) {
+
+            throw new IllegalStateException(
+                    "Não foi possível configurar o parser XML seguro do CT-e.",
+                    e);
+
+        } catch (IllegalArgumentException e) {
+
+            throw new IllegalStateException(
+                    "Implementação XML da JVM não suporta as "
+                            + "configurações de segurança necessárias.",
+                    e);
         }
     }
 
-    private int converterInteiro(String value, String nome, int padrao) {
-        if (value == null || value.isBlank()) {
-            return padrao;
+    /*
+     * ==========================================================
+     * SOAP FAULT
+     * ==========================================================
+     */
+
+    private void validarSoapFault(
+            Document document) {
+
+        Element fault =
+                primeiro(
+                        document,
+                        "Fault");
+
+        if (fault == null) {
+            return;
         }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new CteException("Campo '" + nome + "' com valor numérico inválido na resposta da SEFAZ: '"
-                    + value + "'.", e);
-        }
+
+        String codigo =
+                extrairFaultCode(fault);
+
+        String motivo =
+                extrairFaultReason(fault);
+
+        throw new CteSoapFaultException(
+                codigo,
+                motivo);
     }
 
-    private String primeiroNaoVazio(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
+    private String extrairFaultCode(
+            Element fault) {
+
+        /*
+         * SOAP 1.2:
+         *
+         * Fault
+         *   Code
+         *     Value
+         */
+        Element code =
+                primeiro(
+                        fault,
+                        "Code");
+
+        if (code != null) {
+
+            String value =
+                    texto(
+                            code,
+                            "Value");
+
+            if (temTexto(value)) {
                 return value;
             }
         }
+
+        /*
+         * SOAP 1.1:
+         *
+         * faultcode
+         */
+        String faultCode =
+                texto(
+                        fault,
+                        "faultcode");
+
+        return primeiroNaoVazio(
+                faultCode,
+                "SOAP-FAULT");
+    }
+
+    private String extrairFaultReason(
+            Element fault) {
+
+        /*
+         * SOAP 1.2:
+         *
+         * Fault
+         *   Reason
+         *     Text
+         */
+        Element reason =
+                primeiro(
+                        fault,
+                        "Reason");
+
+        if (reason != null) {
+
+            String text =
+                    texto(
+                            reason,
+                            "Text");
+
+            if (temTexto(text)) {
+                return text;
+            }
+        }
+
+        /*
+         * SOAP 1.1.
+         */
+        String faultString =
+                texto(
+                        fault,
+                        "faultstring");
+
+        return primeiroNaoVazio(
+                faultString,
+                "Falha SOAP sem descrição");
+    }
+
+    /*
+     * ==========================================================
+     * LEITURA DOM
+     * ==========================================================
+     */
+
+    private Element primeiro(
+            Node contexto,
+            String nome) {
+
+        if (contexto == null) {
+            return null;
+        }
+
+        NodeList nodes;
+
+        if (contexto instanceof Document document) {
+
+            nodes =
+                    document.getElementsByTagNameNS(
+                            "*",
+                            nome);
+
+        } else if (contexto instanceof Element element) {
+
+            nodes =
+                    element.getElementsByTagNameNS(
+                            "*",
+                            nome);
+
+        } else {
+
+            return null;
+        }
+
+        if (nodes.getLength() == 0) {
+            return null;
+        }
+
+        Node node =
+                nodes.item(0);
+
+        return node instanceof Element element
+                ? element
+                : null;
+    }
+
+    private boolean existe(
+            Node contexto,
+            String nome) {
+
+        return primeiro(
+                contexto,
+                nome) != null;
+    }
+
+    private String texto(
+            Node contexto,
+            String nome) {
+
+        Element element =
+                primeiro(
+                        contexto,
+                        nome);
+
+        return textoElemento(
+                element);
+    }
+
+    /**
+     * Busca somente filho direto.
+     *
+     * Útil quando existem vários cStat/xMotivo
+     * em níveis diferentes do retorno.
+     */
+    private String textoDireto(
+            Element contexto,
+            String nome) {
+
+        if (contexto == null) {
+            return null;
+        }
+
+        for (Node node =
+                     contexto.getFirstChild();
+             node != null;
+             node = node.getNextSibling()) {
+
+            if (!(node instanceof Element element)) {
+                continue;
+            }
+
+            String localName =
+                    element.getLocalName();
+
+            String nodeName =
+                    element.getNodeName();
+
+            boolean corresponde =
+                    nome.equals(localName)
+                            || nome.equals(nodeName);
+
+            if (corresponde) {
+                return textoElemento(
+                        element);
+            }
+        }
+
         return null;
+    }
+
+    private String textoElemento(
+            Element element) {
+
+        if (element == null) {
+            return null;
+        }
+
+        String value =
+                element.getTextContent();
+
+        if (value == null) {
+            return null;
+        }
+
+        value = value.trim();
+
+        return value.isEmpty()
+                ? null
+                : value;
+    }
+
+    /*
+     * ==========================================================
+     * NÚMEROS
+     * ==========================================================
+     */
+
+    /**
+     * cStat é obrigatório.
+     *
+     * Não utilizamos 999 como fallback porque uma resposta
+     * malformada não deve ser confundida com um código SEFAZ.
+     */
+    private int inteiroObrigatorio(
+            Node contexto,
+            String nome) {
+
+        String value =
+                texto(
+                        contexto,
+                        nome);
+
+        return converterInteiroObrigatorio(
+                value,
+                nome);
+    }
+
+    private int inteiroObrigatorioDireto(
+            Element contexto,
+            String nome) {
+
+        String value =
+                textoDireto(
+                        contexto,
+                        nome);
+
+        return converterInteiroObrigatorio(
+                value,
+                nome);
+    }
+
+    private Integer inteiroOpcional(
+            Node contexto,
+            String nome) {
+
+        String value =
+                texto(
+                        contexto,
+                        nome);
+
+        if (!temTexto(value)) {
+            return null;
+        }
+
+        try {
+
+            return Integer.valueOf(
+                    value);
+
+        } catch (NumberFormatException e) {
+
+            throw campoNumericoInvalido(
+                    nome,
+                    value,
+                    e);
+        }
+    }
+
+    private int converterInteiroObrigatorio(
+            String value,
+            String nome) {
+
+        if (!temTexto(value)) {
+
+            throw new CteException(
+                    "Campo obrigatório '"
+                            + nome
+                            + "' não encontrado na resposta da SEFAZ.");
+        }
+
+        try {
+
+            return Integer.parseInt(
+                    value);
+
+        } catch (NumberFormatException e) {
+
+            throw campoNumericoInvalido(
+                    nome,
+                    value,
+                    e);
+        }
+    }
+
+    /*
+     * ==========================================================
+     * VALIDAÇÕES
+     * ==========================================================
+     */
+
+    private void validarXml(
+            String xml) {
+
+        if (xml == null
+                || xml.isBlank()) {
+
+            throw new CteException(
+                    "Resposta XML da SEFAZ não pode ser vazia.");
+        }
+    }
+
+    private CteException estruturaInvalida(
+            String operacao,
+            String elementoEsperado) {
+
+        return new CteException(
+                "Resposta da SEFAZ inválida para "
+                        + operacao
+                        + ": elemento '"
+                        + elementoEsperado
+                        + "' não encontrado.");
+    }
+
+    private CteException campoNumericoInvalido(
+            String nome,
+            String value,
+            Exception cause) {
+
+        return new CteException(
+                "Campo '"
+                        + nome
+                        + "' com valor numérico inválido "
+                        + "na resposta da SEFAZ: '"
+                        + value
+                        + "'.",
+                cause);
+    }
+
+    /*
+     * ==========================================================
+     * UTILITÁRIOS
+     * ==========================================================
+     */
+
+    private String primeiroNaoVazio(
+            String... values) {
+
+        for (String value : values) {
+
+            if (temTexto(value)) {
+                return value.trim();
+            }
+        }
+
+        return null;
+    }
+
+    private boolean temTexto(
+            String value) {
+
+        return value != null
+                && !value.isBlank();
     }
 }

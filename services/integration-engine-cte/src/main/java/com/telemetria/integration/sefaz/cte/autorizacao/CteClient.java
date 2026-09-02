@@ -2,6 +2,7 @@ package com.telemetria.integration.sefaz.cte.autorizacao;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -110,7 +111,7 @@ public class CteClient {
                     xmlCte.getBytes(StandardCharsets.UTF_8).length);
             String resposta = soapTransport.enviar(
                     soapRequest, sefazProperties.getCte().getEndpoints().getAutorizacao(),
-                    CteSoapService.AUTORIZACAO, timeout);
+                    CteSoapService.AUTORIZACAO, requestTimeout());
             log.info("CT-e: autorização recebeu resposta da SEFAZ (respostaBytes={})",
                     resposta.getBytes(StandardCharsets.UTF_8).length);
 
@@ -180,7 +181,7 @@ public class CteClient {
             log.info("CT-e: transmitindo consulta à SEFAZ");
             String resposta = soapTransport.enviar(
                     soapRequest, sefazProperties.getCte().getEndpoints().getConsulta(),
-                    CteSoapService.CONSULTA, timeout);
+                    CteSoapService.CONSULTA, requestTimeout());
             log.info("CT-e: consulta recebeu resposta da SEFAZ (respostaBytes={})",
                     resposta.getBytes(StandardCharsets.UTF_8).length);
             return resposta;
@@ -219,7 +220,7 @@ public class CteClient {
             String resposta = soapTransport.enviar(
                     CteSoapEnvelopeFactory.wrap(xmlEventoAssinado, CteSoapService.EVENTO),
                     sefazProperties.getCte().getEndpoints().getEvento(),
-                    CteSoapService.EVENTO, timeout);
+                    CteSoapService.EVENTO, requestTimeout());
             log.info("CT-e: evento recebeu resposta da SEFAZ (respostaBytes={})",
                     resposta.getBytes(StandardCharsets.UTF_8).length);
             return resposta;
@@ -287,6 +288,13 @@ public class CteClient {
     /* ========================================================================
      * Métodos Auxiliares e Utilitários (Privados)
      * ======================================================================== */
+
+    private Duration requestTimeout() {
+        if (timeout <= 0) {
+            return CteSoapTransport.DEFAULT_REQUEST_TIMEOUT;
+        }
+        return Duration.ofMillis(timeout);
+    }
 
     /**
      * Converte o XML recebido em um Document DOM.

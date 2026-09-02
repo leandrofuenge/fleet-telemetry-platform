@@ -87,9 +87,9 @@ public class SefazSoapEnvelopeProcessor implements Processor {
         exchange.setProperty("SEFAZ_XML_ENVIO_SOAP_BASE64", soapXmlBase64);
 
         // 7. Configuração dos Headers HTTP para o componente HTTP do Apache Camel 3/4
-        String actionHeader = CteSoapService.STATUS.soapAction();
-        exchange.getMessage().setHeader(Exchange.CONTENT_TYPE,
-                "application/soap+xml; charset=utf-8; action=\"" + actionHeader + "\"");
+        exchange.getMessage().setHeader(
+                Exchange.CONTENT_TYPE,
+                CteSoapService.STATUS.contentType());
         exchange.getMessage().setHeader(Exchange.HTTP_METHOD, "POST");
         exchange.getMessage().setBody(soapXml);
 

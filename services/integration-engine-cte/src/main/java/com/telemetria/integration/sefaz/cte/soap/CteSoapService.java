@@ -1,52 +1,72 @@
 package com.telemetria.integration.sefaz.cte.soap;
 
+import java.time.Duration;
+
 /**
- * Mapeamento dos contratos e ações SOAP 1.2 para os WebServices do CT-e 4.00
- * em conformidade com o Manual de Orientação do Contribuinte (MOC).
+ * Serviços SOAP utilizados na integração CT-e 4.00.
+ *
+ * <p>
+ * Cada serviço concentra suas características técnicas:
+ * </p>
+ *
+ * <ul>
+ *     <li>namespace SOAP;</li>
+ *     <li>SOAP Action;</li>
+ *     <li>timeout recomendado.</li>
+ * </ul>
  */
 public enum CteSoapService {
 
-    AUTORIZACAO("CTeRecepcaoSincV4", "cteRecepcao"),
-    CONSULTA("CTeConsultaV4", "cteConsultaCT"),
-    EVENTO("CTeRecepcaoEventoV4", "cteRecepcaoEvento"),
-    STATUS("CTeStatusServicoV4", "cteStatusServicoCT");
+    STATUS(
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeStatusServicoV4",
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeStatusServicoV4/cteStatusServicoCT",
+            Duration.ofSeconds(10)),
 
-    private static final String WSDL_BASE = "http://www.portalfiscal.inf.br/cte/wsdl/";
+    AUTORIZACAO(
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeRecepcaoSincV4",
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeRecepcaoSincV4/cteRecepcao",
+            Duration.ofSeconds(30)),
 
-    private final String servico;
-    private final String metodo;
+    CONSULTA(
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeConsultaV4",
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeConsultaV4/cteConsultaCT",
+            Duration.ofSeconds(15)),
 
-    CteSoapService(String servico, String metodo) {
-        this.servico = servico;
-        this.metodo = metodo;
+    EVENTO(
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeRecepcaoEventoV4",
+            "http://www.portalfiscal.inf.br/cte/wsdl/CTeRecepcaoEventoV4/cteRecepcaoEvento",
+            Duration.ofSeconds(20));
+
+    private static final String SOAP_12_CONTENT_TYPE =
+            "application/soap+xml; charset=utf-8; action=\"%s\"";
+
+    private final String namespace;
+    private final String soapAction;
+    private final Duration timeout;
+
+    CteSoapService(
+            String namespace,
+            String soapAction,
+            Duration timeout) {
+
+        this.namespace = namespace;
+        this.soapAction = soapAction;
+        this.timeout = timeout;
     }
 
-    public String getServico() {
-        return servico;
-    }
-
-    public String getMetodo() {
-        return metodo;
-    }
-
-    /**
-     * Retorna o Namespace XML do serviço SOAP.
-     */
     public String namespace() {
-        return WSDL_BASE + servico;
+        return namespace;
     }
 
-    /**
-     * Retorna o SOAPAction associado ao serviço.
-     */
     public String soapAction() {
-        return namespace() + "/" + metodo;
+        return soapAction;
     }
 
-    /**
-     * Retorna o valor completo do Header HTTP Content-Type no padrão SOAP 1.2 (inclusão do parâmetro action).
-     */
-    public String getContentTypeHeader() {
-        return "application/soap+xml; charset=utf-8; action=\"" + soapAction() + "\"";
+    public Duration timeout() {
+        return timeout;
+    }
+
+    public String contentType() {
+        return SOAP_12_CONTENT_TYPE.formatted(soapAction);
     }
 }
